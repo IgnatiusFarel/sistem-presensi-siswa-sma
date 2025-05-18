@@ -1,0 +1,68 @@
+<template>
+  <nav
+    class="bg-white border-b-1 border-[#C1C2C5] px-5 py-8 flex items-center justify-between h-[60px]"
+  >
+    <div class="flex items-center">
+      <h1 class="text-4xl font-bold">SPSS</h1>
+    </div>
+
+    <n-dropdown
+      placement="bottom-end"
+      trigger="click"
+      :options="profileOptions"
+      @select="handleProfileSelect"
+    >
+      <div
+        class="flex items-center gap-3 cursor-pointer border-[#C1C2C5] rounded-full bg-[#F1F3F5] px-3 py-1"
+      >
+        <PhCaretUpDown :size="20" v-show="!isCollapsed" />
+        <div class="flex flex-col items-end">
+          <span class="font-medium text-gray-800">Abdul Abel Abdel</span>
+          <span class="text-xs text-gray-500">Siswa</span>
+        </div>
+
+        <n-avatar
+          round
+          size="small"
+          src="https://randomuser.me/api/portraits/men/1.jpg"
+        />
+      </div>
+    </n-dropdown>
+  </nav>
+</template>
+
+<script setup>
+import { NAvatar, NDropdown } from 'naive-ui';
+import { PhSignOut, PhGear, PhUser, PhCaretUpDown } from '@phosphor-icons/vue';
+import { h } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const profileOptions = [
+  {
+    label: 'Profile',
+    key: 'profile',
+    icon: () => h(PhUser, { size: 16 }),
+  },
+  {
+    label: 'Settings',
+    key: 'settings',
+    icon: () => h(PhGear, { size: 16 }),
+  },
+  { type: 'divider' },
+  {
+    label: 'Logout',
+    key: 'logout',
+    icon: () => h(PhSignOut, { size: 16 }),
+  },
+];
+
+const handleProfileSelect = (key) => {
+  if (key === 'logout') {
+    router.push('/masuk');
+  }
+};
+</script>
+
+<style scoped></style>
