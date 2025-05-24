@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DaftarKelasController;
 use App\Http\Controllers\DaftarPengurusController;
 use App\Http\Controllers\DaftarSiswaController;
 use App\Http\Controllers\PresensiController;
@@ -26,6 +27,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
         Route::apiResource('/daftar-pengurus', DaftarPengurusController::class, [
             'parameters' => ['daftar-pengurus' => 'id']
+        ]);
+        Route::apiResource('/daftar-kelas', DaftarKelasController::class, [
+            'parameters' => ['daftar-kelas' => 'id']
         ]);
         
         // Manajemen Presensi - untuk superadmin
