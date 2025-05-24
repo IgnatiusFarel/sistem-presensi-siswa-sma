@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -20,32 +19,39 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Masukkan Email dan Kata Sandi Akun',
+                'message' => 'Masukkan Email dan Kata Sandi Akun!',
                 'errors' => $validator->errors()
             ], 422);
         }
 
-         $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->first();
 
-         if (!$user) {
+        if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Akun belum terdaftar'
+                'message' => 'Akun belum terdaftar!'
             ], 404);
         }
 
-         if (!Hash::check($request->password, $user->password)) {
+        if (!Hash::check($request->password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Kata sandi salah'
+                'message' => 'Kata sandi salah!'
             ], 401);
         }
 
-         $token = $user->createToken('auth_token')->plainTextToken;
+        if (! in_array($user->role, [User::ROLE_SUPERADMIN, User::ROLE_SISWA])) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Anda tidak memiliki akses akun untuk login!'
+            ], 403); 
+        }
 
-         return response()->json([
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
             'success' => true,
-            'message' => 'Masuk berhasil',
+            'message' => 'Berhasil Masuk!',
             'data' => [
                 'user' => [
                     'user_id' => $user->user_id,
@@ -58,13 +64,13 @@ class AuthController extends Controller
         ]);
     }
 
-   public function keluar(Request $request)
+    public function keluar(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Keluar berhasil'
+            'message' => 'Berhasil Keluar!'
         ]);
     }
 }
