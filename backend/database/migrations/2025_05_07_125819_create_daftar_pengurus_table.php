@@ -9,12 +9,9 @@ class CreateDaftarPengurusTable extends Migration
     public function up(): void
     {
         Schema::create('daftar_pengurus', function (Blueprint $table) {
-            $table->id('daftar_pengurus_id');
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->foreign('user_id')
-                  ->references('user_id')      // Referensi ke user_id
-                  ->on('users')
-                  ->onDelete('cascade');
+            $table->uuid('daftar_pengurus_id')->primary();
+            $table->uuid('user_id')->nullable();
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
             $table->string('nama');
             $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan']);
             $table->enum('agama', ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu']);
@@ -22,8 +19,7 @@ class CreateDaftarPengurusTable extends Migration
             $table->string('email')->unique();
             $table->string('nomor_handphone');
             $table->string('tempat_tanggal_lahir');
-            $table->text('alamat_rumah');
-            
+            $table->text('alamat_rumah');        
             $table->enum('jabatan', [
                 'Administrator', 
                 'Kepala Sekolah', 
@@ -35,12 +31,10 @@ class CreateDaftarPengurusTable extends Migration
                 'Staf TU',
                 'Satpam',
                 'Petugas Kebersihan'
-            ]);
-            
+            ]);            
             $table->string('bidang_keahlian');
             $table->string('pengurus');
-            $table->string('akses_kelas');
-            
+            $table->string('akses_kelas')->nullable();            
             $table->enum('status_kepegawaian', [
                 'PNS',
                 'Honorer',
