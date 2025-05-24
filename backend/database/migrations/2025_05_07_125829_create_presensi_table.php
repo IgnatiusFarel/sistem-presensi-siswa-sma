@@ -9,19 +9,16 @@ class CreatePresensiTable extends Migration
     public function up(): void
     {
         Schema::create('presensi', function (Blueprint $table) {
-            $table->id('presensi_id');            
+            $table->uuid('presensi_id')->primary();            
             $table->date('tanggal');
-            $table->time('jam_buka')->nullable(); // Waktu pembukaan presensi
-            $table->time('jam_tutup')->nullable(); // Waktu penutupan presensi
-            $table->timestamp('dibuka_pada')->nullable(); // Timestamp kapan dibuka
-            $table->timestamp('ditutup_pada')->nullable(); // Timestamp kapan ditutup
+            $table->time('jam_buka'); 
+            $table->time('jam_tutup'); 
+            $table->timestamp('dibuka_pada')->nullable(); 
+            $table->timestamp('ditutup_pada')->nullable(); 
             $table->enum('status', ['aktif', 'selesai'])->default('aktif');
-            $table->unsignedBigInteger('dibuat_oleh');
-            $table->foreign('dibuat_oleh')
-                  ->references('user_id')      // Referensi ke user_id
-                  ->on('users')
-                  ->onDelete('cascade');
-            $table->string('keterangan')->nullable(); // Keterangan tambahan
+            $table->uuid('dibuat_oleh');
+            $table->foreign('dibuat_oleh')->references('user_id')->on('users')->onDelete('cascade');
+            $table->string('keterangan')->nullable(); 
             $table->timestamps();
 
             $table->unique(['tanggal', 'jam_buka']);
