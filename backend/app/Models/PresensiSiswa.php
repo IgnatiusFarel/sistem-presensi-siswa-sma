@@ -11,7 +11,15 @@ class PresensiSiswa extends Model
 
     protected $table = 'presensi_siswa';
     protected $primaryKey = 'presensi_siswa_id';
-    
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    public const STATUS_HADIR = 'hadir';
+    public const STATUS_IZIN = 'izin';
+    public const STATUS_SAKIT = 'sakit';
+
+    public const STATUS_ALPHA = 'alpha';
+
     protected $fillable = [
         'presensi_id',
         'daftar_siswa_id',
@@ -29,23 +37,21 @@ class PresensiSiswa extends Model
         'waktu_presensi' => 'datetime',
         'latitude' => 'float',
         'longitude' => 'float',
+        'status' => 'string',
     ];
 
-    // Relasi ke presensi
     public function presensi()
     {
         return $this->belongsTo(Presensi::class, 'presensi_id', 'presensi_id');
     }
 
-    // Relasi ke siswa
     public function siswa()
     {
-        return $this->belongsTo(DaftarSiswa::class, 'daftar_siswa_id');
+        return $this->belongsTo(DaftarSiswa::class, 'daftar_siswa_id', 'daftar_siswa_id');
     }
 
-    // Relasi ke user
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 }
