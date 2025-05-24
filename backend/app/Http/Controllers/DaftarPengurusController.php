@@ -10,45 +10,65 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class DaftarPengurusController extends Controller
-{
-    /**
-     * Menampilkan daftar semua pengurus
-     */
-    public function index()
+{    
+    public function index(Request $request)
     {
-        $pengurus = DaftarPengurus::with('user')->get();
+        try {
+            $perPage = $request->input('per_page', 10);
+            $allowedPerPage = [10, 25, 50, 100]; 
+            if (!in_array($perPage, $allowedPerPage)) {
+                $perPage = 10;
+            }
+
+            $pengurus = DaftarPengurus::with('user')->paginate($perPage);
+
         return response()->json([
             'status' => 'success',
-            'data' => $pengurus
-        ]);
+            'message' => 'Data Pengurus Berhasil diambil!',
+            'data' => $pengurus->items(),
+            'meta' => [
+                'current_page' => $pengurus->currentPage(),
+                'per_page' => $pengurus->perPage(), 
+                'total_items' => $pengurus->total(),
+                'total_pages' => $pengurus->lastPage(), 
+                'next_page_url' => $pengurus->nextPageUrl(),
+                'prev_page_url' => $pengurus->previousPageUrl(), 
+            ]
+        ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Error fetching data pengurus: '. $e->getMessage());
+            return response()->json([
+                'success'=> false, 
+                'message'=> 'Terjadi kesalahan saat mengambil data pengurus!'
+            ], 500);
+        }        
     }
 
-    /**
-     * Menyimpan data pengurus baru
-     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nama' => 'required|string|max:255',
+            'nama' => 'required|string',
             'nip' => 'required|string|unique:daftar_pengurus,nip',
             'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
-            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu,Lainnya',
+            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu',
             'tempat_tanggal_lahir' => 'required|string',
             'alamat_rumah' => 'required|string',
-            'email' => 'required|email',
+            'email' => 'required|email|unique:daftar_pengurus,email',
             'nomor_handphone' => 'required|string',
-            'jabatan' => 'required|in:Administrator,Kepala Sekolah,Wakil Kepala Sekolah,Guru,Kepala Laboratorium,Pustakawan,Operator Sekolah,Staf TU,Satpam,Petugas Kebersihan',
+            'jabatan' => 'required|in:'.implode(',', DaftarPengurus::getAllJabatan()),
             'bidang_keahlian' => 'required|string',
             'pengurus' => 'required|string',
             'akses_kelas' => 'required|string',
-            'status_kepegawaian' => 'required|in:PNS,Honorer,GTY,PTY,Kontrak,Magang,PPPK,Outsourcing',
+            'status_kepegawaian' => 'required|in:'.implode(',', DaftarPengurus::getAllStatus()),
             'tanggal_bergabung' => 'required|date',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
+                'success' => false, 
                 'status' => 'error',
-                'message' => 'Data tidak valid',
+                'message' => 'Validasi data gagal!',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -56,19 +76,19 @@ class DaftarPengurusController extends Controller
         DB::beginTransaction();
         try {
             $userId = null;
-            
-            // Jika jabatan adalah Administrator, buat user baru
-            if ($request->jabatan === 'Administrator') {
-                // Tambahan validasi untuk administrator
+                        
+            if ($request->jabatan === DaftarPengurus::JABATAN_ADMIN) {
+
                 $adminValidator = Validator::make($request->all(), [
                     'email' => 'unique:users,email',
-                    'password' => 'required|min:6',
+                    'password' => 'required|min:8',
                 ]);
                 
                 if ($adminValidator->fails()) {
                     return response()->json([
+                        'success' => false, 
                         'status' => 'error',
-                        'message' => 'Data administrator tidak valid',
+                        'message' => 'Data administrator tidak valid!',
                         'errors' => $adminValidator->errors()
                     ], 422);
                 }
@@ -106,22 +126,19 @@ class DaftarPengurusController extends Controller
             DB::commit();
             return response()->json([
                 'status' => 'success',
-                'message' => 'Data pengurus berhasil ditambahkan',
+                'message' => 'Data pengurus berhasil ditambahkan!',
                 'data' => $pengurus
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menyimpan data pengurus',
+                'message' => 'Data pengurus gagal ditambahkan!',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    /**
-     * Menampilkan detail data pengurus
-     */
     public function show($id)
     {
         $pengurus = DaftarPengurus::with('user')->find($id);
@@ -129,7 +146,7 @@ class DaftarPengurusController extends Controller
         if (!$pengurus) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data pengurus tidak ditemukan'
+                'message' => 'Data pengurus tidak ditemukan!'
             ], 404);
         }
 
@@ -139,9 +156,6 @@ class DaftarPengurusController extends Controller
         ]);
     }
 
-    /**
-     * Update data pengurus yang ada
-     */
     public function update(Request $request, $id)
     {
         $pengurus = DaftarPengurus::find($id);
@@ -149,7 +163,7 @@ class DaftarPengurusController extends Controller
         if (!$pengurus) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data pengurus tidak ditemukan'
+                'message' => 'Data data pengurus tidak ditemukan'
             ], 404);
         }
 
@@ -173,7 +187,7 @@ class DaftarPengurusController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data tidak valid',
+                'message' => 'Data pengurus tidak valid',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -273,9 +287,6 @@ class DaftarPengurusController extends Controller
         }
     }
 
-    /**
-     * Hapus data pengurus
-     */
     public function destroy($id)
     {
         $pengurus = DaftarPengurus::find($id);
@@ -283,13 +294,12 @@ class DaftarPengurusController extends Controller
         if (!$pengurus) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data pengurus tidak ditemukan'
+                'message' => 'Data pengurus tidak ditemukan!'
             ], 404);
         }
 
         DB::beginTransaction();
-        try {
-            // Jika pengurus adalah admin, hapus juga data user
+        try {         
             if ($pengurus->user_id) {
                 User::destroy($pengurus->user_id);
             }
@@ -299,13 +309,13 @@ class DaftarPengurusController extends Controller
             DB::commit();
             return response()->json([
                 'status' => 'success',
-                'message' => 'Data pengurus berhasil dihapus'
-            ]);
+                'message' => 'Data pengurus berhasil dihapus!'
+            ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menghapus data pengurus',
+                'message' => 'Data pengurus gagal dihapus!',
                 'error' => $e->getMessage()
             ], 500);
         }
