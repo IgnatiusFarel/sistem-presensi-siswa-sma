@@ -194,20 +194,26 @@ export default defineComponent({
         title: "Jurusan",
         key: "jurusan",
         width: 100,
-        sorter: (a, b) => a.jurusan.localeCompare(b.jurusan),
+        filterMultiple: false, 
+        filterOptions: [
+          { label: 'IPA', value: 'IPA' },
+          { label: 'IPS', value: 'IPS' },
+          { label: 'Bahasa', value: 'BHS'},
+        ],
+        filter: (value, row) => row.jurusan === value, 
       },
       {
         title: "Tingkat",
-        key: "",
+        key: "tingkat",
         width: 100,
         filterMultiple: false,
         filterOptions: [
-          { label: "X", value: "SMA" },
-          { label: "SMK", value: "SMK" },
+          { label: "X", value: "X" },
+          { label: "XI", value: "XI" },
+          { label: "XII", value: "XII" },
         ],
         filter: (value, row) => row.tingkat === value,
       },
-
       {
         title: "Jumlah Siswa",
         key: "jumlah_siswa",

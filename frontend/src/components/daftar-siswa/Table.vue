@@ -287,7 +287,7 @@ export default defineComponent({
       },
       {
         title: 'Jenis Kelamin',
-        key: 'jenisKelamin',
+        key: 'jenis_kelamin',
         width: 120,
         filterMultiple: false,
         filterOptions: [
@@ -298,9 +298,9 @@ export default defineComponent({
       },
       {
         title: 'Tempat, Tanggal Lahir',
-        key: 'tempatLahir',
+        key: 'tempat_tanggal_lahir',
         render(row) {
-          return `${row.tempatLahir}, ${row.tanggalLahir}`;
+          return `${row.tempat_tanggal_lahir}, ${row.tempat_tanggal_lahir}`;
         },
         width: 200,
       },
@@ -344,8 +344,13 @@ export default defineComponent({
         width: 70,
       },
       {
+        title: 'Tanggal Bergabung',
+        key: 'tanggal_bergabung',
+        width: 130
+      },
+      {
         title: 'Kata Sandi',
-        key: 'sandi',
+        key: 'password',
         width: 150,
         render(row) {
           return h('div', { class: 'flex items-center gap-2' }, [
