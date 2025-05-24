@@ -11,7 +11,11 @@ class Presensi extends Model
 
     protected $table = 'presensi';
     protected $primaryKey = 'presensi_id';
-    
+    public $incrementing = false;
+    protected $keyType = 'string';
+    public const STATUS_AKTIF = 'aktif';
+    public const STATUS_SELESAI = 'selesai';
+
     protected $fillable = [
         'tanggal',
         'jam_buka',
@@ -22,49 +26,41 @@ class Presensi extends Model
         'dibuat_oleh',
         'keterangan'
     ];
-    
     protected $casts = [
         'tanggal' => 'date',
-        'jam_buka' => 'datetime',
-        'jam_tutup' => 'datetime',
+        'jam_buka' => 'time',
+        'jam_tutup' => 'time',
         'dibuka_pada' => 'datetime',
         'ditutup_pada' => 'datetime',
+        'status' => 'string',
     ];
 
-    // Relasi ke tabel users (pembuat presensi)
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'dibuat_oleh');
+        return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
-    // Relasi ke presensi siswa
     public function presensiSiswa()
     {
         return $this->hasMany(PresensiSiswa::class, 'presensi_id', 'presensi_id');
     }
-    
-    // Mendapatkan jumlah siswa hadir
-    public function getJumlahHadirAttribute()
+
+    public function getJumlahHadirSiswa()
     {
         return $this->presensiSiswa()->where('status', 'hadir')->count();
     }
-    
-    // Mendapatkan jumlah siswa terlambat
-    public function getJumlahTerlambatAttribute()
+
+    public function getJumlahIzinSiswa()
     {
-        return $this->presensiSiswa()->where('status', 'terlambat')->count();
+        return $this->presensiSiswa()->where('status', 'izin')->count();
     }
-    
-    // Mendapatkan jumlah siswa izin dan sakit
-    public function getJumlahIzinSakitAttribute()
+
+    public function getJumlahSakitSiswa()
     {
-        return $this->presensiSiswa()
-            ->whereIn('status', ['izin', 'sakit'])
-            ->count();
+        return $this->presensiSiswa()->where('status', 'sakit')->count();
     }
-    
-    // Mendapatkan jumlah siswa alpha
-    public function getJumlahAlphaAttribute()
+
+    public function getJumlahAlphaSiswa()
     {
         return $this->presensiSiswa()->where('status', 'alpha')->count();
     }
