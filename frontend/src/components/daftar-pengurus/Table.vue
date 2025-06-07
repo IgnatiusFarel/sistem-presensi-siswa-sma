@@ -48,9 +48,10 @@
     ref="tableRef"
     v-model:checked-row-keys="selectedRows"
     :columns="columns"
-    :data="tableData"
+    :data="data"
     :loading="loading"
     :pagination="pagination"
+    @refresh="fetchData"
     @update:filters="handleUpdateFilter"
     @update:sorter="handleSorterChange"
   />
@@ -65,8 +66,8 @@ import {
   h,
   defineProps,
   defineEmits,
-} from 'vue';
-import { NTag, NInput, NIcon, NButton } from 'naive-ui';
+} from "vue";
+import { NTag, NInput, NIcon, NButton } from "naive-ui";
 import {
   PhMagnifyingGlass,
   PhPlus,
@@ -74,13 +75,19 @@ import {
   PhPencilSimple,
   PhEye,
   PhEyeSlash,
-} from '@phosphor-icons/vue';
+} from "@phosphor-icons/vue";
 
 export default defineComponent({
-  components: {
-    NInput,
-    NIcon,
-    NButton,
+  name: "TablePengurus",
+  props: {
+    data: {
+      type: Array,
+      default: () => [],
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup(props, { emit }) {
     const loading = ref(true);
@@ -89,149 +96,77 @@ export default defineComponent({
     const selectedRows = ref([]);
     const currentSortState = reactive({});
 
-    const tableData = ref([
-      {
-        key: 1,
-        nama: 'Prof. Dr. Ahmad Santoso, M.Pd',
-        nip: '196512341987031001',
-        jabatan: 'Kepala Sekolah',
-        aksesKelas: 'Semua',
-        tingkat: 'Guru Senior',
-        pengurus: 'Guru',
-        bidang: 'Manajemen Pendidikan',
-        handphone: '081122334455',
-        email: 'ahmad.santoso@sekolah.sch.id',
-        statusKepegawaian: 'PNS',
-        tanggalMasuk: '1990-01-15',
-      },
-      {
-        key: 2,
-        nama: 'Siti Aminah, M.Sc',
-        nip: '198205152003022001',
-        jabatan: 'Wakil Kepala Sekolah Bidang Kurikulum',
-        aksesKelas: 'X–XII',
-        tingkat: 'Guru Menengah',
-        pengurus: 'Guru',
-        bidang: 'Matematika',
-        handphone: '083344556677',
-        email: 'siti.aminah@sekolah.sch.id',
-        statusKepegawaian: 'PNS',
-        tanggalMasuk: '2003-07-01',
-      },
-      {
-        key: 3,
-        nama: 'Bambang Wijaya, S.Pd',
-        nip: '197003121992021001',
-        jabatan: 'Guru Ekonomi',
-        aksesKelas: 'X IPS 1, X IPS 2',
-        tingkat: 'Guru Menengah',
-        pengurus: 'Guru',
-        bidang: 'Ekonomi',
-        handphone: '082233445566',
-        email: 'bambang.wijaya@sekolah.sch.id',
-        statusKepegawaian: 'Honorer',
-        tanggalMasuk: '2010-02-15',
-      },
-      {
-        key: 4,
-        nama: 'Agus Supriyanto',
-        nip: '196711112010041001',
-        jabatan: 'Satpam',
-        aksesKelas: 'Seluruh Area',
-        tingkat: 'Petugas',
-        pengurus: 'Petugas Keamanan',
-        bidang: 'Keamanan',
-        handphone: '087788990011',
-        email: '',
-        statusKepegawaian: 'Kontrak',
-        tanggalMasuk: '2015-05-01',
-      },
-      {
-        key: 5,
-        nama: 'Dian Permata Sari, S.Pd',
-        nip: '198912052010022001',
-        jabatan: 'Petugas Kebersihan',
-        aksesKelas: 'Seluruh Area',
-        tingkat: 'Petugas',
-        pengurus: 'Petugas Kebersihan',
-        bidang: 'Kebersihan',
-        handphone: '084455667788',
-        email: '',
-        statusKepegawaian: 'Honorer',
-        tanggalMasuk: '2018-09-01',
-      },
-      {
-        key: 6,
-        nama: 'Linda Wulandari, M.Pd',
-        nip: '199304102017032001',
-        jabatan: 'Guru Bahasa Inggris',
-        aksesKelas: 'VII–IX',
-        tingkat: 'Guru Junior',
-        pengurus: 'Guru',
-        bidang: 'Bahasa Inggris',
-        handphone: '086677889900',
-        email: 'linda.wulandari@sekolah.sch.id',
-        statusKepegawaian: 'PNS',
-        tanggalMasuk: '2017-03-15',
-      },
-      {
-        key: 7,
-        nama: 'Rudi Hartono, S.Pd',
-        nip: '199011152015021001',
-        jabatan: 'Guru Matematika',
-        aksesKelas: 'IX A, IX B',
-        tingkat: 'Guru Pemula',
-        pengurus: 'Guru',
-        bidang: 'Matematika',
-        handphone: '085566778899',
-        email: 'rudi.hartono@sekolah.sch.id',
-        statusKepegawaian: 'Honorer',
-        tanggalMasuk: '2015-08-10',
-      },
-    ]);
-
     const columns = reactive([
       {
-        type: 'selection',
+        type: "selection",
         width: 50,
       },
       {
-        title: 'No',
-        key: 'no',
+        title: "No",
+        key: "no",
         width: 70,
         sorter: (a, b) => a.no - b.no,
         render: (row, index) => index + 1,
       },
       {
-        title: 'Nama Lengkap',
-        key: 'nama',
+        title: "Nama Lengkap",
+        key: "nama",
         width: 250,
         sorter: (a, b) => a.nama.localeCompare(b.nama),
       },
       {
-        title: 'NIP',
-        key: 'nip',
+        title: "Jenis Kelamin",
+        key: "jenis_kelamin",
+        width: 80,
+      },
+      {
+        title: "NIP",
+        key: "nip",
         width: 180,
         sorter: (a, b) => a.nip.localeCompare(b.nip),
       },
-      { title: 'Jabatan', key: 'jabatan', width: 220 },
-      { title: 'Akses Kelas', key: 'aksesKelas', width: 180 },
       {
-        title: 'Tingkat',
-        key: 'tingkat',
-        width: 140,
-        sorter: (a, b) => a.tingkat.localeCompare(b.tingkat),
+        title: "Agama",
+        key: "agama",
+        width: 100,
+        filterOptions: [
+          { label: "Islam", value: "Islam" },
+          { label: "Kristen", value: "Kristen" },
+          { label: "Katolik", value: "Katolik" },
+          { label: "Hindu", value: "Hindu" },
+          { label: "Buddha", value: "Buddha" },
+          { label: "Konghucu", value: "Konghucu" },
+        ],
+        filter: (value, row) => row.agama === value,
       },
-      { title: 'Pengurus', key: 'pengurus', width: 160 },
-      { title: 'Bidang Keahlian', key: 'bidang', width: 160 },
-      { title: 'Handphone', key: 'handphone', width: 140 },
-      { title: 'Email', key: 'email', width: 200 },
-      { title: 'Status Kepegawaian', key: 'statusKepegawaian', width: 160 },
+      { title: "Jabatan", key: "jabatan", width: 220 },
+      { title: "Akses Kelas", key: "akses_kelas", width: 180 },
       {
-        title: 'Tanggal Masuk',
-        key: 'tanggalMasuk',
-        width: 120,
-        sorter: (a, b) => new Date(a.tanggalMasuk) - new Date(b.tanggalMasuk),
+        title: "Tempat, Tanggal Lahir",
+        key: "tempat_tanggal_lahir",
+        width: 140,
+      },
+      {
+        title: "Alamat Rumah",
+        key: "alamat_rumah",
+        width: 300,
+      },
+      { title: "Pengurus", key: "pengurus", width: 160 },
+      { title: "Bidang Keahlian", key: "bidang_keahlian", width: 160 },
+      { title: "Handphone", key: "nomor_handphone", width: 140 },
+      { title: "Email", key: "email", width: 200 },
+      { title: "Status Kepegawaian", key: "status_kepegawaian", width: 160 },
+      {
+        title: "Tanggal Bergabung",
+        key: "tanggal_bergabung",
+        width: 130,
+        render(row) {
+          return new Date(row.tanggal_bergabung).toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+        },
       },
     ]);
 
@@ -261,21 +196,21 @@ export default defineComponent({
     };
 
     const handleUpdateFilter = (filters) => {
-      console.log('Filter update:', filters);
+      console.log("Filter update:", filters);
     };
 
     const handleEditSelected = () => {
       if (selectedRows.value.length === 1) {
-        const selectedRow = tableData.value.find(
+        const selectedRow = props.data.find(
           (row) => row.key === selectedRows.value[0]
         );
-        emit('edit-data', selectedRow);
+        emit("edit-data", selectedRow);
       }
     };
 
     const handleDeleteSelected = () => {
       if (selectedRows.value.length > 0) {
-        emit('delete-data', selectedRows.value);
+        emit("delete-data", selectedRows.value);
       }
     };
 
@@ -292,7 +227,6 @@ export default defineComponent({
       PhPencilSimple,
       PhEye,
       PhEyeSlash,
-      tableData,
       loading,
       tableRef,
       columns,
