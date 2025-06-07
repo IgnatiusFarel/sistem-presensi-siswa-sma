@@ -48,9 +48,10 @@
     ref="tableRef"
     v-model:checked-row-keys="selectedRows"
     :columns="columns"
-    :data="tableData"
+    :data="data"
     :loading="loading"
     :pagination="pagination"
+    @refresh="fetchData"
     @update:filters="handleUpdateFilter"
     @update:sorter="handleSorterChange"
   />
@@ -75,96 +76,22 @@ import {
 } from "@phosphor-icons/vue";
 
 export default defineComponent({
-  components: {
-    NInput,
-    NIcon,
-    NButton,
+  name: 'TableKelas',
+  props: {
+    data: {
+      type: Array,
+      default: () => [],
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup(props, { emit }) {
     const loading = ref(true);
     const tableRef = ref(null);
     const selectedRows = ref([]);
     const currentSortState = reactive({});
-
-    const tableData = ref([
-      {
-        key: 1,
-        no: 1,
-        kode: "IPA-01",
-        jurusan: "Ilmu Pengetahuan Alam",
-        akronim: "IPA",
-        kelas: "12 Kelas",
-        rombel: "4 Rombel",
-        siswa: "480 Siswa",
-        wakajur: "Dra. Siti Nurhaliza, M.Pd",
-      },
-      {
-        key: 2,
-        no: 2,
-        kode: "IPS-02",
-        jurusan: "Ilmu Pengetahuan Sosial",
-        akronim: "IPS",
-        kelas: "10 Kelas",
-        rombel: "3 Rombel",
-        siswa: "360 Siswa",
-        wakajur: "Drs. Bambang Wijaya, M.Pd",
-      },
-      {
-        key: 3,
-        no: 3,
-        kode: "BHS-03",
-        jurusan: "Bahasa dan Budaya",
-        akronim: "Bahasa",
-        kelas: "8 Kelas",
-        rombel: "2 Rombel",
-        siswa: "240 Siswa",
-        wakajur: "Dian Permata Sari, S.Pd",
-      },
-      {
-        key: 4,
-        no: 4,
-        kode: "TKJ-04",
-        jurusan: "Teknik Komputer dan Jaringan",
-        akronim: "TKJ",
-        kelas: "15 Kelas",
-        rombel: "5 Rombel",
-        siswa: "600 Siswa",
-        wakajur: "Rudi Hartono, S.Kom",
-      },
-      {
-        key: 5,
-        no: 5,
-        kode: "TB-05",
-        jurusan: "Tata Boga",
-        akronim: "TB",
-        kelas: "6 Kelas",
-        rombel: "2 Rombel",
-        siswa: "180 Siswa",
-        wakajur: "Chef Linda Wulandari, S.Pd",
-      },
-      {
-        key: 6,
-        no: 6,
-        kode: "AKL-06",
-        jurusan: "Akuntansi dan Keuangan",
-        akronim: "AKL",
-        kelas: "12 Kelas",
-        rombel: "4 Rombel",
-        siswa: "480 Siswa",
-        wakajur: "Agus Supriyanto, S.Pd",
-      },
-      {
-        key: 7,
-        no: 7,
-        kode: "MM-07",
-        jurusan: "Multimedia",
-        akronim: "MM",
-        kelas: "9 Kelas",
-        rombel: "3 Rombel",
-        siswa: "270 Siswa",
-        wakajur: "Yuni Astuti, S.Sn",
-      },
-    ]);
 
     const columns = reactive([
       {
@@ -176,6 +103,9 @@ export default defineComponent({
         key: "no",
         width: 65,
         sorter: (a, b) => a.no - b.no,
+        render(_, index) {
+          return index + 1;
+        },
       },
       {
         title: "Kode Kelas",
@@ -189,7 +119,6 @@ export default defineComponent({
         width: 100,
         sorter: (a, b) => a.nama_kelas.localeCompare(b.nama_kelas),
       },
-
       {
         title: "Jurusan",
         key: "jurusan",
@@ -228,6 +157,7 @@ export default defineComponent({
         title: "Wali Kelas",
         key: "wali_kelas",
         width: 200,
+        render: (row) => row.wali_kelas?.nama || '-'
       },
     ]);
 
@@ -253,12 +183,12 @@ export default defineComponent({
       console.log("Filter update:", filters);
     };
 
-    const handleEditSelected = () => {
+     const handleEditSelected = () => {
       if (selectedRows.value.length === 1) {
-        const selectedRow = tableData.value.find(
+        const selectedRow = props.data.find(
           (row) => row.key === selectedRows.value[0]
         );
-        emit("edit-data", selectedRow);
+        emit('edit-data', selectedRow);
       }
     };
 
@@ -278,8 +208,7 @@ export default defineComponent({
       PhMagnifyingGlass,
       PhTrash,
       PhPlus,
-      PhPencilSimple,
-      tableData,
+      PhPencilSimple,      
       loading,
       tableRef,
       columns,
