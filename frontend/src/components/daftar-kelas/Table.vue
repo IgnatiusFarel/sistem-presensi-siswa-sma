@@ -12,7 +12,7 @@
         Tambah Kelas
       </n-button>
       <n-button
-        class="!bg-[#E67700] hover:!bg-[#D12B2B] !w-[120px] !h-[42px] !text-white !rounded-[8px]"
+        class="!bg-[#E67700] !w-[120px] !h-[42px] !text-white !rounded-[8px]"
         :disabled="selectedRows.length !== 1"
         @click="handleEditSelected"
       >
@@ -33,9 +33,9 @@
       </n-button>
     </div>
 
-    <n-input
+  <n-input
       placeholder="Cari Data Daftar Kelas..."
-      class="search-input"
+      class="!w-[258px] !h-[42px] !rounded-[8px] !items-center"
       clearable
     >
       <template #prefix>
@@ -46,33 +46,26 @@
 
   <n-data-table
     ref="tableRef"
-    v-model:checked-row-keys="selectedRows"
-    :columns="columns"
     :data="data"
+    :columns="columns"
     :loading="loading"
     :pagination="pagination"
-    @refresh="fetchData"
-    @update:filters="handleUpdateFilter"
+    @refresh="fetchData"    
     @update:sorter="handleSorterChange"
+    v-model:checked-row-keys="selectedRows"
+    :row-key="(row) => row.daftar_kelas_id"
   />
 </template>
 
 <script>
-import {
-  defineComponent,
-  reactive,
-  ref,
-  onMounted,
-  h,
-  defineProps,
-  defineEmits,
-} from "vue";
+import { defineComponent, reactive, ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { NTag, NInput, NIcon, NButton } from "naive-ui";
 import {
-  PhMagnifyingGlass,
   PhPlus,
   PhTrash,
   PhPencilSimple,
+  PhMagnifyingGlass,
 } from "@phosphor-icons/vue";
 
 export default defineComponent({
@@ -92,33 +85,22 @@ export default defineComponent({
     const tableRef = ref(null);
     const selectedRows = ref([]);
     const currentSortState = reactive({});
+    const route = useRoute();
+    const router = useRouter();
 
     const columns = reactive([
-      {
-        type: "selection",
-        width: 50,
-      },
+      { type: "selection", width: 50 },
       {
         title: "No",
         key: "no",
         width: 65,
         sorter: (a, b) => a.no - b.no,
         render(_, index) {
-          return index + 1;
+          return (pagination.page - 1) * pagination.pageSize + index + 1;
         },
       },
-      {
-        title: "Kode Kelas",
-        key: "kode_kelas",
-        width: 100,
-        sorter: (a, b) => a.kode_kelas.localeCompare(b.kode_kelas),
-      },
-      {
-        title: "Nama Kelas",
-        key: "nama_kelas",
-        width: 100,
-        sorter: (a, b) => a.nama_kelas.localeCompare(b.nama_kelas),
-      },
+      { title: "Kode Kelas", key: "kode_kelas", width: 100 },
+      { title: "Nama Kelas", key: "nama_kelas", width: 100 },
       {
         title: "Jurusan",
         key: "jurusan",
@@ -143,16 +125,8 @@ export default defineComponent({
         ],
         filter: (value, row) => row.tingkat === value,
       },
-      {
-        title: "Jumlah Siswa",
-        key: "jumlah_siswa",
-        width: 120,
-      },
-      {
-        title: "Tahun Ajaran",
-        key: "tahun_ajaran",
-        width: 120,
-      },
+      { title: "Jumlah Siswa", key: "jumlah_siswa", width: 120 },
+      { title: "Tahun Ajaran", key: "tahun_ajaran", width: 120 },
       {
         title: "Wali Kelas",
         key: "wali_kelas",
@@ -162,25 +136,23 @@ export default defineComponent({
     ]);
 
     const pagination = reactive({
-      page: 1,
-      pageSize: 10,
+      page: Number(route.query.page) || 1,
+      pageSize: Number(route.query.pageSize) || 10,
       showSizePicker: true,
       pageSizes: [10, 25, 50, 100],
       onChange: (page) => {
         pagination.page = page;
+        router.push({ query: { ...route.query, page } });
       },
       onUpdatePageSize: (pageSize) => {
         pagination.pageSize = pageSize;
         pagination.page = 1;
+        router.push({ query: { ...route.query, page: 1, pageSize } });
       },
     });
 
     const handleSorterChange = (sorter) => {
       Object.assign(currentSortState, sorter);
-    };
-
-    const handleUpdateFilter = (filters) => {
-      console.log("Filter update:", filters);
     };
 
      const handleEditSelected = () => {
@@ -205,17 +177,16 @@ export default defineComponent({
     });
 
     return {
-      PhMagnifyingGlass,
-      PhTrash,
       PhPlus,
+      PhTrash,
       PhPencilSimple,      
+      PhMagnifyingGlass,
+      columns,
       loading,
       tableRef,
-      columns,
-      pagination,
-      handleUpdateFilter,
-      handleSorterChange,
+      pagination,      
       selectedRows,
+      handleSorterChange,
       handleEditSelected,
       handleDeleteSelected,
     };
@@ -226,12 +197,5 @@ export default defineComponent({
 <style scoped>
 .n-data-table {
   --n-border-radius: 12px !important;
-}
-
-.search-input {
-  width: 232px;
-  height: 42px;
-  border-radius: 8px;
-  align-items: center;
 }
 </style>
