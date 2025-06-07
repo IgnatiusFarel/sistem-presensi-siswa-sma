@@ -4,27 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class DaftarSiswa extends Model
 {
     use HasFactory;
-
     protected $table = 'daftar_siswa';
     protected $primaryKey = 'daftar_siswa_id';
 
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $fillable = [
+    protected $fillable = [        
         'user_id',
         'nama',
-        'agama',
         'jenis_kelamin',
+        'agama',
         'nis',
         'nisn',
         'email',
         'nomor_handphone',
         'tempat_tanggal_lahir',
-        'alamat_rumah',
+        'alamat',
         'daftar_kelas_id',
         'nama_kelas',
         'nomor_absen',
@@ -36,6 +36,15 @@ class DaftarSiswa extends Model
         'jenis_kelamin' => 'string',
         'agama' => 'string',
     ];
+
+     protected static function booted()
+    {
+        static::creating(function ($model) {            
+            if (empty($model->daftar_siswa_id)) {
+                $model->daftar_siswa_id = (string) Str::uuid();
+            }
+        });
+    }
 
     public function user()
     {

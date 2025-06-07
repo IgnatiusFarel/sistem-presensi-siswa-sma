@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class DaftarPengurus extends Model
 {
     use HasFactory;
-
     protected $table = 'daftar_pengurus';
     protected $primaryKey = 'daftar_pengurus_id';
     public $incrementing = false;
@@ -73,10 +73,11 @@ class DaftarPengurus extends Model
         'email',
         'nomor_handphone',
         'tempat_tanggal_lahir',
-        'alamat_rumah',
+        'alamat',
         'jabatan',
         'bidang_keahlian',
         'pengurus',
+        'daftar_kelas_id',
         'akses_kelas',
         'status_kepegawaian',
         'tanggal_bergabung',
@@ -89,6 +90,15 @@ class DaftarPengurus extends Model
         'jabatan' => 'string',
         'status_kepegawaian' => 'string',
     ];
+
+    protected static function booted() 
+    {
+        static::creating(function($model) {
+            if (empty($model->daftar_pengurus_id)) {
+                $model->daftar_pengurus_id = (string) Str::uuid();
+            }
+        });
+    }
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
@@ -98,6 +108,4 @@ class DaftarPengurus extends Model
     {
         return $this->hasMany(DaftarKelas::class, 'wali_kelas', 'daftar_pengurus_id');
     }
-
-
 }
