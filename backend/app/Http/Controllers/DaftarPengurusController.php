@@ -53,13 +53,13 @@ class DaftarPengurusController extends Controller
             'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
             'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu',
             'tempat_tanggal_lahir' => 'required|string',
-            'alamat_rumah' => 'required|string',
+            'alamat' => 'required|string',
             'email' => 'required|email|unique:daftar_pengurus,email',
             'nomor_handphone' => 'required|string',
             'jabatan' => 'required|in:'.implode(',', DaftarPengurus::getAllJabatan()),
             'bidang_keahlian' => 'required|string',
             'pengurus' => 'required|string',
-            'akses_kelas' => 'required|string',
+            'akses_kelas' => 'nullable',
             'status_kepegawaian' => 'required|in:'.implode(',', DaftarPengurus::getAllStatus()),
             'tanggal_bergabung' => 'required|date',
         ]);
@@ -85,8 +85,7 @@ class DaftarPengurusController extends Controller
                 ]);
                 
                 if ($adminValidator->fails()) {
-                    return response()->json([
-                        'success' => false, 
+                    return response()->json([                        
                         'status' => 'error',
                         'message' => 'Data administrator tidak valid!',
                         'errors' => $adminValidator->errors()
@@ -100,19 +99,18 @@ class DaftarPengurusController extends Controller
                     'password' => Hash::make($request->password),
                     'role' => 'superadmin',
                 ]);
-                
-                $userId = $user->id;
+                                
             }
 
             // Buat data pengurus
             $pengurus = DaftarPengurus::create([
-                'user_id' => $userId,
+                'user_id' => $user->user_id,
                 'nama' => $request->nama,
                 'nip' => $request->nip,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 'agama' => $request->agama,
                 'tempat_tanggal_lahir' => $request->tempat_tanggal_lahir,
-                'alamat_rumah' => $request->alamat_rumah,
+                'alamat' => $request->alamat,
                 'email' => $request->email,
                 'nomor_handphone' => $request->nomor_handphone,
                 'jabatan' => $request->jabatan,
