@@ -1,14 +1,14 @@
 <template>
   <component
     :is="currentView"
-    @add-data="showView('TambahData')"
-    @edit-data="showEditForm"
-    @back-to-table="showView('Table')"
-    :editData="editData"
-    :data="dataTable"
     :loading="loading"
-    @delete-data="handleDelete"
+    :data="dataTable"
+    :editData="editData"
+    @add-data="showView('TambahData')"
+    @back-to-table="showView('Table')"
     @refresh="fetchData"
+    @edit-data="showEditForm"
+    @delete-data="handleDelete"
   />
 </template>
 
@@ -17,7 +17,7 @@ import { ref, shallowRef, onMounted } from 'vue';
 import Table from './Table.vue';
 import TambahData from './TambahData.vue';
 import EditData from './EditData.vue'
-import Api from "../../services/Api.js"
+import Api from "@/services/Api.js"
 
 const views = { Table, TambahData, EditData };
 const currentView = shallowRef(Table);
