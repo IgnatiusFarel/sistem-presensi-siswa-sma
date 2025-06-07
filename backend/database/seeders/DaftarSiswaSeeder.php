@@ -26,8 +26,7 @@ class DaftarSiswaSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'role'     => User::ROLE_SISWA,
             ]);
-
-            // Pilih kelas dan ambil nama_kelas-nya
+            
             $selectedKelasId = $kelasIds[array_rand($kelasIds)];
             $kelasRecord     = DaftarKelas::find($selectedKelasId);
 
@@ -44,7 +43,7 @@ class DaftarSiswaSeeder extends Seeder
                 'nomor_handphone'     => '082'.rand(1000000,9999999),
                 'email'               => $email,
                 'daftar_kelas_id'     => $selectedKelasId,
-                'nama_kelas'          => $kelasRecord->nama_kelas,    // <- wajib
+                'nama_kelas'          => $kelasRecord->nama_kelas,   
                 'nomor_absen'         => $i,
                 'tanggal_bergabung'   => now()->subYears(1),
             ]);
