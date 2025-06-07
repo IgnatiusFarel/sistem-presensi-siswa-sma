@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
 import router from './router'
-import { createPinia } from 'pinia' // Diubah di sini
+import { createPinia } from 'pinia'
 import { createHead } from '@vueuse/head'
 import {
   NButton,
@@ -15,9 +15,8 @@ import {
 
 const app = createApp(App)
 const head = createHead()
-const pinia = createPinia() // Diubah di sini
+const pinia = createPinia() 
 
-// Daftar komponen Naive UI untuk registrasi global
 const naiveComponents = {
   NButton,
   NSpace,
@@ -27,12 +26,10 @@ const naiveComponents = {
   NPopselect,
 }
 
-// Registrasi plugin
 app.use(router)
 app.use(head)
-app.use(pinia) // Diubah di sini
+app.use(pinia) 
 
-// Registrasi komponen Naive UI secara global
 Object.entries(naiveComponents).forEach(([componentName, component]) => {
   app.component(componentName, component)
 })
