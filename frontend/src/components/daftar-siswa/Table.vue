@@ -46,30 +46,27 @@
 
   <n-data-table
     ref="tableRef"
-    v-model:checked-row-keys="selectedRows"
-    :columns="columns"
     :data="data"
+    :columns="columns"
     :loading="loading"
     :pagination="pagination"
     @refresh="fetchData"
-    @update:filters="handleUpdateFilter"
     @update:sorter="handleSorterChange"
-    class="!rounded-[12px]"
+    v-model:checked-row-keys="selectedRows"
+    :row-key="(row) => row.daftar_siswa_id"
   />
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted, h } from "vue";
+import { defineComponent, reactive, ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { NIcon, NButton } from "naive-ui";
 import {
-  PhMagnifyingGlass,
   PhPlus,
   PhTrash,
   PhPencilSimple,
-  PhEye,
-  PhEyeSlash,
+  PhMagnifyingGlass,
 } from "@phosphor-icons/vue";
-import { useRoute, useRouter } from "vue-router";
 
 export default defineComponent({
   name: "TableSiswa",
@@ -91,30 +88,8 @@ export default defineComponent({
     const route = useRoute();
     const router = useRouter();
 
-    const handleSorterChange = (sorter) => {
-      Object.assign(currentSortState, sorter);
-    };
-
-    const handleEditSelected = () => {
-      if (selectedRows.value.length === 1) {
-        const selectedRow = props.data.find(
-          (row) => row.key === selectedRows.value[0]
-        );
-        emit("edit-data", selectedRow);
-      }
-    };
-
-    const handleDeleteSelected = () => {
-      if (selectedRows.value.length > 0) {
-        emit("delete-data", selectedRows.value);
-      }
-    };
-
     const columns = reactive([
-      {
-        type: "selection",
-        width: 50,
-      },
+      { type: "selection", width: 50 },
       {
         title: "No",
         key: "no",
@@ -130,16 +105,8 @@ export default defineComponent({
         width: 200,
         sorter: (a, b) => a.nama.localeCompare(b.nama),
       },
-      {
-        title: "NIS",
-        key: "nis",
-        width: 100,
-      },
-      {
-        title: "NISN",
-        key: "nisn",
-        width: 130,
-      },
+      { title: "NIS", key: "nis", width: 100 },
+      { title: "NISN", key: "nisn", width: 130 },
       {
         title: "Jenis Kelamin",
         key: "jenis_kelamin",
@@ -170,31 +137,11 @@ export default defineComponent({
         ],
         filter: (value, row) => row.agama === value,
       },
-      {
-        title: "Alamat",
-        key: "alamat",
-        width: 300,
-      },
-      {
-        title: "No. Handphone",
-        key: "nomor_handphone",
-        width: 150,
-      },
-      {
-        title: "Email",
-        key: "email",
-        width: 200,
-      },
-      {
-        title: "Kelas",
-        key: "nama_kelas",
-        width: 130,
-      },
-      {
-        title: "No. Absen",
-        key: "nomor_absen",
-        width: 70,
-      },
+      { title: "Alamat", key: "alamat", width: 300 },
+      { title: "No. Handphone", key: "nomor_handphone", width: 150 },
+      { title: "Email", key: "email", width: 200 },
+      { title: "Kelas", key: "nama_kelas", width: 130 },
+      { title: "No. Absen", key: "nomor_absen", width: 70 },
       {
         title: "Tanggal Bergabung",
         key: "tanggal_bergabung",
@@ -225,22 +172,39 @@ export default defineComponent({
       },
     });
 
+    const handleSorterChange = (sorter) => {
+      Object.assign(currentSortState, sorter);
+    };
+
+    const handleEditSelected = () => {
+      if (selectedRows.value.length === 1) {
+        const selectedRow = props.data.find(
+          (row) => row.key === selectedRows.value[0]
+        );
+        emit("edit-data", selectedRow);
+      }
+    };
+
+    const handleDeleteSelected = () => {
+      if (selectedRows.value.length > 0) {
+        emit("delete-data", selectedRows.value);
+      }
+    };
+
     onMounted(() => {
       setTimeout(() => {
         loading.value = false;
-      }, 500);
+      }, 100);
     });
 
     return {
-      PhMagnifyingGlass,
-      PhTrash,
       PhPlus,
+      PhTrash,
       PhPencilSimple,
-      PhEye,
-      PhEyeSlash,
+      PhMagnifyingGlass,
+      columns,
       loading,
       tableRef,
-      columns,
       pagination,
       selectedRows,
       handleSorterChange,
