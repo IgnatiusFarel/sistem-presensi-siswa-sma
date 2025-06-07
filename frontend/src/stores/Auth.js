@@ -7,12 +7,15 @@ export const useAuthStore = defineStore("auth", () => {
   const user = ref(JSON.parse(localStorage.getItem("user")) || null);
   const tokenExpiry = ref(localStorage.getItem("token_expiry") || null);
 
-  const isAuthenticated = computed(() => !!token.value && !isTokenExpired());
-
   function isTokenExpired() {
     if (!tokenExpiry.value) return true;
     return new Date() > new Date(tokenExpiry.value);
   }
+
+  const isAuthenticated = computed(() => {
+  return !!token.value && !isTokenExpired();
+});
+
 
   async function login(credentials) {
     try {
@@ -24,8 +27,7 @@ export const useAuthStore = defineStore("auth", () => {
       }
       
       // Get data from correct structure
-      const { token: authToken, user: userData } = response.data.data;
-      
+      const { token: authToken, user: userData } = response.data.data;    
       if (!authToken || !userData) {
         throw 'Data tidak lengkap dari server';
       }
