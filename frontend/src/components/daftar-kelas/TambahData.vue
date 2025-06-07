@@ -14,7 +14,7 @@
 
     <div class="bg-white rounded-lg p-6 border border-[#C1C2C5]">
       <h1 class="text-3xl font-bold text-[#1E1E1E] mb-8 text-center">
-        Tambah Data Jurusan
+        Tambah Data Kelas
       </h1>
 
       <n-form>
@@ -125,14 +125,7 @@
 import { defineComponent, ref } from 'vue';
 import { PhCaretDoubleLeft, PhFileArrowUp } from '@phosphor-icons/vue';
 
-const agamaOptions = [
-  { value: 'Islam', label: 'Islam' },
-  { value: 'Kristen', label: 'Kristen Protestan' },
-  { value: 'Katolik', label: 'Katolik' },
-  { value: 'Hindu', label: 'Hindu' },
-  { value: 'Buddha', label: 'Buddha' },
-  { value: 'Konghucu', label: 'Konghucu' },
-];
+
 
 
 const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
