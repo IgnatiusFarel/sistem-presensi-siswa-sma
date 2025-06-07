@@ -35,7 +35,7 @@
 
     <n-input
       placeholder="Cari Data Daftar Pengurus..."
-      class="search-input"
+      class="!w-[258px] !h-[42px] !rounded-[8px] !items-center"
       clearable
     >
       <template #prefix>
@@ -46,35 +46,26 @@
 
   <n-data-table
     ref="tableRef"
-    v-model:checked-row-keys="selectedRows"
-    :columns="columns"
     :data="data"
+    :columns="columns"
     :loading="loading"
     :pagination="pagination"
     @refresh="fetchData"
-    @update:filters="handleUpdateFilter"
     @update:sorter="handleSorterChange"
+    v-model:checked-row-keys="selectedRows"
+    :row-key="(row) => row.daftar_pengurus_id"
   />
 </template>
 
 <script>
-import {
-  defineComponent,
-  reactive,
-  ref,
-  onMounted,
-  h,
-  defineProps,
-  defineEmits,
-} from "vue";
+import { defineComponent, reactive, ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { NTag, NInput, NIcon, NButton } from "naive-ui";
 import {
-  PhMagnifyingGlass,
   PhPlus,
   PhTrash,
   PhPencilSimple,
-  PhEye,
-  PhEyeSlash,
+  PhMagnifyingGlass,
 } from "@phosphor-icons/vue";
 
 export default defineComponent({
@@ -92,21 +83,21 @@ export default defineComponent({
   setup(props, { emit }) {
     const loading = ref(true);
     const tableRef = ref(null);
-    const showPassword = ref({});
     const selectedRows = ref([]);
     const currentSortState = reactive({});
+    const route = useRoute();
+    const router = useRouter();
 
     const columns = reactive([
-      {
-        type: "selection",
-        width: 50,
-      },
+      { type: "selection", width: 50 },
       {
         title: "No",
         key: "no",
         width: 70,
         sorter: (a, b) => a.no - b.no,
-        render: (row, index) => index + 1,
+        render(_, index) {
+          return (pagination.page - 1) * pagination.pageSize + index + 1;
+        },
       },
       {
         title: "Nama Lengkap",
@@ -114,17 +105,8 @@ export default defineComponent({
         width: 250,
         sorter: (a, b) => a.nama.localeCompare(b.nama),
       },
-      {
-        title: "Jenis Kelamin",
-        key: "jenis_kelamin",
-        width: 80,
-      },
-      {
-        title: "NIP",
-        key: "nip",
-        width: 180,
-        sorter: (a, b) => a.nip.localeCompare(b.nip),
-      },
+      { title: "Jenis Kelamin", key: "jenis_kelamin", width: 80 },
+      { title: "NIP", key: "nip", width: 180 },
       {
         title: "Agama",
         key: "agama",
@@ -146,11 +128,7 @@ export default defineComponent({
         key: "tempat_tanggal_lahir",
         width: 140,
       },
-      {
-        title: "Alamat Rumah",
-        key: "alamat_rumah",
-        width: 300,
-      },
+      { title: "Alamat Rumah", key: "alamat", width: 300 },
       { title: "Pengurus", key: "pengurus", width: 160 },
       { title: "Bidang Keahlian", key: "bidang_keahlian", width: 160 },
       { title: "Handphone", key: "nomor_handphone", width: 140 },
@@ -171,32 +149,23 @@ export default defineComponent({
     ]);
 
     const pagination = reactive({
-      page: 1,
-      pageSize: 10,
+      page: Number(route.query.page) || 1,
+      pageSize: Number(route.query.pageSize) || 10,
       showSizePicker: true,
       pageSizes: [10, 25, 50, 100],
       onChange: (page) => {
         pagination.page = page;
+        router.push({ query: { ...route.query, page } });
       },
       onUpdatePageSize: (pageSize) => {
         pagination.pageSize = pageSize;
         pagination.page = 1;
+        router.push({ query: { ...route.query, page: 1, pageSize } });
       },
     });
 
-    const togglePasswordVisibility = (rowKey) => {
-      showPassword.value = {
-        ...showPassword.value,
-        [rowKey]: !showPassword.value[rowKey],
-      };
-    };
-
     const handleSorterChange = (sorter) => {
       Object.assign(currentSortState, sorter);
-    };
-
-    const handleUpdateFilter = (filters) => {
-      console.log("Filter update:", filters);
     };
 
     const handleEditSelected = () => {
@@ -207,7 +176,6 @@ export default defineComponent({
         emit("edit-data", selectedRow);
       }
     };
-
     const handleDeleteSelected = () => {
       if (selectedRows.value.length > 0) {
         emit("delete-data", selectedRows.value);
@@ -217,25 +185,20 @@ export default defineComponent({
     onMounted(() => {
       setTimeout(() => {
         loading.value = false;
-      }, 500);
+      }, 100);
     });
 
     return {
-      PhMagnifyingGlass,
-      PhTrash,
       PhPlus,
+      PhTrash,
       PhPencilSimple,
-      PhEye,
-      PhEyeSlash,
+      PhMagnifyingGlass,
+      columns,
       loading,
       tableRef,
-      columns,
       pagination,
-      handleUpdateFilter,
-      handleSorterChange,
-      showPassword,
-      togglePasswordVisibility,
       selectedRows,
+      handleSorterChange,
       handleEditSelected,
       handleDeleteSelected,
     };
@@ -246,12 +209,5 @@ export default defineComponent({
 <style scoped>
 .n-data-table {
   --n-border-radius: 12px !important;
-}
-
-.search-input {
-  width: 232px;
-  height: 42px;
-  border-radius: 8px;
-  align-items: center;
 }
 </style>
