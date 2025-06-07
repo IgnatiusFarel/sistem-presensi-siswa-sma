@@ -4,37 +4,47 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class DaftarKelas extends Model
 {
     use HasFactory;
-
     protected $table = 'daftar_kelas';
-    protected $primaryKey = 'daftar_kelas_id'; 
-    public    $incrementing = false;
-    protected $keyType      = 'string';
+    protected $primaryKey = 'daftar_kelas_id';
+    public $incrementing = false;
+    protected $keyType = 'string';
     public const JURUSAN_IPA = 'IPA';
-    public const JURUSAN_IPS = 'IPS'; 
-    public const JURUSAN_BAHASA = 'Bahasa'; 
+    public const JURUSAN_IPS = 'IPS';
+    public const JURUSAN_BAHASA = 'Bahasa';
     public const TINGKAT_X = 'X';
     public const TINGKAT_XI = 'XI';
-    public const TINGKAT_XII = 'XII'; 
-    
-    protected $fillable = [        
+    public const TINGKAT_XII = 'XII';
+
+    protected $fillable = [
         'kode_kelas',
         'nama_kelas',
         'jurusan',
         'tingkat',
-        'wali_kelas',
+        'daftar_pengurus_id',
         'tahun_ajaran',
         'jumlah_siswa'
     ];
 
-    public function waliKelas()
+    protected static function booted()
     {
-        return $this->belongsTo(DaftarPengurus::class, 'wali_kelas', 'daftar_pengurus_id')->select('daftar_pengurus_id', 'nama');
+        static::creating(function ($model) {
+            if (empty($model->daftar_kelas_id)) {
+                $model->daftar_kelas_id = (string) Str::uuid();
+            }
+        });
     }
 
+    public function waliKelas()
+    {
+        return $this->belongsTo(DaftarPengurus::class, 'daftar_pengurus_id', 'daftar_pengurus_id')
+            ->select('daftar_pengurus_id', 'nama');
+    }
+    
     public function siswa()
     {
         return $this->hasMany(DaftarSiswa::class, 'daftar_kelas_id', 'daftar_kelas_id');
@@ -45,13 +55,4 @@ class DaftarKelas extends Model
         $this->jumlah_siswa = $this->siswa()->count();
         $this->save();
     }
-
-    // protected static function booted() 
-    // {
-    //     DaftarSiswa::created(function($s) {
-    //         DaftarKelas::where('daftar_kelas_id', $s->daftar_kelas_id)->increment('jumlah_siswa');
-    //     }); 
-        
-    //     DaftarSiswa::deleted(function($s))
-    // }
 }
