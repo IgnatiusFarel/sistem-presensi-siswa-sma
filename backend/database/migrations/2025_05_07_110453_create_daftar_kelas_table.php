@@ -17,7 +17,7 @@ class CreateDaftarKelasTable extends Migration
             $table->uuid('daftar_pengurus_id')->nullable();            
             $table->string('wali_kelas');
             $table->string('tahun_ajaran');
-            $table->integer('jumlah_siswa')->default(0); 
+            $table->integer('jumlah_siswa')->nullable()->default(0); 
             $table->timestamps();
         });
     }
