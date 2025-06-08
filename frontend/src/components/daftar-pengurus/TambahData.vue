@@ -73,7 +73,7 @@
           <n-form-item label="Pengurus" path="pengurus">
             <n-select
               v-model:value="formData.pengurus"
-              :options="agamaOptions"
+              :options="pengurusOptions"
               placeholder="Pilih Pengurus..."
             />
           </n-form-item>
@@ -126,15 +126,16 @@
         <n-form-item label="Akses Kelas" path="akses_kelas">
           <n-select
             v-model:value="formData.akses_kelas"
+              :options="kelasOptions"
             filterable
             multiple
             placeholder="Pilih Akses Kelas..."
+              value-field="daftar_kelas_id"
           />
         </n-form-item>
           <n-form-item label="Tanggal Bergabung" path="tanggal_bergabung">
             <n-date-picker
-              v-model:value="formData.tanggal_bergabung"
-              
+              v-model:value="formData.tanggal_bergabung"              
               type="date"
               class="w-full"
               placeholder="Pilih Tanggal Bergabung..."
@@ -374,6 +375,7 @@ const formData = ref({
   jabatan: null,
   bidang_keahlian: '',
   pengurus: null,
+  daftar_kelas_id: null,
   akses_kelas: [], 
   status_kepegawaian: null,
   tanggal_bergabung: null,
@@ -423,6 +425,16 @@ const fetchDataKelas = async () => {
     loading.value = false;
   }
 }
+watch(
+  () => formData.value.daftar_kelas_id,
+  (newId) => {
+    const found = kelasOptions.value.find((k) => k.daftar_kelas_id === newId);
+    formData.value.nama_kelas = found ? found.nama_kelas : "";
+  }
+);
+onMounted(() => {
+  fetchDataKelas();
+});
 </script>
 
 <style scoped>

@@ -3,92 +3,169 @@
     <n-button
       text
       type="primary"
-      class="!text-[#1E1E1E] hover:!text-[#E67700] mb-6"
-      @click="handleCancel"
+      class="!text-[#1E1E1E] !mb-4 !text-sm !underline"
+      @click="$emit('back-to-table')"
     >
       <template #icon>
-        <n-icon :component="ArrowLeft" />
+        <n-icon :component="PhCaretDoubleLeft" :size="18" />
       </template>
-      Kembali ke Daftar Siswa
+      Kembali ke Halaman Daftar Pengurus
     </n-button>
 
-    <div class="bg-white rounded-lg shadow-md p-8">
-      <h1 class="text-2xl font-bold text-[#1E1E1E] mb-8">Edit Data Siswa</h1>
+    <div class="bg-white rounded-lg p-6 border border-[#C1C2C5]">
+      <h1 class="text-3xl font-bold text-[#1E1E1E] mb-8 text-center">
+        Edit Data Pengurus
+      </h1>
+      
+      <n-form :model="formData" :rules="rules" ref="formRef">
+        <n-form-item label="Nama Lengkap " path="nama">
+          <n-input
+            v-model:value="formData.nama"
+            placeholder="Masukkan Nama Lengkap..."
+          />
+        </n-form-item>
 
-      <!-- Form Input Data Manual -->
-      <n-form class="space-y-8">
-        <div class="grid grid-cols-4 gap-6">
-          <n-form-item label="No Absen" path="absen">
-            <n-input-number v-model:value="formData.absen" clearable />
+        <div class="grid grid-cols-2 gap-2">
+          <n-form-item label="NIP " path="nip">
+            <n-input
+              :allow-input="onlyAllowNumber"
+              v-model:value="formData.nip"
+              placeholder="Masukkan NIP..."
+            />
+          </n-form-item>
+          <n-form-item label="Jenis Kelamin" path="jenis_kelamin">
+            <div class="grid grid-cols-2">
+              <n-radio-group
+                v-model:value="formData.jenis_kelamin"
+                name="jenis_kelamin"
+              >
+                <n-radio-button
+                  v-for="option in jenisKelaminOptions"
+                  :key="option.value"
+                  :value="option.value"
+                  :label="option.label"
+                  class="!w-full"
+                />
+              </n-radio-group>
+            </div>
+          </n-form-item>
+            <n-form-item label="Agama" path="agama">
+            <n-select
+              v-model:value="formData.agama"
+              :options="agamaOptions"
+              placeholder="Pilih Jabatan..."
+            />
+          </n-form-item>
+          <n-form-item label="Jabatan" path="jabatan">
+            <n-select
+              v-model:value="formData.jabatan"
+              :options="jabatanOptions"
+              placeholder="Pilih Jabatan..."
+            />
+          </n-form-item>
+          <n-form-item label="Bidang Keahlian" path="bidang_keahlian">
+            <n-input
+              v-model:value="formData.bidang_keahlian"
+              placeholder="Masukkan Bidang Keahlian..."
+            />
+          </n-form-item>
+       
+          <n-form-item label="Pengurus" path="pengurus">
+            <n-select
+              v-model:value="formData.pengurus"
+              :options="pengurusOptions"
+              placeholder="Pilih Pengurus..."
+            />
+          </n-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <n-form-item label="Alamat Email" path="email">
+            <n-input
+              v-model:value="formData.email"
+              placeholder="Masukkan Alamat Email..."
+              type="email"
+            />
           </n-form-item>
 
-          <n-form-item label="Kelas" path="kelas">
+          <n-form-item label="Nomor Handphone" path="nomor_handphone">
+            <n-input
+              :allow-input="onlyAllowNumber"
+              v-model:value="formData.nomor_handphone"
+              placeholder="Masukkan Nomor Handphone..."
+            />
+          </n-form-item>
+
+          <n-form-item label="Tempat, Tanggal Lahir" path="tempat_tanggal_lahir">
+            <n-input
+              v-model:value="formData.tempat_tanggal_lahir"
+              placeholder="Masukkan Tempat, Tanggal Lahir..."
+            />
+          </n-form-item>
+
+          <n-form-item label="Alamat Rumah" path="alamat">
+            <n-input
+              type="textarea"
+              v-model:value="formData.alamat"
+              placeholder="Masukkan Alamat Rumah..."
+              :autosize="{
+                minRows: 1,
+                maxRows: 3,
+              }"
+            />
+          </n-form-item>
+
+          <n-form-item label="Status Kepegawaian" path="status_kepegawaian">
             <n-select
-              v-model:value="formData.kelas"
+              v-model:value="formData.status_kepegawaian"
+              :options="statusKepegawaianOptions"
+              placeholder="Pilih Status Kepegawaian..."
+            />
+          </n-form-item>
+          
+        <n-form-item label="Akses Kelas" path="akses_kelas">
+          <n-select
+            v-model:value="formData.akses_kelas"
               :options="kelasOptions"
-              placeholder="Pilih Kelas"
+            filterable
+            multiple
+            placeholder="Pilih Akses Kelas..."
+              value-field="daftar_kelas_id"
+          />
+        </n-form-item>
+          <n-form-item label="Tanggal Bergabung" path="tanggal_bergabung">
+            <n-date-picker
+              v-model:value="formData.tanggal_bergabung"              
+              type="date"
+              class="w-full"
+              placeholder="Pilih Tanggal Bergabung..."
             />
           </n-form-item>
-
-          <n-form-item label="Jurusan" path="jurusan">
-            <n-select
-              v-model:value="formData.jurusan"
-              :options="jurusanOptions"
-              placeholder="Pilih Jurusan"
-            />
-          </n-form-item>
-
-          <n-form-item label="Kelompok" path="kelompok">
-            <n-select
-              v-model:value="formData.kelompok"
-              :options="kelompokOptions"
-              placeholder="Pilih Kelompok"
+            <n-form-item label="Kata Sandi" path="password">
+            <n-input
+              type="password"
+              show-password-on="click"
+              v-model:value="formData.password"
+              placeholder="Masukkan Kata Sandi..."
             />
           </n-form-item>
         </div>
 
-        <div class="space-y-6">
-          <n-form-item label="Nama Siswa" path="nama">
-            <n-input
-              v-model:value="formData.nama"
-              placeholder="Masukkan Nama Lengkap"
-            />
-          </n-form-item>
-
-          <n-form-item label="NIS" path="nis">
-            <n-input
-              v-model:value="formData.nis"
-              placeholder="Masukkan Nomor Induk Siswa"
-            />
-          </n-form-item>
-
-          <n-form-item label="No. Telepon" path="telepon">
-            <n-input
-              v-model:value="formData.telepon"
-              placeholder="Masukkan Nomor Telepon"
-            />
-          </n-form-item>
-        </div>
-
-        <div class="flex justify-end gap-4">
-          <n-button
-            type="primary"
-            class="!bg-[#1E1E1E] !text-white hover:!bg-[#E67700] !w-full"
-            @click="handleSubmit"
-          >
-            Tambah
-          </n-button>
-        </div>
+        <n-button
+          type="primary"
+          class="!bg-[#1E1E1E] !text-white !w-full"
+          @click="handleSubmit"
+        >
+          Tambah
+        </n-button>
       </n-form>
 
-      <!-- Separator -->
-      <div class="my-8 flex items-center">
+      <div class="my-2 flex items-center">
         <div class="flex-1 border-t border-gray-300"></div>
         <span class="px-4 text-gray-500 text-sm">atau</span>
         <div class="flex-1 border-t border-gray-300"></div>
       </div>
 
-      <!-- Import dari Dokumen -->
       <div class="space-y-4">
         <h3 class="font-medium text-gray-700">Import dari Dokumen</h3>
         <n-upload
@@ -100,7 +177,7 @@
           <n-upload-dragger class="!p-6 hover:!bg-gray-50">
             <div class="py-8 text-center">
               <n-icon
-                :component="Upload"
+                :component="PhFileArrowUp"
                 :size="48"
                 class="text-gray-400 mb-2"
               />
@@ -122,60 +199,261 @@
 </template>
 
 <script setup>
-import { PhArrowLeft, PhUpload } from '@phosphor-icons/vue';
-import { ref } from 'vue';
+import { defineComponent, ref, watch, onMounted } from 'vue';
+import { PhCaretDoubleLeft, PhFileArrowUp } from '@phosphor-icons/vue';
+import Api from "@/services/Api"; 
 
+const loading = ref(false)
+const formRef = ref(null)
+const kelasOptions = ref([]);
+const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
 const emit = defineEmits(['back-to-table']);
 
+const props = defineProps({
+  editData: Object 
+})
+
+const rules = {
+  nama: [
+    {
+      required: true,
+      message: "Nama lengkap wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+   jenis_kelamin: [
+    {
+      required: true,
+      message: "Jenis kelamin wajib dipilih",
+      trigger: ["blur", "change"],
+    },
+  ],
+   nip: [
+    {
+      required: true,
+      message: "NIP wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+  agama: [
+      {
+      required: true,
+      message: "Agama wajib dipilih",
+      trigger: ["blur", "change"],
+    },
+  ],
+  jabatan: [
+      {
+      required: true,
+      message: "Jabatan wajib dipilih",
+      trigger: ["blur", "input"],
+    },
+  ],
+  tempat_tanggal_lahir: [
+      {
+      required: true,
+      message: "Tempat, Tanggal Lahir wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+  alamat: [
+   {
+      required: true,
+      message: "Alamat Rumah wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ], 
+  pengurus: [
+  {
+      required: true,
+      message: "Pengurus wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+  bidang_keahlian: [
+    {
+      required: true,
+      message: "Bidang Keahlian wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+  nomor_handphone: [
+    {
+      required: true,
+      message: "Nomor Handphone wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+ email: [
+    {
+      required: true,
+      message: "Email wajib diisi",
+      trigger: ["blur", "input"],
+    },
+    {
+      type: "email",
+      message: "Format email tidak valid",
+      trigger: ["blur", "input"],
+    },
+  ],
+  status_kepegawaian: [
+      {
+      required: true,
+      message: "Status Kepegawaian wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+   password: [
+    {
+      required: true,
+      message: "Kata sandi wajib diisi",
+      trigger: ["blur", "input"],
+    },
+    {
+      min: 8,
+      message: "Kata sandi minimal 6 karakter",
+      trigger: ["blur", "input"],
+    },
+  ],
+  tanggal_bergabung: [
+    {
+      required: true,
+      validator: (_, value) => {
+        if (value === null || value === undefined || value === "") {
+          return new Error("Tanggal bergabung wajib diisi");
+        }
+        return true;
+      },
+      trigger: ["blur", "change"],
+    },
+  ],
+}
+
+const agamaOptions = [
+  { value: 'Islam', label: 'Islam' },
+  { value: 'Kristen', label: 'Kristen Protestan' },
+  { value: 'Katolik', label: 'Katolik' },
+  { value: 'Hindu', label: 'Hindu' },
+  { value: 'Buddha', label: 'Buddha' },
+  { value: 'Konghucu', label: 'Konghucu' },
+];
+
+const jenisKelaminOptions = [
+  { value: 'Laki-laki', label: 'Laki-laki' },
+  { value: 'Perempuan', label: 'Perempuan' },
+];
+
+const jabatanOptions = [
+  { value: 'Administrator', label: 'Administrator' },
+  { value: 'Kepala Sekolah', label: 'Kepala Sekolah' },
+  { value: 'Wakil Kepala Sekolah', label: 'Wakil Kepala Sekolah' },
+  { value: 'Guru', label: 'Guru' },
+  { value: 'Kepala Laboratorium', label: 'Kepala Laboratorium' },
+  { value: 'Pustakawan', label: 'Pustakawan' },
+  { value: 'Operator Sekolah', label: 'Operator Sekolah' },
+  { value: 'Staf TU', label: 'Staf TU' },
+  { value: 'Satpam', label: 'Satpam' },
+  { value: 'Petugas Kebersihan', label: 'Petugas Kebersihan' },
+];
+
+const statusKepegawaianOptions = [
+  { value: 'PNS', label: 'Pegawai Negeri Sipil'},
+  { value: 'Honorer', label: 'Honorer'},
+  { value: 'GTY', label: 'Guru Tetap Yayasan'},
+  { value: 'PTY', label: 'Pegawai Tetap Yayasan'},
+  { value: 'Kontrak', label: 'Kontrak'},
+  { value: 'Magang', label: 'Magang'},  
+  { value: 'PPPK', label: 'Pegawai Pemerintah Perjanjian Kerja'},
+  { value: 'Outsourcing', label: 'Outsourcing'},
+]
+
 const formData = ref({
-  absen: null,
-  kelas: null,
-  jurusan: null,
-  kelompok: null,
   nama: '',
-  nis: '',
-  telepon: '',
+  jenis_kelamin: null,
+  agama: null,
+  nip: '',
+  email: '',
+  nomor_handphone: '', 
+  tempat_tanggal_lahir: '', 
+  alamat: '',
+  jabatan: null,
+  bidang_keahlian: '',
+  pengurus: null,
+  daftar_kelas_id: null,
+  akses_kelas: [], 
+  status_kepegawaian: null,
+  tanggal_bergabung: null,
+  password: "",
 });
 
-const kelasOptions = [
-  { label: 'X', value: 'X' },
-  { label: 'XI', value: 'XI' },
-  { label: 'XII', value: 'XII' },
-];
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    await formRef.value?.validate(async (errors) => {
+      if (!errors) {
+        await handleSave();
+        formRef.value?.restoreValidation();
+      }
+    });
+  } catch (error) {
+    console.error("Error Validasi:", error);
+  }
+}
 
-const jurusanOptions = [
-  { label: 'RPL', value: 'RPL' },
-  { label: 'TKJ', value: 'TKJ' },
-  { label: 'Tataboga', value: 'Tataboga' },
-];
-
-const kelompokOptions = [
-  { label: 'A', value: 'A' },
-  { label: 'B', value: 'B' },
-  { label: 'C', value: 'C' },
-];
-
-const handleSubmit = () => {
-  // Handle form submission
+const handleSave = async () => {
+  loading.value = true;
+  try {
+    const payload = {
+      ...formData.value, 
+       tanggal_bergabung: new Date(formData.value.tanggal_bergabung)
+        .toISOString()
+        .split("T")[0],    
+    };
+    const response = await Api.post("/daftar-pengurus", payload)
+    console.log("Data berhasil disimpan:", response.data);
+      emit("back-to-table");
+  } catch (error) {
+    console.error("Gagal menyimpan data:", error);
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleCancel = () => {
-  emit('back-to-table');
-};
+const fetchDataKelas = async () => {
+  loading.value = true; 
+  try {
+    const response = await Api.get("/daftar-kelas")
+       kelasOptions.value = response.data.map(item => ({
+      label: item.nama_kelas,
+      value: item.daftar_kelas_id
+    }));
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loading.value = false;
+  }
+}
+
+watch(
+  () => props.editData,
+  (newData) => {
+    if (newData) {
+      formData.value = {
+        ...formData.value,
+        ...newData,
+        akses_kelas: newData.akses_kelas || [], // default empty array
+        tanggal_bergabung: new Date(newData.tanggal_bergabung)
+      };
+    }
+  },
+  { immediate: true }
+);
+
+
+onMounted(() => {
+  fetchDataKelas();
+});
 </script>
 
 <style scoped>
-.upload-dragger {
-  border: 2px dashed #9ca3af;
-  border-radius: 0.5rem;
-  transition: all 0.3s;
-}
-
-.upload-dragger:hover {
-  border-color: #e67700;
-}
-
-.n-upload-trigger {
-  width: 100%;
-}
 </style>
