@@ -34,6 +34,7 @@
     </div>
 
     <n-input
+      v-model:value="searchKeyword"
       placeholder="Cari Data Daftar Siswa..."
       class="!w-[258px] !h-[42px] !rounded-[8px] !items-center"
       clearable
@@ -46,7 +47,7 @@
 
   <n-data-table
     ref="tableRef"
-    :data="data"
+     :data="sortedData" 
     :columns="columns"
     :loading="loading"
     :pagination="pagination"
@@ -58,7 +59,7 @@
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted ,  watch} from "vue";
+import { defineComponent, reactive, ref, onMounted ,computed,  watch} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { NIcon, NButton } from "naive-ui";
 import {
@@ -90,6 +91,7 @@ export default defineComponent({
     const tableRef = ref(null);
     const selectedRows = ref([...props.selectedRows]);
     const currentSortState = reactive({});
+      const searchKeyword = ref("");
     const route = useRoute();
     const router = useRouter();
     
@@ -167,6 +169,45 @@ export default defineComponent({
       },
     });
 
+      const filteredData = computed(() => {
+      if (!searchKeyword.value.trim()) {
+        return props.data;
+      }
+      const keyword = searchKeyword.value.toLowerCase();
+      return props.data.filter((item) => {
+        // Cari di beberapa field yang relevan, misal: nama, agama, nip, jabatan, alamat, email
+        return (
+          (item.nama && item.nama.toLowerCase().includes(keyword)) ||
+          (item.agama && item.agama.toLowerCase().includes(keyword)) ||
+     
+          (item.alamat && item.alamat.toLowerCase().includes(keyword)) ||
+          (item.email && item.email.toLowerCase().includes(keyword))
+        );
+      });
+    });
+
+        const sortedData = computed(() => {
+      if (!currentSortState.columnKey || !currentSortState.order) {
+        return filteredData.value;
+      }
+      const dataCopy = [...filteredData.value];
+      const { columnKey, order } = currentSortState;
+
+      dataCopy.sort((a, b) => {
+        let res = 0;
+        if (columnKey === "nama") {
+          res = (a.nama || "").toLowerCase().localeCompare((b.nama || "").toLowerCase());
+        } else if (columnKey === "no") {
+          // misal sort by index / no
+          res = a.no - b.no;
+        }
+        return order === "ascend" ? res : -res;
+      });
+      return dataCopy;
+    });
+
+    
+
     const handleSorterChange = (sorter) => {
       Object.assign(currentSortState, sorter);
     };
@@ -212,6 +253,8 @@ export default defineComponent({
       tableRef,
       pagination,
       selectedRows,
+        searchKeyword,
+         sortedData,
       updateSelectedRows,
       handleSorterChange,
       handleEditSelected,
