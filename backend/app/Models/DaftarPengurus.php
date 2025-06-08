@@ -89,6 +89,7 @@ class DaftarPengurus extends Model
         'agama' => 'string',
         'jabatan' => 'string',
         'status_kepegawaian' => 'string',
+        'akses_kelas' => 'array',
     ];
 
     protected static function booted() 
