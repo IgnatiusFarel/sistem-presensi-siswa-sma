@@ -11,34 +11,21 @@ use Illuminate\Support\Facades\Validator;
 
 class DaftarPengurusController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        try {
-            $perPage = $request->input('per_page', 10);
-            $allowedPerPage = [10, 25, 50, 100];
-            if (!in_array($perPage, $allowedPerPage)) {
-                $perPage = 10;
-            }
-            $pengurus = DaftarPengurus::with('user')->orderBy('updated_at', 'desc')->orderBy('created_at', 'desc')->paginate($perPage);
+        try {           
+            $pengurus = DaftarPengurus::with('user')->orderBy('updated_at', 'desc')->orderBy('created_at', 'desc')->get();
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Data Pengurus Berhasil diambil!',
-                'data' => $pengurus->items(),
-                'meta' => [
-                    'current_page' => $pengurus->currentPage(),
-                    'per_page' => $pengurus->perPage(),
-                    'total_items' => $pengurus->total(),
-                    'total_pages' => $pengurus->lastPage(),
-                    'next_page_url' => $pengurus->nextPageUrl(),
-                    'prev_page_url' => $pengurus->previousPageUrl(),
-                ]
+                'message' => 'Data pengurus berhasil diambil!',
+                'data' => $pengurus,               
             ], 200);
         } catch (\Exception $e) {
             \Log::error('Error fetching data pengurus: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Terjadi kesalahan saat mengambil data pengurus!'
+                'message' => 'Data pengurus gagal diambil!'
             ], 500);
         }
     }
@@ -47,33 +34,33 @@ class DaftarPengurusController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string',
-            'nip' => 'required|string|unique:daftar_pengurus,nip',
             'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
             'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu',
             'tempat_tanggal_lahir' => 'required|string',
             'alamat' => 'required|string',
+            'nip' => 'required|string|unique:daftar_pengurus,nip',
             'email' => 'required|email|unique:daftar_pengurus,email',
             'nomor_handphone' => 'required|string',
             'jabatan' => 'required|in:' . implode(',', DaftarPengurus::getAllJabatan()),
             'bidang_keahlian' => 'required|string',
             'pengurus' => 'required|string',
-            'akses_kelas' => 'nullable',
             'status_kepegawaian' => 'required|in:' . implode(',', DaftarPengurus::getAllStatus()),
+            'akses_kelas' => 'nullable|array',
             'tanggal_bergabung' => 'required|date',
+            'password' => 'nullable|min:8',
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
+            return response()->json([                
                 'status' => 'error',
-                'message' => 'Validasi data gagal!',
+                'message' => 'Data pengurus tidak valid!',
                 'errors' => $validator->errors()
             ], 422);
         }
 
         DB::beginTransaction();
-        try {
-            $userId = null;
+        try {            
+            $user = null; 
 
             if ($request->jabatan === DaftarPengurus::JABATAN_ADMIN) {
 
@@ -89,33 +76,30 @@ class DaftarPengurusController extends Controller
                         'errors' => $adminValidator->errors()
                     ], 422);
                 }
-
-                // Buat user baru
+                
                 $user = User::create([
                     'name' => $request->nama,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
                     'role' => 'superadmin',
                 ]);
-
             }
-
-            // Buat data pengurus
+            
             $pengurus = DaftarPengurus::create([
                 'user_id' => $user->user_id,
                 'nama' => $request->nama,
-                'nip' => $request->nip,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 'agama' => $request->agama,
                 'tempat_tanggal_lahir' => $request->tempat_tanggal_lahir,
                 'alamat' => $request->alamat,
+                'nip' => $request->nip,
                 'email' => $request->email,
                 'nomor_handphone' => $request->nomor_handphone,
                 'jabatan' => $request->jabatan,
                 'bidang_keahlian' => $request->bidang_keahlian,
                 'pengurus' => $request->pengurus,
-                'akses_kelas' => $request->akses_kelas,
                 'status_kepegawaian' => $request->status_kepegawaian,
+                'akses_kelas' => $request->akses_kelas,
                 'tanggal_bergabung' => $request->tanggal_bergabung,
             ]);
 
@@ -153,135 +137,122 @@ class DaftarPengurusController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        $pengurus = DaftarPengurus::find($id);
+{
+    $pengurus = DaftarPengurus::find($id);
 
-        if (!$pengurus) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Data data pengurus tidak ditemukan'
-            ], 404);
+    if (!$pengurus) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Data pengurus tidak ditemukan!'
+        ], 404);
+    }
+
+    $validator = Validator::make($request->all(), [
+        'nama' => 'required|string',
+        'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+        'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu,Lainnya',
+        'tempat_tanggal_lahir' => 'required|string',
+        'alamat' => 'required|string',
+        'nip' => 'required|string|unique:daftar_pengurus,nip,' . $id,
+        'email' => 'required|email|unique:users,email,' . $pengurus->user_id . ',user_id',
+        'nomor_handphone' => 'required|string',
+        'jabatan' => 'required|in:Administrator,Kepala Sekolah,Wakil Kepala Sekolah,Guru,Kepala Laboratorium,Pustakawan,Operator Sekolah,Staf TU,Satpam,Petugas Kebersihan',
+        'bidang_keahlian' => 'required|string',
+        'pengurus' => 'required|string',
+        'status_kepegawaian' => 'required|in:PNS,Honorer,GTY,PTY,Kontrak,Magang,PPPK,Outsourcing',
+        'akses_kelas' => 'nullable|array',
+        'tanggal_bergabung' => 'required|date',
+        'password' => 'nullable|string|min:8',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Data pengurus tidak valid!',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    DB::beginTransaction();
+    try {
+        $jabatanSebelumnya = $pengurus->jabatan;
+        $jabatanBaru = $request->jabatan;
+
+        if ($jabatanBaru === 'Administrator' && $jabatanSebelumnya !== 'Administrator') {
+            if (!$request->filled('password')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Password diperlukan untuk akun Administrator baru!',
+                    'errors' => ['password' => ['Password tidak boleh kosong.']]
+                ], 422);
+            }
+
+            $user = User::create([
+                'name' => $request->nama,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => 'superadmin',
+            ]);
+            $pengurus->user_id = $user->user_id;
         }
 
-        $validator = Validator::make($request->all(), [
-            'nama' => 'required|string|max:255',
-            'nip' => 'required|string|unique:daftar_pengurus,nip,' . $id,
-            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
-            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu,Lainnya',
-            'tempat_tanggal_lahir' => 'required|string',
-            'alamat' => 'required|string',
-            'email' => 'required|email',
-            'nomor_handphone' => 'required|string',
-            'jabatan' => 'required|in:Administrator,Kepala Sekolah,Wakil Kepala Sekolah,Guru,Kepala Laboratorium,Pustakawan,Operator Sekolah,Staf TU,Satpam,Petugas Kebersihan',
-            'bidang_keahlian' => 'required|string',
-            'pengurus' => 'required|string',
-            'akses_kelas' => 'required|string',
-            'status_kepegawaian' => 'required|in:PNS,Honorer,GTY,PTY,Kontrak,Magang,PPPK,Outsourcing',
-            'tanggal_bergabung' => 'required|date',
+        elseif ($jabatanBaru !== 'Administrator' && $jabatanSebelumnya === 'Administrator') {
+            if ($pengurus->user_id) {
+                User::destroy($pengurus->user_id);
+                $pengurus->user_id = null;
+            }
+        }
+        
+        elseif ($jabatanBaru === 'Administrator' && $jabatanSebelumnya === 'Administrator') {
+            if ($pengurus->user_id) {
+                $user = User::find($pengurus->user_id);
+                if ($user) {
+                    $user->name = $request->nama;
+                    $user->email = $request->email;
+
+                    if ($request->filled('password')) {
+                        $user->password = Hash::make($request->password);
+                    }
+
+                    $user->save();
+                }
+            }
+        }
+        
+        $pengurus->update([
+            'nama' => $request->nama,
+            'jenis_kelamin' => $request->jenis_kelamin,
+            'agama' => $request->agama,
+            'tempat_tanggal_lahir' => $request->tempat_tanggal_lahir,
+            'alamat' => $request->alamat,
+            'nip' => $request->nip,
+            'email' => $request->email,
+            'nomor_handphone' => $request->nomor_handphone,
+            'jabatan' => $request->jabatan,
+            'bidang_keahlian' => $request->bidang_keahlian,
+            'pengurus' => $request->pengurus,
+            'status_kepegawaian' => $request->status_kepegawaian,
+            'akses_kelas' => $request->akses_kelas,
+            'tanggal_bergabung' => $request->tanggal_bergabung,
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Data pengurus tidak valid',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+        DB::commit();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data pengurus berhasil diperbarui!',
+            'data' => $pengurus->fresh()
+        ]);
 
-        DB::beginTransaction();
-        try {
-            // Cek perubahan jabatan
-            $jabatanSebelumnya = $pengurus->jabatan;
-            $jabatanBaru = $request->jabatan;
-
-            // Jika jabatan berubah menjadi Administrator
-            if ($jabatanBaru === 'Administrator' && $jabatanSebelumnya !== 'Administrator') {
-                // Tambahan validasi untuk administrator
-                $adminValidator = Validator::make($request->all(), [
-                    'email' => 'unique:users,email',
-                    'password' => 'required|min:6',
-                ]);
-
-                if ($adminValidator->fails()) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Data administrator tidak valid',
-                        'errors' => $adminValidator->errors()
-                    ], 422);
-                }
-
-                // Buat user baru untuk admin
-                $user = User::create([
-                    'name' => $request->nama,
-                    'email' => $request->email,
-                    'password' => Hash::make($request->password),
-                    'role' => 'superadmin',
-                ]);
-
-                $pengurus->user_id = $user->id;
-            }
-            // Jika jabatan berubah dari Administrator menjadi bukan
-            elseif ($jabatanBaru !== 'Administrator' && $jabatanSebelumnya === 'Administrator') {
-                // Hapus user jika ada
-                if ($pengurus->user_id) {
-                    User::destroy($pengurus->user_id);
-                    $pengurus->user_id = null;
-                }
-            }
-            // Jika tetap Administrator
-            elseif ($jabatanBaru === 'Administrator' && $jabatanSebelumnya === 'Administrator') {
-                // Update data user jika ada
-                if ($pengurus->user_id) {
-                    $user = User::find($pengurus->user_id);
-                    if ($user) {
-                        $user->update([
-                            'name' => $request->nama,
-                            'email' => $request->email,
-                        ]);
-
-                        // Update password jika ada
-                        if ($request->has('password') && !empty($request->password)) {
-                            $user->update([
-                                'password' => Hash::make($request->password),
-                            ]);
-                        }
-                    }
-                }
-            }
-
-            // Update data pengurus
-            $pengurus->update([
-                'nama' => $request->nama,
-                'nip' => $request->nip,
-                'jenis_kelamin' => $request->jenis_kelamin,
-                'agama' => $request->agama,
-                'tempat_tanggal_lahir' => $request->tempat_tanggal_lahir,
-                'alamat' => $request->alamat,
-                'email' => $request->email,
-                'nomor_handphone' => $request->nomor_handphone,
-                'jabatan' => $request->jabatan,
-                'bidang_keahlian' => $request->bidang_keahlian,
-                'pengurus' => $request->pengurus,
-                'akses_kelas' => $request->akses_kelas,
-                'status_kepegawaian' => $request->status_kepegawaian,
-                'tanggal_bergabung' => $request->tanggal_bergabung,
-            ]);
-
-            DB::commit();
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Data pengurus berhasil diperbarui',
-                'data' => $pengurus
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal memperbarui data pengurus',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Gagal update pengurus: ' . $e->getMessage());
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Data pengurus gagal diperbarui!',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 
     public function destroy($id)
     {
