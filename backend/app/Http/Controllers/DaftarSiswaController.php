@@ -158,19 +158,19 @@ class DaftarSiswaController extends Controller
         }
 
         DB::beginTransaction();
-        try {            
+        try {
             $kelas = DaftarKelas::findOrFail($request->daftar_kelas_id);
-        $user = User::findOrFail($siswa->user_id);
+            $user = User::findOrFail($siswa->user_id);
 
-        $user->name = $request->nama;
-        $user->email = $request->email;
+            $user->name = $request->nama;
+            $user->email = $request->email;
 
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
-        }
+            if ($request->filled('password')) {
+                $user->password = Hash::make($request->password);
+            }
 
-        $user->save();
-            
+            $user->save();
+
             $siswa->update([
                 'nama' => $request->nama,
                 'agama' => $request->agama,
@@ -181,10 +181,10 @@ class DaftarSiswaController extends Controller
                 'nisn' => $request->nisn,
                 'email' => $request->email,
                 'nomor_handphone' => $request->nomor_handphone,
-                 'daftar_kelas_id' => $request->daftar_kelas_id,
+                'daftar_kelas_id' => $request->daftar_kelas_id,
                 'nama_kelas' => $kelas->nama_kelas,
                 'nomor_absen' => $request->nomor_absen,
-                       'tanggal_bergabung' => $request->tanggal_bergabung,
+                'tanggal_bergabung' => $request->tanggal_bergabung,
             ]);
 
             DB::commit();
@@ -195,7 +195,7 @@ class DaftarSiswaController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-              \Log::error('Gagal update siswa: ' . $e->getMessage());
+            \Log::error('Gagal update siswa: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data siswa gagal diperbarui!',
@@ -237,4 +237,42 @@ class DaftarSiswaController extends Controller
             ], 500);
         }
     }
+
+    public function destroyMultiple(Request $request)
+    {
+        $ids = $request->input('ids');
+
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data ID siswa tidak ada!'
+            ], 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            $siswas = DaftarSiswa::whereIn('daftar_siswa_id', $ids)->get();
+
+            foreach ($siswas as $siswa) {
+                if ($siswa->user_id) {
+                    User::destroy($siswa->user_id);
+                }
+                $siswa->delete();
+            }
+
+            DB::commit();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data siswa berhasil dihapus!'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data siswa gagal dihapus!',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }
