@@ -10,39 +10,37 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class DaftarPengurusController extends Controller
-{    
+{
     public function index(Request $request)
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $allowedPerPage = [10, 25, 50, 100]; 
+            $allowedPerPage = [10, 25, 50, 100];
             if (!in_array($perPage, $allowedPerPage)) {
                 $perPage = 10;
             }
+            $pengurus = DaftarPengurus::with('user')->orderBy('updated_at', 'desc')->orderBy('created_at', 'desc')->paginate($perPage);
 
-            $pengurus = DaftarPengurus::with('user')->paginate($perPage);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data Pengurus Berhasil diambil!',
-            'data' => $pengurus->items(),
-            'meta' => [
-                'current_page' => $pengurus->currentPage(),
-                'per_page' => $pengurus->perPage(), 
-                'total_items' => $pengurus->total(),
-                'total_pages' => $pengurus->lastPage(), 
-                'next_page_url' => $pengurus->nextPageUrl(),
-                'prev_page_url' => $pengurus->previousPageUrl(), 
-            ]
-        ], 200);
-
-        } catch (\Exception $e) {
-            \Log::error('Error fetching data pengurus: '. $e->getMessage());
             return response()->json([
-                'success'=> false, 
-                'message'=> 'Terjadi kesalahan saat mengambil data pengurus!'
+                'status' => 'success',
+                'message' => 'Data Pengurus Berhasil diambil!',
+                'data' => $pengurus->items(),
+                'meta' => [
+                    'current_page' => $pengurus->currentPage(),
+                    'per_page' => $pengurus->perPage(),
+                    'total_items' => $pengurus->total(),
+                    'total_pages' => $pengurus->lastPage(),
+                    'next_page_url' => $pengurus->nextPageUrl(),
+                    'prev_page_url' => $pengurus->previousPageUrl(),
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching data pengurus: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat mengambil data pengurus!'
             ], 500);
-        }        
+        }
     }
 
     public function store(Request $request)
@@ -56,17 +54,17 @@ class DaftarPengurusController extends Controller
             'alamat' => 'required|string',
             'email' => 'required|email|unique:daftar_pengurus,email',
             'nomor_handphone' => 'required|string',
-            'jabatan' => 'required|in:'.implode(',', DaftarPengurus::getAllJabatan()),
+            'jabatan' => 'required|in:' . implode(',', DaftarPengurus::getAllJabatan()),
             'bidang_keahlian' => 'required|string',
             'pengurus' => 'required|string',
             'akses_kelas' => 'nullable',
-            'status_kepegawaian' => 'required|in:'.implode(',', DaftarPengurus::getAllStatus()),
+            'status_kepegawaian' => 'required|in:' . implode(',', DaftarPengurus::getAllStatus()),
             'tanggal_bergabung' => 'required|date',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'status' => 'error',
                 'message' => 'Validasi data gagal!',
                 'errors' => $validator->errors()
@@ -76,22 +74,22 @@ class DaftarPengurusController extends Controller
         DB::beginTransaction();
         try {
             $userId = null;
-                        
+
             if ($request->jabatan === DaftarPengurus::JABATAN_ADMIN) {
 
                 $adminValidator = Validator::make($request->all(), [
                     'email' => 'unique:users,email',
                     'password' => 'required|min:8',
                 ]);
-                
+
                 if ($adminValidator->fails()) {
-                    return response()->json([                        
+                    return response()->json([
                         'status' => 'error',
                         'message' => 'Data administrator tidak valid!',
                         'errors' => $adminValidator->errors()
                     ], 422);
                 }
-                
+
                 // Buat user baru
                 $user = User::create([
                     'name' => $request->nama,
@@ -99,7 +97,7 @@ class DaftarPengurusController extends Controller
                     'password' => Hash::make($request->password),
                     'role' => 'superadmin',
                 ]);
-                                
+
             }
 
             // Buat data pengurus
@@ -140,7 +138,7 @@ class DaftarPengurusController extends Controller
     public function show($id)
     {
         $pengurus = DaftarPengurus::with('user')->find($id);
-        
+
         if (!$pengurus) {
             return response()->json([
                 'status' => 'error',
@@ -157,7 +155,7 @@ class DaftarPengurusController extends Controller
     public function update(Request $request, $id)
     {
         $pengurus = DaftarPengurus::find($id);
-        
+
         if (!$pengurus) {
             return response()->json([
                 'status' => 'error',
@@ -167,7 +165,7 @@ class DaftarPengurusController extends Controller
 
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
-            'nip' => 'required|string|unique:daftar_pengurus,nip,'.$id,
+            'nip' => 'required|string|unique:daftar_pengurus,nip,' . $id,
             'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
             'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu,Lainnya',
             'tempat_tanggal_lahir' => 'required|string',
@@ -203,7 +201,7 @@ class DaftarPengurusController extends Controller
                     'email' => 'unique:users,email',
                     'password' => 'required|min:6',
                 ]);
-                
+
                 if ($adminValidator->fails()) {
                     return response()->json([
                         'status' => 'error',
@@ -211,7 +209,7 @@ class DaftarPengurusController extends Controller
                         'errors' => $adminValidator->errors()
                     ], 422);
                 }
-                
+
                 // Buat user baru untuk admin
                 $user = User::create([
                     'name' => $request->nama,
@@ -219,7 +217,7 @@ class DaftarPengurusController extends Controller
                     'password' => Hash::make($request->password),
                     'role' => 'superadmin',
                 ]);
-                
+
                 $pengurus->user_id = $user->id;
             }
             // Jika jabatan berubah dari Administrator menjadi bukan
@@ -240,7 +238,7 @@ class DaftarPengurusController extends Controller
                             'name' => $request->nama,
                             'email' => $request->email,
                         ]);
-                        
+
                         // Update password jika ada
                         if ($request->has('password') && !empty($request->password)) {
                             $user->update([
@@ -288,7 +286,7 @@ class DaftarPengurusController extends Controller
     public function destroy($id)
     {
         $pengurus = DaftarPengurus::find($id);
-        
+
         if (!$pengurus) {
             return response()->json([
                 'status' => 'error',
@@ -297,13 +295,13 @@ class DaftarPengurusController extends Controller
         }
 
         DB::beginTransaction();
-        try {         
+        try {
             if ($pengurus->user_id) {
                 User::destroy($pengurus->user_id);
             }
-            
+
             $pengurus->delete();
-            
+
             DB::commit();
             return response()->json([
                 'status' => 'success',
