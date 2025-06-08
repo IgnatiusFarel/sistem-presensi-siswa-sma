@@ -287,4 +287,40 @@ class DaftarPengurusController extends Controller
             ], 500);
         }
     }
+
+    public function destroyMultiple(Request $request) 
+    {
+        $ids = $request->input('ids');
+
+    if (!is_array($ids) || empty($ids)) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Data ID pengurus tidak ada!'
+        ], 400);
+    }
+     DB::beginTransaction();
+    try {
+        $daftarpengurus = DaftarPengurus::whereIn('daftar_pengurus_id', $ids)->get();
+
+        foreach ($daftarpengurus as $pengurus) {
+            if ($pengurus->user_id) {
+                User::destroy($pengurus->user_id);
+            }
+            $pengurus->delete();
+        }
+
+        DB::commit();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data pengursu berhasil dihapus!'
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Data pengurus gagal dihapus!',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+    }
 }
