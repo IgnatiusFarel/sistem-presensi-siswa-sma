@@ -11,46 +11,33 @@ use Illuminate\Validation\Rule;
 
 class DaftarKelasController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         try {
-            $perPage = (int) $request->input('per_page', 10);
-            $allowedPerPage = [10, 25, 50, 100];
-            if (!in_array($perPage, $allowedPerPage)) {
-                $perPage = 10;
-            }
             $kelas = DaftarKelas::with('waliKelas')
                 ->withCount(['siswa as jumlah_siswa'])
                 ->with(['siswa:nama,daftar_kelas_id'])
-                ->orderBy('updated_at', 'desc') 
-                ->orderBy('created_at', 'desc') 
-                ->paginate($perPage);
+                ->orderBy('updated_at', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data kelas berhasil diambil!',
-                'data' => $kelas->items(),
-                'meta' => [
-                    'current_page' => $kelas->currentPage(),
-                    'per_page' => $kelas->perPage(),
-                    'total_items' => $kelas->total(),
-                    'total_pages' => $kelas->lastPage(),
-                    'next_page_url' => $kelas->nextPageUrl(),
-                    'prev_page_url' => $kelas->previousPageUrl(),
-                ],
+                'data' => $kelas,
             ], 200);
         } catch (\Exception $e) {
             \Log::error('Error fetching data kelas: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Terjadi kesalahan saat mengambil data kelas!'
+                'message' => 'Data kelas gagal diambil!'
             ], 500);
         }
     }
 
     public function store(Request $request)
     {
-        $v = Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'kode_kelas' => 'required|string|unique:daftar_kelas,kode_kelas',
             'nama_kelas' => 'required|string',
             'jurusan' => [
@@ -73,11 +60,11 @@ class DaftarKelasController extends Controller
             'tahun_ajaran' => 'required|string',
         ]);
 
-        if ($v->fails()) {
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validasi data gagal!',
-                'errors' => $v->errors(),
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -85,13 +72,12 @@ class DaftarKelasController extends Controller
         try {
             $pengurus = DaftarPengurus::findOrFail($request->daftar_pengurus_id);
             $kelas = DaftarKelas::create([
-                // 'daftar_kelas_id' => Str::uuid(),
                 'kode_kelas' => $request->kode_kelas,
                 'nama_kelas' => $request->nama_kelas,
                 'jurusan' => $request->jurusan,
                 'tingkat' => $request->tingkat,
                 'daftar_pengurus_id' => $request->daftar_pengurus_id,
-                'wali_kelas' => $pengurus->nama, 
+                'wali_kelas' => $pengurus->nama,
                 'tahun_ajaran' => $request->tahun_ajaran,
             ]);
 
@@ -116,6 +102,7 @@ class DaftarKelasController extends Controller
     public function show($id)
     {
         $kelas = DaftarKelas::with('waliKelas')->find($id);
+
         if (!$kelas) {
             return response()->json([
                 'status' => 'error',
@@ -139,7 +126,7 @@ class DaftarKelasController extends Controller
             ], 404);
         }
 
-        $v = Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'kode_kelas' => [
                 'required',
                 'string',
@@ -163,21 +150,26 @@ class DaftarKelasController extends Controller
                     DaftarKelas::TINGKAT_XII,
                 ]),
             ],
-            'daftar_pengurus_id' => 'required|exists:daftar_pengurus,daftar_pengurus_id',
+            'daftar_pengurus_id' => 'required|uuid|exists:daftar_pengurus,daftar_pengurus_id',
             'tahun_ajaran' => 'required|string',
         ]);
 
-        if ($v->fails()) {
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validasi data gagal!',
-                'errors' => $v->errors(),
+                'message' => 'Data kelas tidak valid!',
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         DB::beginTransaction();
         try {
-            $kelas->update($v->validated());
+            $pengurus = DaftarPengurus::findOrFail($request->daftar_pengurus_id);
+            $kelas->update(array_merge(
+                $validator->validated(),
+                ['wali_kelas' => $pengurus->nama]
+            ));
+            $kelas->update($validator->validated());
 
             DB::commit();
             return response()->json([
@@ -200,6 +192,7 @@ class DaftarKelasController extends Controller
     public function destroy($id)
     {
         $kelas = DaftarKelas::find($id);
+
         if (!$kelas) {
             return response()->json([
                 'status' => 'error',
