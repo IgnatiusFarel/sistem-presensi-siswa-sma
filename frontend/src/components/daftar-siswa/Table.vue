@@ -179,7 +179,7 @@ export default defineComponent({
     const handleEditSelected = () => {
       if (selectedRows.value.length === 1) {
         const selectedRow = props.data.find(
-          (row) => row.key === selectedRows.value[0]
+          (row) => row.daftar_siswa_id === selectedRows.value[0]
         );
         emit("edit-data", selectedRow);
       }

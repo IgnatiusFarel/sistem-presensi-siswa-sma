@@ -192,11 +192,11 @@
 <script setup>
 import { defineComponent, onMounted, ref, watch } from "vue";
 import { PhCaretDoubleLeft, PhFileArrowUp } from "@phosphor-icons/vue";
-import Api from "../../services/Api";
+import Api from "@/services/Api";
+
 const loading = ref(false);
 const formRef = ref(null);
 const kelasOptions = ref([]);
-
 const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
 const emit = defineEmits(["back-to-table"]);
 
