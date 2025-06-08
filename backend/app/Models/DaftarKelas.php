@@ -26,8 +26,8 @@ class DaftarKelas extends Model
         'jurusan',
         'tingkat',
         'daftar_pengurus_id',
-        'tahun_ajaran',
-        'jumlah_siswa'
+        'wali_kelas',
+        'tahun_ajaran',        
     ];
 
     protected static function booted()
