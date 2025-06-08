@@ -294,18 +294,18 @@ const rules = {
       trigger: ["blur", "input"],
     },
   ],
-  password: [
-    {
-      required: true,
-      message: "Kata sandi wajib diisi",
-      trigger: ["blur", "input"],
-    },
-    {
-      min: 8,
-      message: "Kata sandi minimal 8 karakter",
-      trigger: ["blur", "input"],
-    },
-  ],
+  // password: [
+  //   {
+  //     required: true,
+  //     message: "Kata sandi wajib diisi",
+  //     trigger: ["blur", "input"],
+  //   },
+  //   {
+  //     min: 8,
+  //     message: "Kata sandi minimal 8 karakter",
+  //     trigger: ["blur", "input"],
+  //   },
+  // ],
   tanggal_bergabung: [
     {
       required: true,
