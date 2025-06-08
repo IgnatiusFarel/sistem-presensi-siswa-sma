@@ -13,34 +13,24 @@ use Illuminate\Support\Facades\Validator;
 
 class DaftarSiswaController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         try {
-            $perPage = (int) $request->input('per_page', 10);
-            $allowedPerPage = [10, 25, 50, 100];
-            if (!in_array($perPage, $allowedPerPage)) {
-                $perPage = 10;
-            }                    
-            $siswa = DaftarSiswa::with('user')->orderBy('updated_at', 'desc')->orderBy('created_at', 'desc')->paginate($perPage);
+            $siswa = DaftarSiswa::with('user')
+                ->orderBy('updated_at', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data siswa berhasil diambil!',
-                'data' => $siswa->items(),
-                'meta' => [
-                    'current_page' => $siswa->currentPage(),
-                    'per_page' => $siswa->perPage(),
-                    'total_items' => $siswa->total(),
-                    'total_pages' => $siswa->lastPage(),
-                    'next_page_url' => $siswa->nextPageUrl(),
-                    'prev_page_url' => $siswa->previousPageUrl(),
-                ],
+                'data' => $siswa,
             ], 200);
         } catch (\Exception $e) {
             \Log::error('Error fetching data kelas: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Terjadi kesalahan saat mengambil data kelas!'
+                'message' => 'Data siswa gagal diambil!'
             ], 500);
         }
     }
@@ -48,15 +38,15 @@ class DaftarSiswaController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nama' => 'required|string|max:255',
-            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu,Lainnya',
+            'nama' => 'required|string',
             'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu',
+            'tempat_tanggal_lahir' => 'required|string',
+            'alamat' => 'required|string',
             'nis' => 'required|string|unique:daftar_siswa,nis',
             'nisn' => 'required|string|unique:daftar_siswa,nisn',
             'email' => 'required|email|unique:users,email',
             'nomor_handphone' => 'required|string',
-            'tempat_tanggal_lahir' => 'required|string',
-            'alamat' => 'required|string',
             'daftar_kelas_id' => 'required|uuid|exists:daftar_kelas,daftar_kelas_id',
             'nomor_absen' => 'required|integer',
             'tanggal_bergabung' => 'required|date',
@@ -84,14 +74,14 @@ class DaftarSiswaController extends Controller
             $siswa = DaftarSiswa::create([
                 'user_id' => $user->user_id,
                 'nama' => $request->nama,
-                'agama' => $request->agama,
                 'jenis_kelamin' => $request->jenis_kelamin,
+                'agama' => $request->agama,
+                'tempat_tanggal_lahir' => $request->tempat_tanggal_lahir,
+                'alamat' => $request->alamat,
                 'nis' => $request->nis,
                 'nisn' => $request->nisn,
                 'email' => $request->email,
                 'nomor_handphone' => $request->nomor_handphone,
-                'tempat_tanggal_lahir' => $request->tempat_tanggal_lahir,
-                'alamat' => $request->alamat,
                 'daftar_kelas_id' => $request->daftar_kelas_id,
                 'nama_kelas' => $kelas->nama_kelas,
                 'nomor_absen' => $request->nomor_absen,
@@ -121,7 +111,7 @@ class DaftarSiswaController extends Controller
         if (!$siswa) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data siswa tidak ditemukan'
+                'message' => 'Data siswa tidak ditemukan!'
             ], 404);
         }
 
@@ -138,74 +128,77 @@ class DaftarSiswaController extends Controller
         if (!$siswa) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data siswa tidak ditemukan'
+                'message' => 'Data siswa tidak ditemukan!'
             ], 404);
         }
 
         $validator = Validator::make($request->all(), [
-            'nama' => 'required|string|max:255',
-            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu,Lainnya',
+            'nama' => 'required|string',
+            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu',
             'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'tempat_tanggal_lahir' => 'required|string',
+            'alamat' => 'required|string',
             'nis' => 'required|string|unique:daftar_siswa,nis,' . $id,
             'nisn' => 'required|string|unique:daftar_siswa,nisn,' . $id,
             'email' => 'required|email|unique:users,email,' . $siswa->user_id,
             'nomor_handphone' => 'required|string',
-            'tempat_tanggal_lahir' => 'required|string',
-            'alamat' => 'required|string',
+            'daftar_kelas_id' => 'required|uuid|exists:daftar_kelas,daftar_kelas_id',
             'nama_kelas' => 'required|string',
             'nomor_absen' => 'required|integer',
+            'tanggal_bergabung' => 'nullable|date',
+            'password' => 'nullable|string|min:8',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data tidak valid',
+                'message' => 'Data siswa tidak valid!',
                 'errors' => $validator->errors()
             ], 422);
         }
 
         DB::beginTransaction();
-        try {
-            // Update data user
-            $user = User::find($siswa->user_id);
-            $user->update([
-                'name' => $request->nama,
-                'email' => $request->email,
-            ]);
+        try {            
+            $kelas = DaftarKelas::findOrFail($request->daftar_kelas_id);
+        $user = User::findOrFail($siswa->user_id);
 
-            // Update password jika ada
-            if ($request->has('password') && !empty($request->password)) {
-                $user->update([
-                    'password' => Hash::make($request->password),
-                ]);
-            }
+        $user->name = $request->nama;
+        $user->email = $request->email;
 
-            // Update data siswa
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+            
             $siswa->update([
                 'nama' => $request->nama,
                 'agama' => $request->agama,
                 'jenis_kelamin' => $request->jenis_kelamin,
+                'tempat_tanggal_lahir' => $request->tempat_tanggal_lahir,
+                'alamat' => $request->alamat,
                 'nis' => $request->nis,
                 'nisn' => $request->nisn,
                 'email' => $request->email,
                 'nomor_handphone' => $request->nomor_handphone,
-                'tempat_tanggal_lahir' => $request->tempat_tanggal_lahir,
-                'alamat' => $request->alamat,
-                'nama_kelas' => $request->nama_kelas,
+                 'daftar_kelas_id' => $request->daftar_kelas_id,
+                'nama_kelas' => $kelas->nama_kelas,
                 'nomor_absen' => $request->nomor_absen,
+                       'tanggal_bergabung' => $request->tanggal_bergabung,
             ]);
 
             DB::commit();
             return response()->json([
                 'status' => 'success',
-                'message' => 'Data siswa berhasil diperbarui',
+                'message' => 'Data siswa berhasil diperbarui!',
                 'data' => $siswa
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+              \Log::error('Gagal update siswa: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memperbarui data siswa',
+                'message' => 'Data siswa gagal diperbarui!',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -224,8 +217,11 @@ class DaftarSiswaController extends Controller
 
         DB::beginTransaction();
         try {
-            $user = User::find($siswa->user_id);
-            $user->delete();
+            if ($siswa->user_id) {
+                User::destroy($siswa->user_id);
+            }
+
+            $siswa->delete();
 
             DB::commit();
             return response()->json([
