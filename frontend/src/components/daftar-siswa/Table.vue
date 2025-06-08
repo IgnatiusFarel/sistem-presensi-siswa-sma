@@ -107,17 +107,7 @@ export default defineComponent({
       },
       { title: "NIS", key: "nis", width: 100 },
       { title: "NISN", key: "nisn", width: 130 },
-      {
-        title: "Jenis Kelamin",
-        key: "jenis_kelamin",
-        width: 120,
-        filterMultiple: false,
-        filterOptions: [
-          { label: "Laki - Laki", value: "Laki-laki" },
-          { label: "Perempuan", value: "Perempuan" },
-        ],
-        filter: (value, row) => row.jenisKelamin === value,
-      },
+      { title: "Jenis Kelamin", key: "jenis_kelamin", width: 120 },
       {
         title: "Tempat, Tanggal Lahir",
         key: "tempat_tanggal_lahir",
