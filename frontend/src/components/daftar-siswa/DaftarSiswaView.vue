@@ -4,6 +4,8 @@
     :loading="loading"
     :data="dataTable"
     :editData="editData"
+    :selectedRows="selectedRows"   
+    @update:selectedRows="val => selectedRows = val"
     @add-data="showView('TambahData')"
     @back-to-table="showView('Table')"
     @refresh="fetchData"
@@ -24,6 +26,7 @@ const currentView = shallowRef(Table);
 const editData = ref(null);
 const loading = ref(false);
 const dataTable = ref([])
+const selectedRows = ref([]);
 
 const showView = (viewName) => {
   currentView.value = views[viewName];
@@ -34,23 +37,36 @@ const showEditForm = (data) => {
   showView('EditData');
 };
 
-const handleDelete = async (id) => {
-  loading.value =  true; 
+const handleDelete = async (idOrIds) => {
+  loading.value = true;
   try {
-    await Api.delete(`/daftar-siswa/${id}`);
-    // emit('refresh-data');
+    if (Array.isArray(idOrIds)) {
+      // multiple delete
+      await Api.delete('/daftar-siswa', {
+        data: { ids: idOrIds },
+      });
+    } else {
+      // single delete
+      await Api.delete(`/daftar-siswa/${idOrIds}`);
+    }
+
+    // Refresh data
+    await fetchData();
+     selectedRows.value = [];
   } catch (err) {
     console.error(err);
   } finally {
-    loading.value =  false; 
+    loading.value = false;
   }
 };
+
 
 const fetchData = async () => {
   loading.value =  true; 
   try {
     const response = await Api.get('/daftar-siswa')
     dataTable.value = response.data.data;
+     selectedRows.value = [];
   } catch (error) { 
     console.log(error)
   } finally { 
