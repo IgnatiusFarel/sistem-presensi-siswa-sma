@@ -158,7 +158,7 @@ export default defineComponent({
      const handleEditSelected = () => {
       if (selectedRows.value.length === 1) {
         const selectedRow = props.data.find(
-          (row) => row.key === selectedRows.value[0]
+          (row) => row.daftar_kelas_id === selectedRows.value[0]
         );
         emit('edit-data', selectedRow);
       }
@@ -173,7 +173,7 @@ export default defineComponent({
     onMounted(() => {
       setTimeout(() => {
         loading.value = false;
-      }, 500);
+      }, 100);
     });
 
     return {

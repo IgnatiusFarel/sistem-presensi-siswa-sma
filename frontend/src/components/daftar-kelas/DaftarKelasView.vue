@@ -1,14 +1,14 @@
 <template>
   <component
     :is="currentView"
-    @add-data="showView('TambahData')"
-    @edit-data="showEditForm"
-    @back-to-table="showView('Table')"
-    :editData="editData"
+    :loading="loading"
     :data="dataTable"
-    :loading="isLoading"
-    @delete-data="handleDelete"
+    :editData="editData"
+    @add-data="showView('TambahData')"
+    @back-to-table="showView('Table')"
     @refresh="fetchData"
+    @edit-data="showEditForm"
+    @delete-data="handleDelete"
   />
 </template>
 
@@ -17,12 +17,12 @@ import { ref, shallowRef, onMounted } from "vue";
 import Table from "./Table.vue";
 import TambahData from "./TambahData.vue";
 import EditData from "./EditData.vue";
-import Api from "../../services/Api"
+import Api from "@/services/Api"
 
 const views = { Table, TambahData, EditData };
 const currentView = shallowRef(Table);
 const editData = ref(null);
-const isLoading = ref(false);
+const loading = ref(false);
 const dataTable = ref([]);
 
 const showView = (viewName) => {
@@ -39,14 +39,14 @@ const handleDelete = (keys) => {
 };
 
 const fetchData = async () => {
-  isLoading.value = true;
+  loading.value = true;
   try {
     const response = await Api.get("/daftar-kelas");
     dataTable.value = response.data.data;
   } catch (error) {
     console.log(error);
   } finally {
-    isLoading.value = false;
+    loading.value = false;
   }
 };
 

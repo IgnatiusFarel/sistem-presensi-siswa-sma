@@ -3,30 +3,32 @@
     <n-button
       text
       type="primary"
-      class="!text-[#1E1E1E] hover:!text-[#E67700] mb-6"
-      @click="handleCancel"
+      class="!text-[#1E1E1E] !mb-4 !text-sm !underline"
+      @click="$emit('back-to-table')"
     >
       <template #icon>
-        <n-icon :component="ArrowLeft" />
+        <n-icon :component="PhCaretDoubleLeft" :size="18" />
       </template>
-      Kembali ke Daftar Siswa
+      Kembali ke Halaman Daftar Kelas
     </n-button>
 
-    <div class="bg-white rounded-lg shadow-md p-8">
-      <h1 class="text-2xl font-bold text-[#1E1E1E] mb-8">Edit Data Siswa</h1>
+    <div class="bg-white rounded-lg p-6 border border-[#C1C2C5]">
+      <h1 class="text-3xl font-bold text-[#1E1E1E] mb-8 text-center">
+        Edit Data Kelas
+      </h1>
 
-      <!-- Form Input Data Manual -->
-      <n-form class="space-y-8">
-        <div class="grid grid-cols-4 gap-6">
-          <n-form-item label="No Absen" path="absen">
-            <n-input-number v-model:value="formData.absen" clearable />
+      <n-form :model="formData" :rules="rules" ref="formRef">
+        <div class="grid grid-cols-2 gap-2">
+          <n-form-item label="Kode Kelas" path="kode_kelas">
+            <n-input
+              v-model:value="formData.kode_kelas"
+              placeholder="Masukkan Kode Kelas..."
+            />
           </n-form-item>
-
-          <n-form-item label="Kelas" path="kelas">
-            <n-select
-              v-model:value="formData.kelas"
-              :options="kelasOptions"
-              placeholder="Pilih Kelas"
+          <n-form-item label="Nama Kelas" path="nama_kelas">
+            <n-input
+              v-model:value="formData.nama_kelas"
+              placeholder="Masukkan Nama Kelas..."
             />
           </n-form-item>
 
@@ -34,61 +36,48 @@
             <n-select
               v-model:value="formData.jurusan"
               :options="jurusanOptions"
-              placeholder="Pilih Jurusan"
+              placeholder="Pilih Jurusan..."
             />
           </n-form-item>
-
-          <n-form-item label="Kelompok" path="kelompok">
+          <n-form-item label="Tingkat" path="tingkat">
             <n-select
-              v-model:value="formData.kelompok"
-              :options="kelompokOptions"
-              placeholder="Pilih Kelompok"
+              v-model:value="formData.tingkat"
+              :options="tingkatOptions"
+              placeholder="Pilih Tingkat..."
+            />
+          </n-form-item>
+
+          <n-form-item label="Tahun Ajaran" path="tahun_ajaran">
+            <n-input
+              v-model:value="formData.tahun_ajaran"
+              placeholder="Masukkan Tahun Ajaran..."
+            />
+          </n-form-item>
+
+          <n-form-item label="Wali Kelas" path="daftar_pengurus_id">
+            <n-select
+              v-model:value="formData.daftar_pengurus_id"
+              :options="waliKelasOptions"
+              placeholder="Pilih Wali Kelas..."
             />
           </n-form-item>
         </div>
 
-        <div class="space-y-6">
-          <n-form-item label="Nama Siswa" path="nama">
-            <n-input
-              v-model:value="formData.nama"
-              placeholder="Masukkan Nama Lengkap"
-            />
-          </n-form-item>
-
-          <n-form-item label="NIS" path="nis">
-            <n-input
-              v-model:value="formData.nis"
-              placeholder="Masukkan Nomor Induk Siswa"
-            />
-          </n-form-item>
-
-          <n-form-item label="No. Telepon" path="telepon">
-            <n-input
-              v-model:value="formData.telepon"
-              placeholder="Masukkan Nomor Telepon"
-            />
-          </n-form-item>
-        </div>
-
-        <div class="flex justify-end gap-4">
-          <n-button
-            type="primary"
-            class="!bg-[#1E1E1E] !text-white hover:!bg-[#E67700] !w-full"
-            @click="handleSubmit"
-          >
-            Tambah
-          </n-button>
-        </div>
+        <n-button
+          type="primary"
+          class="!bg-[#1E1E1E] !text-white !w-full"
+          @click="handleSubmit"
+        >
+          Simpan
+        </n-button>
       </n-form>
 
-      <!-- Separator -->
-      <div class="my-8 flex items-center">
+      <div class="my-2 flex items-center">
         <div class="flex-1 border-t border-gray-300"></div>
         <span class="px-4 text-gray-500 text-sm">atau</span>
         <div class="flex-1 border-t border-gray-300"></div>
       </div>
 
-      <!-- Import dari Dokumen -->
       <div class="space-y-4">
         <h3 class="font-medium text-gray-700">Import dari Dokumen</h3>
         <n-upload
@@ -100,7 +89,7 @@
           <n-upload-dragger class="!p-6 hover:!bg-gray-50">
             <div class="py-8 text-center">
               <n-icon
-                :component="Upload"
+                :component="PhFileArrowUp"
                 :size="48"
                 class="text-gray-400 mb-2"
               />
@@ -122,60 +111,147 @@
 </template>
 
 <script setup>
-import { PhArrowLeft, PhUpload } from '@phosphor-icons/vue';
-import { ref } from 'vue';
+import { defineComponent, ref, onMounted, watch } from "vue";
+import { PhCaretDoubleLeft, PhFileArrowUp } from "@phosphor-icons/vue";
+import Api from "@/services/Api";
 
-const emit = defineEmits(['back-to-table']);
+const loading = ref(false);
+const formRef = ref(null);
+const waliKelasOptions = ref([]);
+const emit = defineEmits(["back-to-table"]);
 
-const formData = ref({
-  absen: null,
-  kelas: null,
-  jurusan: null,
-  kelompok: null,
-  nama: '',
-  nis: '',
-  telepon: '',
-});
-
-const kelasOptions = [
-  { label: 'X', value: 'X' },
-  { label: 'XI', value: 'XI' },
-  { label: 'XII', value: 'XII' },
-];
+const props = defineProps({
+  editData: Object 
+})
 
 const jurusanOptions = [
-  { label: 'RPL', value: 'RPL' },
-  { label: 'TKJ', value: 'TKJ' },
-  { label: 'Tataboga', value: 'Tataboga' },
+  { value: "IPA", label: "IPA" },
+  { value: "IPS", label: "IPS" },
+  { value: "Bahasa", label: "Bahasa" },
 ];
 
-const kelompokOptions = [
-  { label: 'A', value: 'A' },
-  { label: 'B', value: 'B' },
-  { label: 'C', value: 'C' },
+const tingkatOptions = [
+  { value: "X", label: "X" },
+  { value: "XI", label: "XI" },
+  { value: "XII ", label: "XII" },
 ];
 
-const handleSubmit = () => {
-  // Handle form submission
+const rules = {
+  kode_kelas: [
+    {
+      required: true,
+      message: "Kode kelas wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+  nama_kelas: [
+    {
+      required: true,
+      message: "Nama kelas wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+  jurusan: [
+    {
+      required: true,
+      message: "Jurusan wajib dipilih",
+      trigger: ["blur", "change"],
+    },
+  ],
+  tingkat: [
+    {
+      required: true,
+      message: "Tingkat wajib dipilih",
+      trigger: ["blur", "change"],
+    },
+  ],
+  wali_kelas: [
+    {
+      required: true,
+      message: "Wali kelas wajib dipilih",
+      trigger: ["blur", "change"],
+    },
+  ],
+  tahun_ajaran: [
+    {
+      required: true,
+      message: "Tahun ajaran wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
 };
 
-const handleCancel = () => {
-  emit('back-to-table');
+const formData = ref({
+  kode_kelas: "",
+  nama_kelas: "",
+  jurusan: null,
+  tingkat: null,
+  daftar_pengurus_id: null,
+  tahun_ajaran: "",
+});
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    await formRef.value?.validate(async (errors) => {
+      if (!errors) {
+        await handleSave();
+        formRef.value?.restoreValidation();
+      }
+    });
+  } catch (error) {
+    console.error("Error Validasi:", error);
+  }
 };
+
+const handleSave = async () => {
+  loading.value = true;
+  try {
+    const payload = {
+      ...formData.value,
+    };
+    const response = await Api.post("/daftar-kelas", payload);
+    console.log("Data berhasil disimpan:", response.data);
+    emit("back-to-table");
+    emit("refresh");
+  } catch (error) {
+    console.error("Gagal menupdate data:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const fetchDataWaliKelas = async () => {
+  loading.value = true;
+  try {
+    const response = await Api.get("/daftar-pengurus");
+    waliKelasOptions.value = response.data.data.map((waliKelas) => ({
+      label: waliKelas.nama,
+      value: waliKelas.daftar_pengurus_id,
+    }));
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+watch(() => props.editData, (newVal) => {
+  if (newVal) {    
+    formData.value = {
+      kode_kelas: newVal.kode_kelas,
+      nama_kelas: newVal.nama_kelas,
+      jurusan: newVal.jurusan,
+      tingkat: newVal.tingkat,
+      daftar_pengurus_id: newVal.daftar_pengurus_id,
+      tahun_ajaran: newVal.tahun_ajaran,      
+    };
+  }
+}, { immediate: true });
+
+onMounted(() => {
+  fetchDataWaliKelas();
+});
 </script>
 
-<style scoped>
-.upload-dragger {
-  border: 2px dashed #9ca3af;
-  border-radius: 0.5rem;
-  transition: all 0.3s;
-}
-
-.upload-dragger:hover {
-  border-color: #e67700;
-}
-
-.n-upload-trigger {
-  width: 100%;
-}
-</style>
+<style scoped></style>

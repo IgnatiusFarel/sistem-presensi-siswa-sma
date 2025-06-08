@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-2xl mx-auto p-6 min-h-screen">
+  <div class="max-w-xl mx-auto p-6 min-h-screen">
     <n-button
       text
       type="primary"
@@ -17,59 +17,48 @@
         Tambah Data Kelas
       </h1>
 
-      <n-form>
+      <n-form :model="formData" :rules="rules" ref="formRef">
         <div class="grid grid-cols-2 gap-2">
-          <n-form-item label="Nama Jurusan" path="nama">
+          <n-form-item label="Kode Kelas" path="kode_kelas">
             <n-input
-              v-model:value="formData.nama"
-              placeholder="Masukkan Nama Jurusan..."
+              v-model:value="formData.kode_kelas"
+              placeholder="Masukkan Kode Kelas..."
             />
           </n-form-item>
-          <n-form-item label="Waka. Jurusan" path="wakajur">
+          <n-form-item label="Nama Kelas" path="nama_kelas">
+            <n-input
+              v-model:value="formData.nama_kelas"
+              placeholder="Masukkan Nama Kelas..."
+            />
+          </n-form-item>
+
+          <n-form-item label="Jurusan" path="jurusan">
             <n-select
-              v-model:value="formData.wakajur"
-              :options="agamaOptions"
-              placeholder="Pilih Waka. Jurusan..."
+              v-model:value="formData.jurusan"
+              :options="jurusanOptions"
+              placeholder="Pilih Jurusan..."
             />
           </n-form-item>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2">
-          <n-form-item label="Kode Jurusan" path="kode">
-            <n-input
-              v-model:value="formData.kode"
-              placeholder="Masukkan Kode Jurusan..."
-            />
-          </n-form-item>
-          <n-form-item label="Akronim" path="akronim">
-            <n-input
-              v-model:value="formData.akronim"
-              placeholder="Masukkan Akronim Jurusan..."
-            />
-          </n-form-item>
-         
-
-          <n-form-item label="Jumlah Kelas" path="jumlahKelas">
-            <n-input
-              :allow-input="onlyAllowNumber"
-              v-model:value="formData.jumlahKelas"
-              placeholder="Masukkan Jumlah Kelas..."
+          <n-form-item label="Tingkat" path="tingkat">
+            <n-select
+              v-model:value="formData.tingkat"
+              :options="tingkatOptions"
+              placeholder="Pilih Tingkat..."
             />
           </n-form-item>
 
-          <n-form-item label="Jumlah Rombel" path="jumlahRombel">
+          <n-form-item label="Tahun Ajaran" path="tahun_ajaran">
             <n-input
-              :allow-input="onlyAllowNumber"
-              v-model:value="formData.jumlahRombel"
-              placeholder="Masukkan Jumlah Rombel..."
+              v-model:value="formData.tahun_ajaran"
+              placeholder="Masukkan Tahun Ajaran..."
             />
           </n-form-item>
 
-          <n-form-item label="Jumlah Siswa" path="jumlahSiswa">
-            <n-input
-              :allow-input="onlyAllowNumber"
-              v-model:value="formData.jumlahSiswa"
-              placeholder="Masukkan Jumlah Siswa..."
+          <n-form-item label="Wali Kelas" path="daftar_pengurus_id">
+            <n-select
+              v-model:value="formData.daftar_pengurus_id"
+              :options="waliKelasOptions"
+              placeholder="Pilih Wali Kelas..."
             />
           </n-form-item>
         </div>
@@ -122,43 +111,129 @@
 </template>
 
 <script setup>
-import { defineComponent, ref } from 'vue';
-import { PhCaretDoubleLeft, PhFileArrowUp } from '@phosphor-icons/vue';
+import { defineComponent, ref, onMounted } from "vue";
+import { PhCaretDoubleLeft, PhFileArrowUp } from "@phosphor-icons/vue";
+import Api from "@/services/Api";
 
+const loading = ref(false);
+const formRef = ref(null);
+const waliKelasOptions = ref([]);
+const emit = defineEmits(["back-to-table"]);
 
+const jurusanOptions = [
+  { value: "IPA", label: "IPA" },
+  { value: "IPS", label: "IPS" },
+  { value: "Bahasa", label: "Bahasa" },
+];
 
+const tingkatOptions = [
+  { value: "X", label: "X" },
+  { value: "XI", label: "XI" },
+  { value: "XII ", label: "XII" },
+];
 
-const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
-
-const emit = defineEmits(['back-to-table']);
-
-const handleSubmit = () => {
-  $emit('back-to-table');
-};
-
-const handleCancel = () => {
-  emit('back-to-table');
+const rules = {
+  kode_kelas: [
+    {
+      required: true,
+      message: "Kode kelas wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+  nama_kelas: [
+    {
+      required: true,
+      message: "Nama kelas wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+  jurusan: [
+    {
+      required: true,
+      message: "Jurusan wajib dipilih",
+      trigger: ["blur", "change"],
+    },
+  ],
+  tingkat: [
+    {
+      required: true,
+      message: "Tingkat wajib dipilih",
+      trigger: ["blur", "change"],
+    },
+  ],
+  wali_kelas: [
+    {
+      required: true,
+      message: "Wali kelas wajib dipilih",
+      trigger: ["blur", "change"],
+    },
+  ],
+  tahun_ajaran: [
+    {
+      required: true,
+      message: "Tahun ajaran wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
 };
 
 const formData = ref({
-  absen: null,
-  kelas: null,
+  kode_kelas: "",
+  nama_kelas: "",
   jurusan: null,
-  kelompok: null,
-  nama: '',
-  nis: '',
-  telepon: '',
+  tingkat: null,
+  daftar_pengurus_id: null,
+  tahun_ajaran: "",
+});
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    await formRef.value?.validate(async (errors) => {
+      if (!errors) {
+        await handleSave();
+        formRef.value?.restoreValidation();
+      }
+    });
+  } catch (error) {
+    console.error("Error Validasi:", error);
+  }
+};
+
+const handleSave = async () => {
+  loading.value = true;
+  try {
+    const payload = {
+      ...formData.value,
+    };
+    const response = await Api.post("/daftar-kelas", payload);
+    console.log("Data berhasil disimpan:", response.data);
+    emit("back-to-table");
+  } catch (error) {
+    console.error("Gagal menyimpan data:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const fetchDataWaliKelas = async () => {
+  loading.value = true;
+  try {
+    const response = await Api.get("/daftar-pengurus");
+    waliKelasOptions.value = response.data.data.map((waliKelas) => ({
+      label: waliKelas.nama,
+      value: waliKelas.daftar_pengurus_id,
+    }));
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchDataWaliKelas();
 });
 </script>
 
-<style scoped>
-.upload-dragger {
-  border: 2px dashed #9ca3af;
-  border-radius: 0.5rem;
-  transition: all 0.3s;
-}
-
-.n-upload-trigger {
-  width: 100%;
-}
-</style>
+<style scoped></style>
