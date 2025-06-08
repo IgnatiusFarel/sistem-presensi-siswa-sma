@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted } from "vue";
+import { defineComponent, reactive, ref, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { NTag, NInput, NIcon, NButton } from "naive-ui";
 import {
@@ -79,11 +79,15 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+      selectedRows: {
+    type: Array,
+    default: () => [],
+  },
   },
   setup(props, { emit }) {
     const loading = ref(true);
     const tableRef = ref(null);
-    const selectedRows = ref([]);
+    const selectedRows = ref([...props.selectedRows]);
     const currentSortState = reactive({});
     const route = useRoute();
     const router = useRouter();
@@ -168,6 +172,10 @@ export default defineComponent({
       Object.assign(currentSortState, sorter);
     };
 
+     const updateSelectedRows = (val) => {
+    selectedRows.value = val;
+    emit('update:selectedRows', val);
+  };
     const handleEditSelected = () => {
       if (selectedRows.value.length === 1) {
         const selectedRow = props.data.find(
@@ -181,6 +189,11 @@ export default defineComponent({
         emit("delete-data", selectedRows.value);
       }
     };
+
+     watch(() => props.selectedRows, (val) => {
+    selectedRows.value = [...val];
+  });
+
 
     onMounted(() => {
       setTimeout(() => {
@@ -198,6 +211,7 @@ export default defineComponent({
       tableRef,
       pagination,
       selectedRows,
+      updateSelectedRows,
       handleSorterChange,
       handleEditSelected,
       handleDeleteSelected,
