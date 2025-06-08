@@ -10,12 +10,25 @@
     @back-to-table="showView('Table')"
     @refresh="fetchData"
     @edit-data="showEditForm"
-    @delete-data="handleDelete"
+    @delete-data="confirmDelete"
+  />
+
+  
+     <n-modal
+    v-model:show="showModal"
+    preset="dialog"
+    title="Konfirmasi Hapus"
+    content="Apakah Anda yakin ingin menghapus data kelas ini?"
+    positive-text="Ya, Hapus"
+    negative-text="Batal"
+    @positive-click="handleDelete"
+    @negative-click="() => showModal = false"
   />
 </template>
 
 <script setup>
 import { ref, shallowRef, onMounted } from "vue";
+import { useMessage } from 'naive-ui';
 import Table from "./Table.vue";
 import TambahData from "./TambahData.vue";
 import EditData from "./EditData.vue";
@@ -28,6 +41,10 @@ const loading = ref(false);
 const dataTable = ref([]);
 const selectedRows = ref([]);
 
+const showModal = ref(false);
+const deleteTarget = ref(null); // Bisa single id atau array ids
+const message = useMessage();
+
 const showView = (viewName) => {
   currentView.value = views[viewName];
 };
@@ -37,24 +54,30 @@ const showEditForm = (data) => {
   showView("EditData");
 };
 
-const handleDelete = async (idOrIds) => {
+const confirmDelete = (idOrIds) => {
+  deleteTarget.value = idOrIds;
+  showModal.value = true;
+};
+
+const handleDelete = async () => {
+   showModal.value = false;
   loading.value = true;
   try {
-    if (Array.isArray(idOrIds)) {
-      // multiple delete
+    if (Array.isArray(deleteTarget.value)) {
+      // hapus banyak
       await Api.delete('/daftar-kelas', {
-        data: { ids: idOrIds },
+        data: { ids: deleteTarget.value },
       });
     } else {
-      // single delete
-      await Api.delete(`/daftar-kelas/${idOrIds}`);
+      // hapus satu
+      await Api.delete(`/daftar-kelas${deleteTarget.value}`);
     }
-
-    // Refresh data
+    message.success('Data kelas berhasil dihapus!');
     await fetchData();
-     selectedRows.value = [];
-  } catch (err) {
-    console.error(err);
+    selectedRows.value = [];
+  } catch (error) {
+    message.error('Data kelas gagal dihapus!');
+    console.error(error);
   } finally {
     loading.value = false;
   }
