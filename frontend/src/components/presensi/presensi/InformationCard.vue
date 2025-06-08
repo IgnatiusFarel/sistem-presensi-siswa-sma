@@ -1,33 +1,27 @@
 <template>
   <div class="flex flex-row gap-2 mb-4">
-    <n-card title="✅ Hadir" hoverable class="!border-[#C1C2C5] !rounded-xl">
-      <p class="text-base font-bold">1280 / 3000 Siswa</p>
-    </n-card>
     <n-card
-      title="⏰ Terlambat"
+      v-for="item in stats"
+      :key="item.title"
+      :title="item.title"
       hoverable
-      class="!border-[#C1C2C5] !rounded-xl"
+      class="!border-[#C1C2C5] !rounded-xl !max-w-[300px]"
     >
-      <p class="text-base font-bold">1280 / 3000 Siswa</p>
-    </n-card>
-    <n-card title="🤕 Sakit" hoverable class="!border-[#C1C2C5] !rounded-xl">
-      <p class="text-base font-bold">1280 / 3000 Siswa</p>
-    </n-card>
-    <n-card title="📝 Izin" hoverable class="!border-[#C1C2C5] !rounded-xl">
-      <p class="text-base font-bold">1280 / 3000 Siswa</p>
-    </n-card>
-    <n-card title="❌ Alpha" hoverable class="!border-[#C1C2C5] !rounded-xl">
-      <p class="text-base font-bold">1280 / 3000 Siswa</p>
+      <p class="text-base font-bold">{{ item.count }} / {{ total }} Siswa</p>
     </n-card>
   </div>
 </template>
 
 <script setup>
 import { NCard } from 'naive-ui';
-</script>
 
-<style scoped>
-.n-card {
-  max-width: 300px;
-}
-</style>
+const total = 3000;
+
+const stats = [
+  { title: '✅ Hadir', count: 1280 },
+  { title: '⏰ Terlambat', count: 1280 },
+  { title: '🤕 Sakit', count: 1280 },
+  { title: '📝 Izin', count: 1280 },
+  { title: '❌ Alpha', count: 1280 },
+];
+</script>
