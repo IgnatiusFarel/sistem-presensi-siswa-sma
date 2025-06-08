@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DaftarKelas;
+use App\Models\DaftarPengurus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -18,8 +19,7 @@ class DaftarKelasController extends Controller
             if (!in_array($perPage, $allowedPerPage)) {
                 $perPage = 10;
             }
-
-            $pager = DaftarKelas::with('waliKelas')
+            $kelas = DaftarKelas::with('waliKelas')
                 ->withCount(['siswa as jumlah_siswa'])
                 ->with(['siswa:nama,daftar_kelas_id'])
                 ->orderBy('updated_at', 'desc') 
@@ -29,17 +29,16 @@ class DaftarKelasController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data kelas berhasil diambil!',
-                'data' => $pager->items(),
+                'data' => $kelas->items(),
                 'meta' => [
-                    'current_page' => $pager->currentPage(),
-                    'per_page' => $pager->perPage(),
-                    'total_items' => $pager->total(),
-                    'total_pages' => $pager->lastPage(),
-                    'next_page_url' => $pager->nextPageUrl(),
-                    'prev_page_url' => $pager->previousPageUrl(),
+                    'current_page' => $kelas->currentPage(),
+                    'per_page' => $kelas->perPage(),
+                    'total_items' => $kelas->total(),
+                    'total_pages' => $kelas->lastPage(),
+                    'next_page_url' => $kelas->nextPageUrl(),
+                    'prev_page_url' => $kelas->previousPageUrl(),
                 ],
             ], 200);
-
         } catch (\Exception $e) {
             \Log::error('Error fetching data kelas: ' . $e->getMessage());
             return response()->json([
@@ -70,7 +69,7 @@ class DaftarKelasController extends Controller
                     DaftarKelas::TINGKAT_XII,
                 ]),
             ],
-            'daftar_pengurus_id' => 'required|exists:daftar_pengurus,daftar_pengurus_id',
+            'daftar_pengurus_id' => 'required|uuid|exists:daftar_pengurus,daftar_pengurus_id',
             'tahun_ajaran' => 'required|string',
         ]);
 
@@ -84,12 +83,15 @@ class DaftarKelasController extends Controller
 
         DB::beginTransaction();
         try {
+            $pengurus = DaftarPengurus::findOrFail($request->daftar_pengurus_id);
             $kelas = DaftarKelas::create([
+                // 'daftar_kelas_id' => Str::uuid(),
                 'kode_kelas' => $request->kode_kelas,
                 'nama_kelas' => $request->nama_kelas,
                 'jurusan' => $request->jurusan,
                 'tingkat' => $request->tingkat,
                 'daftar_pengurus_id' => $request->daftar_pengurus_id,
+                'wali_kelas' => $pengurus->nama, 
                 'tahun_ajaran' => $request->tahun_ajaran,
             ]);
 
