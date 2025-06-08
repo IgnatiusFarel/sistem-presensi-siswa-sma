@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DaftarKelas;
 use App\Models\DaftarSiswa;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -12,19 +13,36 @@ use Illuminate\Support\Facades\Validator;
 
 class DaftarSiswaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $siswa = DaftarSiswa::with('user')->orderBy('updated_at', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->get()->map(function ($item) {
-                $item->key = $item->daftar_siswa_id; // atau nis
-                return $item;
-            });
-        ;
-        return response()->json([
-            'status' => 'success',
-            'data' => $siswa
-        ]);
+        try {
+            $perPage = (int) $request->input('per_page', 10);
+            $allowedPerPage = [10, 25, 50, 100];
+            if (!in_array($perPage, $allowedPerPage)) {
+                $perPage = 10;
+            }                    
+            $siswa = DaftarSiswa::with('user')->orderBy('updated_at', 'desc')->orderBy('created_at', 'desc')->paginate($perPage);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data siswa berhasil diambil!',
+                'data' => $siswa->items(),
+                'meta' => [
+                    'current_page' => $siswa->currentPage(),
+                    'per_page' => $siswa->perPage(),
+                    'total_items' => $siswa->total(),
+                    'total_pages' => $siswa->lastPage(),
+                    'next_page_url' => $siswa->nextPageUrl(),
+                    'prev_page_url' => $siswa->previousPageUrl(),
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching data kelas: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat mengambil data kelas!'
+            ], 500);
+        }
     }
 
     public function store(Request $request)
@@ -39,10 +57,10 @@ class DaftarSiswaController extends Controller
             'nomor_handphone' => 'required|string',
             'tempat_tanggal_lahir' => 'required|string',
             'alamat' => 'required|string',
-            'nama_kelas' => 'required|string',
+            'daftar_kelas_id' => 'required|uuid|exists:daftar_kelas,daftar_kelas_id',
             'nomor_absen' => 'required|integer',
-            'password' => 'required|min:6',
             'tanggal_bergabung' => 'required|date',
+            'password' => 'required|min:8',
         ]);
 
         if ($validator->fails()) {
@@ -55,7 +73,7 @@ class DaftarSiswaController extends Controller
 
         DB::beginTransaction();
         try {
-            // Buat user baru
+            $kelas = DaftarKelas::findOrFail($request->daftar_kelas_id);
             $user = User::create([
                 'name' => $request->nama,
                 'email' => $request->email,
@@ -63,7 +81,6 @@ class DaftarSiswaController extends Controller
                 'role' => 'siswa',
             ]);
 
-            // Buat data siswa
             $siswa = DaftarSiswa::create([
                 'user_id' => $user->user_id,
                 'nama' => $request->nama,
@@ -75,8 +92,8 @@ class DaftarSiswaController extends Controller
                 'nomor_handphone' => $request->nomor_handphone,
                 'tempat_tanggal_lahir' => $request->tempat_tanggal_lahir,
                 'alamat' => $request->alamat,
-                'daftar_kelas_id' => $request->daftar_kelas_id, // Pastikan ini ada di request
-                'nama_kelas' => $request->nama_kelas,
+                'daftar_kelas_id' => $request->daftar_kelas_id,
+                'nama_kelas' => $kelas->nama_kelas,
                 'nomor_absen' => $request->nomor_absen,
                 'tanggal_bergabung' => $request->tanggal_bergabung,
             ]);
@@ -114,9 +131,6 @@ class DaftarSiswaController extends Controller
         ]);
     }
 
-    /**
-     * Update data siswa yang ada
-     */
     public function update(Request $request, $id)
     {
         $siswa = DaftarSiswa::find($id);
@@ -209,7 +223,7 @@ class DaftarSiswaController extends Controller
         }
 
         DB::beginTransaction();
-        try {            
+        try {
             $user = User::find($siswa->user_id);
             $user->delete();
 
