@@ -1,6 +1,6 @@
 <script setup>
-import Login from '@/components/auth/Login.vue';
 import { useHead } from '@vueuse/head';
+import Login from '@/components/auth/Login.vue';
 
 useHead({
   title: 'Halaman Masuk - Sistem Presensi Siswa SMA',
