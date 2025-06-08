@@ -25,12 +25,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/daftar-siswa', DaftarSiswaController::class, [
             'parameters' => ['daftar-siswa' => 'id']
         ]);
+         Route::delete('/daftar-siswa', [DaftarSiswaController::class, 'destroyMultiple']);
         Route::apiResource('/daftar-pengurus', DaftarPengurusController::class, [
             'parameters' => ['daftar-pengurus' => 'id']
         ]);
+        Route::delete('/daftar-pengurus', [DaftarPengurusController::class, 'destroyMultiple']);
         Route::apiResource('/daftar-kelas', DaftarKelasController::class, [
             'parameters' => ['daftar-kelas' => 'id']
         ]);
+        Route::delete('/daftar-kelas', [DaftarKelasController::class, 'destroyMultiple']);
         
         // Manajemen Presensi - untuk superadmin
         Route::get('/presensi', [PresensiController::class, 'index']);
