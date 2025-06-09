@@ -34,6 +34,7 @@
     </div>
 
     <n-input
+    v-model:value="searchKeyword"
       placeholder="Cari Data Daftar Pengurus..."
       class="!w-[258px] !h-[42px] !rounded-[8px] !items-center"
       clearable
@@ -46,7 +47,7 @@
 
   <n-data-table
     ref="tableRef"
-    :data="data"
+    :data="filteredData"
     :columns="columns"
     :loading="loading"
     :pagination="pagination"
@@ -58,7 +59,7 @@
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted, watch } from "vue";
+import { defineComponent, reactive, ref, onMounted, watch, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { NTag, NInput, NIcon, NButton } from "naive-ui";
 import {
@@ -87,6 +88,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const loading = ref(true);
     const tableRef = ref(null);
+    const searchKeyword = ref('')
     const selectedRows = ref([...props.selectedRows]);
     const currentSortState = reactive({});
     const route = useRoute();
@@ -157,6 +159,9 @@ export default defineComponent({
       pageSize: Number(route.query.pageSize) || 10,
       showSizePicker: true,
       pageSizes: [10, 25, 50, 100],
+        prefix({ itemCount }) {
+        return `Total Jumlah Pengurus: ${itemCount}`
+      },      
       onChange: (page) => {
         pagination.page = page;
         router.push({ query: { ...route.query, page } });
@@ -166,6 +171,16 @@ export default defineComponent({
         pagination.page = 1;
         router.push({ query: { ...route.query, page: 1, pageSize } });
       },
+    });
+
+    const filteredData = computed(() => {
+      if (!searchKeyword.value) return props.data 
+
+      const keyword = searchKeyword.value.toLowerCase(); 
+      return props.data.filter(item => 
+        item.nama.toLowerCase().includes(keyword) || 
+        item.nip.toString().includes(keyword)      
+      );
     });
 
     const handleSorterChange = (sorter) => {
@@ -210,7 +225,9 @@ export default defineComponent({
       loading,
       tableRef,
       pagination,
+      filteredData,  
       selectedRows,
+      searchKeyword,
       updateSelectedRows,
       handleSorterChange,
       handleEditSelected,

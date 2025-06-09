@@ -47,14 +47,14 @@
 
   <n-data-table
     ref="tableRef"
-     :data="sortedData" 
+    :data="filteredData"
     :columns="columns"
     :loading="loading"
     :pagination="pagination"
+    :row-key="(row) => row.daftar_siswa_id"
     @refresh="fetchData"
     @update:sorter="handleSorterChange"
     v-model:checked-row-keys="selectedRows"
-    :row-key="(row) => row.daftar_siswa_id"
   />
 </template>
 
@@ -89,9 +89,9 @@ export default defineComponent({
   setup(props, { emit }) {
     const loading = ref(true);
     const tableRef = ref(null);
+    const searchKeyword = ref('')
     const selectedRows = ref([...props.selectedRows]);
-    const currentSortState = reactive({});
-      const searchKeyword = ref("");
+    const currentSortState = reactive({});      
     const route = useRoute();
     const router = useRouter();
     
@@ -158,6 +158,9 @@ export default defineComponent({
       pageSize: Number(route.query.pageSize) || 10,
       showSizePicker: true,
       pageSizes: [10, 25, 50, 100],
+      prefix({ itemCount }) {
+        return `Total Jumlah Siswa: ${itemCount}`
+      },
       onChange: (page) => {
         pagination.page = page;
         router.push({ query: { ...route.query, page } });
@@ -169,44 +172,16 @@ export default defineComponent({
       },
     });
 
-      const filteredData = computed(() => {
-      if (!searchKeyword.value.trim()) {
-        return props.data;
-      }
+    const filteredData = computed(() => {
+      if (!searchKeyword.value) return props.data 
+
       const keyword = searchKeyword.value.toLowerCase();
-      return props.data.filter((item) => {
-        // Cari di beberapa field yang relevan, misal: nama, agama, nip, jabatan, alamat, email
-        return (
-          (item.nama && item.nama.toLowerCase().includes(keyword)) ||
-          (item.agama && item.agama.toLowerCase().includes(keyword)) ||
-     
-          (item.alamat && item.alamat.toLowerCase().includes(keyword)) ||
-          (item.email && item.email.toLowerCase().includes(keyword))
-        );
-      });
+      return props.data.filter(item => 
+        item.nama.toLowerCase().includes(keyword) ||
+        item.nis.toString().includes(keyword) || 
+        item.nisn.toString().includes(keyword)
+      );
     });
-
-        const sortedData = computed(() => {
-      if (!currentSortState.columnKey || !currentSortState.order) {
-        return filteredData.value;
-      }
-      const dataCopy = [...filteredData.value];
-      const { columnKey, order } = currentSortState;
-
-      dataCopy.sort((a, b) => {
-        let res = 0;
-        if (columnKey === "nama") {
-          res = (a.nama || "").toLowerCase().localeCompare((b.nama || "").toLowerCase());
-        } else if (columnKey === "no") {
-          // misal sort by index / no
-          res = a.no - b.no;
-        }
-        return order === "ascend" ? res : -res;
-      });
-      return dataCopy;
-    });
-
-    
 
     const handleSorterChange = (sorter) => {
       Object.assign(currentSortState, sorter);
@@ -252,9 +227,9 @@ export default defineComponent({
       loading,
       tableRef,
       pagination,
-      selectedRows,
-        searchKeyword,
-         sortedData,
+      filteredData,  
+      selectedRows,   
+      searchKeyword,
       updateSelectedRows,
       handleSorterChange,
       handleEditSelected,

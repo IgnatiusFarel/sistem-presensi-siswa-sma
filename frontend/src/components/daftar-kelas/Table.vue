@@ -34,6 +34,7 @@
     </div>
 
   <n-input
+      v-model:value="searchKeyword"
       placeholder="Cari Data Daftar Kelas..."
       class="!w-[258px] !h-[42px] !rounded-[8px] !items-center"
       clearable
@@ -46,7 +47,7 @@
 
   <n-data-table
     ref="tableRef"
-    :data="data"
+    :data="filteredData"
     :columns="columns"
     :loading="loading"
     :pagination="pagination"
@@ -58,7 +59,7 @@
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted, watch } from "vue";
+import { defineComponent, reactive, ref, onMounted, watch, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { NTag, NInput, NIcon, NButton } from "naive-ui";
 import {
@@ -87,7 +88,8 @@ export default defineComponent({
   setup(props, { emit }) {
     const loading = ref(true);
     const tableRef = ref(null);
-     const selectedRows = ref([...props.selectedRows]);
+    const searchKeyword = ref('')
+    const selectedRows = ref([...props.selectedRows]);
     const currentSortState = reactive({});
     const route = useRoute();
     const router = useRouter();
@@ -144,6 +146,10 @@ export default defineComponent({
       pageSize: Number(route.query.pageSize) || 10,
       showSizePicker: true,
       pageSizes: [10, 25, 50, 100],
+       pageSizes: [10, 25, 50, 100],
+        prefix({ itemCount }) {
+        return `Total Jumlah Kelas: ${itemCount}`
+      },     
       onChange: (page) => {
         pagination.page = page;
         router.push({ query: { ...route.query, page } });
@@ -154,6 +160,16 @@ export default defineComponent({
         router.push({ query: { ...route.query, page: 1, pageSize } });
       },
     });
+
+    const filteredData = computed(() => {
+      if (!searchKeyword.value) return props.data
+
+      const keyword = searchKeyword.value.toLowerCase();
+      return props.data.filter(item =>
+        item.nama_kelas.toLowerCase().includes(keyword) ||
+    (item.wali_kelas?.nama && item.wali_kelas.nama.toLowerCase().includes(keyword)) 
+      )
+    })
 
     const handleSorterChange = (sorter) => {
       Object.assign(currentSortState, sorter);
@@ -197,9 +213,11 @@ export default defineComponent({
       columns,
       loading,
       tableRef,
-      pagination,      
+      pagination,   
+      filteredData,   
       selectedRows,
-        updateSelectedRows,
+      searchKeyword,
+      updateSelectedRows,
       handleSorterChange,
       handleEditSelected,
       handleDeleteSelected,
