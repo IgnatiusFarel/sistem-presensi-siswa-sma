@@ -227,7 +227,7 @@ class DaftarKelasController extends Controller
             if (!is_array($ids) || empty($ids)) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Data ID kelas tidak ada!'
+                    'message' => 'Data kelas tidak ada!'
                 ], 400);
             }
 
