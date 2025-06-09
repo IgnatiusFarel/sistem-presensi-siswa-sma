@@ -9,134 +9,137 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class PresensiController extends Controller
 {
-    // Menampilkan daftar presensi (riwayat)
-    public function index()
+    public function getStatistikPresensiHariIni()
     {
-        $presensi = Presensi::orderBy('tanggal', 'desc')->paginate(10);
-        return response()->json(['data' => $presensi]);
-    }
-
-    // Membuat presensi baru (membuka presensi)
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'tanggal' => 'required|date',
-            'jam_buka' => 'required',
-            'jam_tutup' => 'required|after:jam_buka',
-            'keterangan' => 'nullable|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        DB::beginTransaction();
         try {
-            // Buat record presensi baru
-            $presensi = Presensi::create([
-                'tanggal' => $request->tanggal,
-                'jam_buka' => $request->jam_buka,
-                'jam_tutup' => $request->jam_tutup,
-                'dibuka_pada' => Carbon::now(),
-                'status' => 'aktif',
-                'dibuat_oleh' => auth()->id(),
-                'keterangan' => $request->keterangan,
-            ]);
+            $tanggalHariIni = Carbon::today()->toDateString();
+            
+            $presensi = Presensi::where('tanggal', $tanggalHariIni)
+                ->with('presensiSiswa')
+                ->first();
 
-            // Inisialisasi data presensi untuk semua siswa dengan status 'alpha'
-            $siswaList = DaftarSiswa::all();
-            foreach ($siswaList as $siswa) {
-                PresensiSiswa::create([
-                    'presensi_id' => $presensi->presensi_id,
-                    'daftar_siswa_id' => $siswa->id,
-                    'user_id' => $siswa->user_id,
-                    'status' => 'alpha',
+            if (!$presensi) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Belum ada presensi untuk hari ini.',
+                    'data' => [],
+                    'total' => DaftarSiswa::count(),
                 ]);
             }
 
-            DB::commit();
+            $data = [
+                'Hadir' => $presensi->presensiSiswa->where('status_kehadiran', 'hadir')->count(),
+                'Terlambat' => $presensi->presensiSiswa->where('status_kehadiran', 'terlambat')->count(),
+                'Sakit' => $presensi->presensiSiswa->where('status_kehadiran', 'sakit')->count(),
+                'Izin' => $presensi->presensiSiswa->where('status_kehadiran', 'izin')->count(),
+                'Alpha' => $presensi->presensiSiswa->where('status_kehadiran', 'alpha')->count(),
+            ];
+
             return response()->json([
-                'message' => 'Presensi berhasil dibuka',
-                'data' => $presensi
-            ], 201);
+                'status' => 'success',
+                'message' => 'Statistik presensi hari ini berhasil diambil.',
+                'total' => DaftarSiswa::count(),
+                'data' => $data,
+            ]);
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['message' => 'Terjadi kesalahan', 'error' => $e->getMessage()], 500);
+            \Log::error('Error getting statistik presensi: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengambil statistik presensi.',
+            ], 500);
         }
     }
-
-    // Menampilkan detail presensi dan daftar siswa
-    public function show($id)
+    public function getRekapPresensi()
     {
-        $presensi = Presensi::with(['presensiSiswa.siswa'])->find($id);
-        if (!$presensi) {
-            return response()->json(['message' => 'Data presensi tidak ditemukan'], 404);
-        }
-        return response()->json(['data' => $presensi]);
-    }
-
-    // Menutup presensi
-    public function tutupPresensi($id)
-    {
-        $presensi = Presensi::find($id);
-        if (!$presensi) {
-            return response()->json(['message' => 'Data presensi tidak ditemukan'], 404);
-        }
-
-        if ($presensi->status === 'selesai') {
-            return response()->json(['message' => 'Presensi sudah ditutup sebelumnya'], 400);
-        }
-
-        DB::beginTransaction();
         try {
-            $presensi->update([
-                'status' => 'selesai',
-                'ditutup_pada' => Carbon::now(),
-            ]);
+            $presensi = Presensi::with(['presensiSiswa.siswa.kelas'])->orderBy('created_at', 'desc')->get();
 
-            DB::commit();
+            $data = $presensi->map(function ($item) {
+                $total_siswa = DaftarSiswa::count();
+
+                $jumlah_hadir = $item->presensiSiswa->where('status_kehadiran', 'hadir')->count();
+                $jumlah_izin = $item->presensiSiswa->where('status_kehadiran', 'izin')->count();
+                $jumlah_sakit = $item->presensiSiswa->where('status_kehadiran', 'sakit')->count();
+                $jumlah_alpha = $item->presensiSiswa->where('status_kehadiran', 'alpha')->count();
+
+                $siswa_absen = $item->presensiSiswa->map(function ($ps) {
+                    return [
+                        'nama' => $ps->siswa->nama,
+                        'nomor_absen' => $ps->siswa->nomor_absen,
+                        'kelas' => $ps->siswa->kelas->nama_kelas ?? null,
+                        'status' => $ps->status_kehadiran,
+                        'surat_izin' => $ps->surat_izin ?? null,
+                    ];
+                });
+
+                return [
+                    'presensi_id' => $item->id,
+                    'tanggal' => $item->tanggal,
+                    'jam_buka' => $item->jam_buka,
+                    'jam_tutup' => $item->jam_tutup,
+                    'status' => $item->status,
+                    'total_siswa' => $total_siswa,
+                    'hadir' => $jumlah_hadir,
+                    'izin' => $jumlah_izin,
+                    'sakit' => $jumlah_sakit,
+                    'alpha' => $jumlah_alpha,
+                    'daftar_siswa' => $siswa_absen,
+                ];
+            });
+
             return response()->json([
-                'message' => 'Presensi berhasil ditutup',
-                'data' => $presensi
+                'status' => 'success',
+                'message' => 'Rekap presensi berhasil diambil.',
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['message' => 'Terjadi kesalahan', 'error' => $e->getMessage()], 500);
+            \Log::error('Error fetching presensi data: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengambil rekap presensi.',
+            ], 500);
         }
     }
 
-    // Update status siswa (untuk superadmin)
-    public function updateStatusSiswa(Request $request, $presensiId, $siswaId)
-    {
-        $validator = Validator::make($request->all(), [
-            'status' => 'required|in:hadir,terlambat,izin,sakit,alpha',
-            'keterangan' => 'nullable|string',
+   public function store(Request $request)
+{
+    $request->validate([
+        'tanggal' => 'required|date|unique:presensi,tanggal',
+        'jam_buka' => 'required|date_format:H:i',
+        'jam_tutup' => 'required|date_format:H:i|after:jam_buka',
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        $presensi = Presensi::create([
+            'tanggal' => $request->tanggal,
+            'jam_buka' => $request->jam_buka,
+            'jam_tutup' => $request->jam_tutup,
+            'status' => 'aktif',
+            'dibuat_oleh' => Auth::user()->user_id, // ✅ tambahkan ini
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $presensiSiswa = PresensiSiswa::where('presensi_id', $presensiId)
-            ->where('daftar_siswa_id', $siswaId)
-            ->first();
-
-        if (!$presensiSiswa) {
-            return response()->json(['message' => 'Data presensi siswa tidak ditemukan'], 404);
-        }
-
-        $presensiSiswa->update([
-            'status' => $request->status,
-            'keterangan' => $request->keterangan,
-            'waktu_presensi' => Carbon::now(),
-        ]);
+        DB::commit();
 
         return response()->json([
-            'message' => 'Status presensi berhasil diperbarui',
-            'data' => $presensiSiswa
-        ]);
+            'status' => 'success',
+            'message' => 'Presensi berhasil dibuat!',
+            'data' => $presensi,
+        ], 201);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Error creating presensi: ' . $e->getMessage());
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Presensi gagal dibuat!',
+            'error' => $e->getMessage(), // untuk debugging
+        ], 500);
     }
+}
 }
