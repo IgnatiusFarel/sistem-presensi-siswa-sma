@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Presensi extends Model
 {
@@ -19,21 +20,26 @@ class Presensi extends Model
     protected $fillable = [
         'tanggal',
         'jam_buka',
-        'jam_tutup',
-        'dibuka_pada',
-        'ditutup_pada',
+        'jam_tutup',        
         'status',
         'dibuat_oleh',
         'keterangan'
     ];
     protected $casts = [
         'tanggal' => 'date',
-        'jam_buka' => 'time',
-        'jam_tutup' => 'time',
-        'dibuka_pada' => 'datetime',
-        'ditutup_pada' => 'datetime',
+        'jam_buka' => 'string',
+        'jam_tutup' => 'string',        
         'status' => 'string',
     ];
+
+      protected static function booted()
+    {
+        static::creating(function ($model) {            
+            if (empty($model->presensi_id)) {
+                $model->presensi_id = (string) Str::uuid();
+            }
+        });
+    }
 
     public function createdBy()
     {
