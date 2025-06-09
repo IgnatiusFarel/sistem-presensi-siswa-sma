@@ -178,6 +178,10 @@ export default defineComponent({
       pageSize: 10,
       showSizePicker: true,
       pageSizes: [10, 25, 50, 100],
+       pageSizes: [10, 25, 50, 100],
+        prefix({ itemCount }) {
+        return `Total Jumlah Riwayat Presensi Siswa: ${itemCount}`
+      },     
       onChange: (page) => {
         pagination.page = page;
       },
