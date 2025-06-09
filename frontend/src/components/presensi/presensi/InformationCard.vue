@@ -18,8 +18,7 @@ import { NCard } from 'naive-ui';
 const total = 3000;
 
 const stats = [
-  { title: '✅ Hadir', count: 1280 },
-  { title: '⏰ Terlambat', count: 1280 },
+  { title: '✅ Hadir', count: 1280 }, 
   { title: '🤕 Sakit', count: 1280 },
   { title: '📝 Izin', count: 1280 },
   { title: '❌ Alpha', count: 1280 },
