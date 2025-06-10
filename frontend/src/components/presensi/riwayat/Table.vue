@@ -2,7 +2,8 @@
   <div class="flex justify-between items-center mb-4">
     <div class="flex gap-2">
       <n-button
-        class="!bg-[#1E1E1E] !w-[120px] !h-[42px] !text-white !rounded-[8px]"
+      type="primary"
+        class="transition-transform transform active:scale-95"
       >
         <template #icon>
           <n-icon :component="PhInfo" :size="18" />
@@ -10,7 +11,7 @@
         Lihat Detail
       </n-button>
       <n-button
-        class="!bg-[#F03E3E] hover:!bg-[#D12B2B] !w-[120px] !h-[42px] !text-white !rounded-[8px]"
+        class="!bg-[#F03E3E] hover:!bg-[#D12B2B] !w-[120px] !text-white transition-transform transform active:scale-95 "
       >
         <template #icon>
           <n-icon :component="PhTrash" :size="18" />

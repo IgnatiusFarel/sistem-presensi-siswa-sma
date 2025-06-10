@@ -1,7 +1,8 @@
 <template>
   <div class="flex justify-between items-center mb-4">
     <n-button
-      class="!bg-[#F03E3E] hover:!bg-[#D12B2B] !w-[140px] !h-[42px] !text-white !rounded-[8px]"
+    type="primary"
+      class="transition-transform transform active:scale-95"
       @click="showModal = true"
     >
       <template #icon>
@@ -13,7 +14,7 @@
     <n-input
       placeholder="Cari Data Presensi Hari Ini..."
       clearable
-      class="!w-[258px] !h-[42px] !rounded-[8px] !items-center"
+      class="!w-[258px]"
     >
       <template #prefix>
         <n-icon :component="PhMagnifyingGlass" class="text-gray-400" />
@@ -61,8 +62,6 @@
   </div>
   </n-form>
 </n-modal>
-
-
 
   <n-data-table
     ref="tableRef"

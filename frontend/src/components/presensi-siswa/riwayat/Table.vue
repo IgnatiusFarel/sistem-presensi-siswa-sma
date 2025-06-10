@@ -30,41 +30,7 @@ export default defineComponent({
     const tableRef = ref(null);
     const currentSortState = reactive({});
     const tableData = [
-      {
-        no: 1,
-        tanggal: '2023-10-04',
-
-        status: 'Hadir',
-      },
-      {
-        no: 2,
-        tanggal: '2023-10-04',
-
-        status: 'Terlambat',
-      },
-      {
-        no: 3,
-        tanggal: '2023-10-04',
-
-        status: 'Sakit',
-      },
-      {
-        no: 4,
-        tanggal: '2023-10-04',
-
-        status: 'Izin',
-      },
-      {
-        no: 5,
-        tanggal: '2023-10-04',
-
-        status: 'Alpha',
-      },
-      {
-        no: 6,
-        tanggal: '2023-10-05',
-        status: 'Hadir',
-      },
+     
     ];
 
     const statusConfig = {

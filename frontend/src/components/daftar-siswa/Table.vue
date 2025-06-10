@@ -3,7 +3,8 @@
   <div class="flex justify-between items-center mb-4">
     <div class="flex gap-2">
       <n-button
-        class="!bg-[#1E1E1E] !w-[140px] !h-[42px] !text-white !rounded-[8px]"
+      type="primary"
+        class="transition-transform transform active:scale-95"
         @click="$emit('add-data')"
       >
         <template #icon>
@@ -12,7 +13,7 @@
         Tambah Siswa
       </n-button>
       <n-button
-        class="!bg-[#E67700] !w-[120px] !h-[42px] !text-white !rounded-[8px]"
+        class="!bg-[#E67700] !w-[120px] !text-white transition-transform transform active:scale-95"
         :disabled="selectedRows.length !== 1"
         @click="handleEditSelected"
       >
@@ -22,12 +23,12 @@
         Edit
       </n-button>
       <n-button
-        class="!bg-[#F03E3E] hover:!bg-[#D12B2B] !w-[120px] !h-[42px] !text-white !rounded-[8px]"
+        class="!bg-[#F03E3E] hover:!bg-[#D12B2B] !w-[120px] !text-white transition-transform transform active:scale-95"
         :disabled="selectedRows.length === 0"
         @click="handleDeleteSelected"
       >
         <template #icon>
-          <n-icon :component="PhTrash" :size="18" />
+          <n-icon :component="PhTrash" :size="20" />
         </template>
         Hapus
       </n-button>
@@ -36,7 +37,7 @@
     <n-input
       v-model:value="searchKeyword"
       placeholder="Cari Data Daftar Siswa..."
-      class="!w-[258px] !h-[42px] !rounded-[8px] !items-center"
+      class="!w-[258px]"
       clearable
     >
       <template #prefix>
@@ -44,7 +45,7 @@
       </template>
     </n-input>
   </div>
-
+<n-config-provider :theme-overrides="themeOverrides">
   <n-data-table
     ref="tableRef"
     :data="filteredData"
@@ -56,6 +57,7 @@
     @update:sorter="handleSorterChange"
     v-model:checked-row-keys="selectedRows"
   />
+  </n-config-provider>
 </template>
 
 <script>
