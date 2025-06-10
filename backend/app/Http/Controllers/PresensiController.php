@@ -4,16 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Models\Presensi;
 use App\Models\DaftarSiswa;
-use App\Models\PresensiSiswa;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 
 class PresensiController extends Controller
 {
-    public function getStatistikPresensiHariIni()
+
+    public function getPresensiAktif()
+{
+    $today = now()->toDateString();
+    $now = now()->format('H:i:s');
+
+    $presensi = Presensi::where('tanggal', $today)
+        ->where('status', Presensi::STATUS_AKTIF)
+        ->where('jam_buka', '<=', $now)
+        ->where('jam_tutup', '>=', $now)
+        ->first();
+
+    return response()->json([
+        'status' => 'success',
+        'data' => $presensi,
+    ]);
+} 
+    public function getRekapPresensi()
     {
         try {
             $tanggalHariIni = Carbon::today()->toDateString();
@@ -25,7 +40,7 @@ class PresensiController extends Controller
             if (!$presensi) {
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Belum ada presensi untuk hari ini.',
+                    'message' => 'Belum ada kegiatan presensi untuk hari ini!',
                     'data' => [],
                     'total' => DaftarSiswa::count(),
                 ]);
@@ -39,21 +54,23 @@ class PresensiController extends Controller
                 'Alpha' => $presensi->presensiSiswa->where('status_kehadiran', 'alpha')->count(),
             ];
 
+            $totalSiswa = DaftarSiswa::count();
+
             return response()->json([
                 'status' => 'success',
-                'message' => 'Statistik presensi hari ini berhasil diambil.',
-                'total' => DaftarSiswa::count(),
+                'message' => 'Rekap presensi harian berhasil diambil!',
+                'total' => $totalSiswa,
                 'data' => $data,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error getting statistik presensi: ' . $e->getMessage());
+            \Log::error('Error getting rekap presensi: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal mengambil statistik presensi.',
+                'message' => 'Rekap presensi harian gagal diambil!',
             ], 500);
         }
     }
-    public function getRekapPresensi()
+    public function index()
     {
         try {
             $presensi = Presensi::with(['presensiSiswa.siswa.kelas'])->orderBy('created_at', 'desc')->get();
@@ -77,7 +94,7 @@ class PresensiController extends Controller
                 });
 
                 return [
-                    'presensi_id' => $item->id,
+                    'presensi_id' => $item->presensi_id,
                     'tanggal' => $item->tanggal,
                     'jam_buka' => $item->jam_buka,
                     'jam_tutup' => $item->jam_tutup,
@@ -93,14 +110,14 @@ class PresensiController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Rekap presensi berhasil diambil.',
+                'message' => 'Data presensi harian berhasil diambil!',
                 'data' => $data,
             ]);
         } catch (\Exception $e) {
             \Log::error('Error fetching presensi data: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal mengambil rekap presensi.',
+                'message' => 'Data presensi harian gagal diambil!',
             ], 500);
         }
     }
