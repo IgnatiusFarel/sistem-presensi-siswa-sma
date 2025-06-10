@@ -137,7 +137,7 @@
             <n-date-picker
               v-model:value="formData.tanggal_bergabung"              
               type="date"
-              class="w-full"
+              class="!w-full"
               placeholder="Pilih Tanggal Bergabung..."
             />
           </n-form-item>
@@ -153,8 +153,12 @@
 
         <n-button
           type="primary"
-          class="!bg-[#1E1E1E] !text-white !w-full"
+           block
+          attr-type="submit"          
           @click="handleSubmit"
+          :loading="loading"
+          :disabled="loading"
+          class="transition-transform transform active:scale-95"
         >
           Tambah
         </n-button>
@@ -199,12 +203,15 @@
 </template>
 
 <script setup>
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, watch, onMounted } from 'vue';
 import { PhCaretDoubleLeft, PhFileArrowUp } from '@phosphor-icons/vue';
-import Api from "../../services/Api"; 
+import Api from "@/services/Api"; 
+
 const loading = ref(false)
 const formRef = ref(null)
 const kelasOptions = ref([]);
+const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
+const emit = defineEmits(['back-to-table']);
 
 const rules = {
   nama: [
@@ -321,9 +328,6 @@ const rules = {
     },
   ],
 }
-
-const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
-const emit = defineEmits(['back-to-table']);
 
 const agamaOptions = [
   { value: 'Islam', label: 'Islam' },

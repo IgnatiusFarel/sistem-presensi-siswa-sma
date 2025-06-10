@@ -126,6 +126,7 @@
               v-model:value="formData.tanggal_bergabung"
               type="date"
               placeholder="Pilih tanggal..."
+              class="!w-full"
             />
           </n-form-item>
 
@@ -141,9 +142,12 @@
 
         <n-button
           type="primary"
-          class="!bg-[#1E1E1E] !text-white !w-full"
+          block
+          attr-type="submit"
           @click="handleSubmit"
           :loading="loading"
+          :disabled="loading"
+          class="transition-transform transform active:scale-95"
         >
           {{ loading ? "Memproses..." : "Tambah" }}
         </n-button>
