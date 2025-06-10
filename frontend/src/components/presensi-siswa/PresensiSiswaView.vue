@@ -32,10 +32,12 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { NTabs, NTabPane } from 'naive-ui';
 import Presensi from '@/components/presensi-siswa/presensi/PresensiSiswa.vue';
 import Riwayat from '@/components/presensi-siswa/riwayat/RiwayatPresensiSiswa.vue';
+import Api from "@/services/Api.js"; 
 
 const activeTab = ref('presensi');
 const currentTime = ref('');
 const currentDate = ref('');
+const loading = ref(false)
 
 const updateDateTime = () => {
   const now = new Date();
@@ -70,4 +72,15 @@ const currentComponent = computed(() => {
     riwayat: Riwayat,
   }[activeTab.value];
 });
+
+const fetchData = async () => {
+  loading.value = true; 
+  try {
+    
+  } catch (error) {
+    
+  } finally { 
+    loading.value = false; 
+  }
+}
 </script>
