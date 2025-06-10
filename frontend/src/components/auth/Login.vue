@@ -59,14 +59,17 @@
           </n-input>
         </n-form-item>
 
-        <button
-          type="submit"
+        <n-button
+          type="primary"
+          attr-type="submit"
+          block
+          :loading="loading"
           :disabled="loading"
-          class="w-full h-12 flex items-center justify-center bg-[#1E1E1E] hover:bg-[#353535] text-white font-semibold rounded-lg transition-all transform active:scale-95"
+           class="transition-transform transform active:scale-95"
         >
           <span v-if="loading">Memproses...</span>
           <span v-else>Masuk</span>
-        </button>
+        </n-button>
       </n-form>
 
       <div class="px-6 py-4 border-t border-gray-200 text-center">
