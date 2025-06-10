@@ -3,12 +3,15 @@
 use App\Http\Controllers\DaftarKelasController;
 use App\Http\Controllers\DaftarPengurusController;
 use App\Http\Controllers\DaftarSiswaController;
+use App\Http\Controllers\LaporanPerubahanAkunController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\PresensiSiswaController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/masuk', [AuthController::class, 'masuk']);
+Route::get('/daftar-siswa-aktif', [LaporanPerubahanAkunController::class, 'getDaftarSiswa']);
+Route::post('/laporan-perubahan-akun', [LaporanPerubahanAkunController::class, 'store']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/keluar', [AuthController::class, 'logout']);
@@ -27,11 +30,13 @@ Route::middleware('auth:sanctum')->group(function () {
             'parameters' => ['daftar-kelas' => 'id'] ]);
         Route::delete('/daftar-kelas', [DaftarKelasController::class, 'destroyMultiple']);
 
-        Route::get('/presensi/statistik', [PresensiController::class, 'getStatistikPresensiHariIni']);
-        Route::get('/presensi/rekap', [PresensiController::class, 'getRekapPresensi']);        
+        Route::get('/rekap-presensi', [PresensiController::class, 'getRekapPresensi']);
+        Route::get('/presensi', [PresensiController::class, 'index']);        
         Route::post('/presensi', [PresensiController::class, 'store']);
         Route::delete('/riwayat-presensi', [DaftarKelasController::class, 'destroyMultiple']);
         Route::get('/presensi/{id}', [PresensiController::class, 'show']);      
+
+        Route::get('/laporan-perubahan-akun', [LaporanPerubahanAkunController::class, 'index']);
     });
     
     
