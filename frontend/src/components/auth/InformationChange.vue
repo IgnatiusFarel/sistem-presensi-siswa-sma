@@ -17,6 +17,7 @@
         <n-input
           v-model="search"
           type="text"
+          clearable
           placeholder="Cari Nama Lengkap Anda..."
         >
           <template #prefix>
@@ -53,108 +54,84 @@
                 </button>
                 <transition name="fade">
                   <div v-if="expanded === idx" class="px-4 pb-4 bg-white">
-                    <n-form-item label="Jenis Perubahan" path="jenisPerubahan">
-                      <n-radio-group
-                        v-model:value="formData.jenisPerubahan"
-                        name="jenisPerubahan"
+                    <n-form :model="formData" :rules="rules" ref="formRef">
+                      <n-form-item
+                        label="Jenis Perubahan"
+                        path="jenis_perubahan"
                       >
-                        <n-radio-button
-                          v-for="option in jenisPerubahanOptions"
-                          :key="option.value"
-                          :value="option.value"
-                          :label="option.label"
-                        />
-                      </n-radio-group>
-                    </n-form-item>
-
-                    <!-- File Upload Component -->
-                    <div class="mb-3">
-                      <label
-                        class="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Bukti Perubahan Data <span class="text-red-500">*</span>
-                      </label>
-                      <div
-                        class="relative border border-gray-300 rounded-lg p-3"
-                        :class="{ 'border-red-500': student.fileError }"
-                      >
-                        <div
-                          v-if="!student.file"
-                          class="flex items-center justify-center py-6"
+                        <n-radio-group
+                          v-model:value="formData.jenis_perubahan"
+                          name="jenis_perubahan"
                         >
-                          <div class="flex flex-col items-center">
-                            <PhCloudArrowUp
-                              :size="32"
-                              class="text-gray-400 mb-2"
-                            />
-                            <p class="text-sm text-gray-500">
-                              Unggah gambar atau dokumen
+                          <n-radio-button
+                            v-for="option in jenisPerubahanOptions"
+                            :key="option.value"
+                            :value="option.value"
+                            :label="option.label"
+                          />
+                        </n-radio-group>
+                      </n-form-item>
+
+                      <n-form-item
+                        label="Upload Bukti Perubahan"
+                        path="upload_bukti"
+                      >
+                        <n-upload
+                          multiple
+                          directory-dnd
+                          action="https://www.mocky.io/v2/5e4bafc63100007100d8b70f"
+                          :max="1"
+                          accept="image/*,.pdf, word, doc"
+                        >
+                          <n-upload-dragger>
+                            <div style="margin-bottom: 12px">
+                              <n-icon
+                                :component="PhFileArrowUp"
+                                :size="48"
+                                class="text-gray-400"
+                              />
+                            </div>
+                            <p class="text-gray-600">
+                              Drag file ke sini atau
+                              <span class="text-[#1E1E1E] font-medium"
+                                >klik untuk upload</span
+                              >
                             </p>
-                            <p class="text-xs text-gray-400">
-                              PDF, JPG, PNG, atau JPEG (maks 2MB)
+                            <p class="text-sm text-gray-500 mt-1">
+                              Maksimal ukuran file 2MB (.jpg, .png)
                             </p>
-                          </div>
-                        </div>
-                        <div v-else class="flex items-center justify-between">
-                          <div class="flex items-center">
-                            <PhFile :size="24" class="text-gray-600 mr-2" />
-                            <span
-                              class="text-sm text-gray-700 truncate max-w-[200px]"
-                              >{{ student.file.name }}</span
-                            >
-                          </div>
-                          <button
-                            @click.stop="removeFile(student)"
-                            class="text-gray-400 hover:text-red-500"
-                          >
-                            <PhTrash :size="18" />
-                          </button>
-                        </div>
-                        <input
-                          type="file"
-                          class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          @change="(e) => handleFileUpload(e, student)"
-                          accept=".pdf,.jpg,.jpeg,.png"
+                            <p class="text-sm text-gray-500 mt-1">
+                              Bukti dapat berupa foto atau tangkapan layar.
+                            </p>
+                          </n-upload-dragger>
+                        </n-upload>
+                      </n-form-item>
+
+                      <n-form-item
+                        label="Keterangan Perubahan"
+                        path="keterangan"
+                      >
+                        <n-input
+                          type="textarea"
+                          v-model:value="formData.keterangan"
+                          placeholder="Masukkan alasan perubahan data akun Anda..."
                         />
-                      </div>
-                      <p
-                        v-if="student.fileError"
-                        class="text-red-500 text-xs mt-1"
-                      >
-                        {{ student.fileError }}
-                      </p>
-                    </div>
+                      </n-form-item>
 
-                    <!-- Reason Textarea -->
-                    <div class="mb-3">
-                      <label
-                        class="block text-sm font-medium text-gray-700 mb-1"
+                      <n-button
+                        :loading="loading"
+                        :disabled="loading"
+                        block
+                        type="primary"
+                        attr-type="submit"
+                        @click="submit(student)"
+                        class="transition-transform transform active:scale-95"
                       >
-                        Alasan Perubahan <span class="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        v-model="student.reason"
-                        placeholder="Masukkan alasan perubahan data akun Anda"
-                        rows="3"
-                        class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 resize-none"
-                        :class="{ 'border-red-500': student.reasonError }"
-                      ></textarea>
-                      <p
-                        v-if="student.reasonError"
-                        class="text-red-500 text-xs mt-1"
-                      >
-                        {{ student.reasonError }}
-                      </p>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button
-                      @click="submit(student)"
-                      class="w-full h-12 flex items-center justify-center gap-2 bg-[#1E1E1E] hover:bg-[#353535] text-white font-semibold rounded-lg transition-transform transform active:scale-95"
-                    >
-                      Kirim
-                      <PhPaperPlaneTilt :size="20" />
-                    </button>
+                        <span v-if="loading">Memproses...</span>
+                        <span v-else>Kirim </span>
+                        <PhPaperPlaneTilt :size="20" />
+                      </n-button>
+                    </n-form>
                   </div>
                 </transition>
               </div>
@@ -243,71 +220,97 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue';
-import { RouterLink } from 'vue-router';
+import { ref, computed } from "vue";
+import { RouterLink } from "vue-router";
 import {
   PhMagnifyingGlass,
   PhPaperPlaneTilt,
-  PhCloudArrowUp,
-  PhFile,
-  PhTrash,
   PhCaretUpDown,
-} from '@phosphor-icons/vue';
+  PhFileArrowUp,
+} from "@phosphor-icons/vue";
+
+const search = ref("");
+const loading = ref(false);
+const formRef = ref(null);
+const expanded = ref(null);
 
 const jenisPerubahanOptions = [
-  { value: 'Email', label: 'Alamat Email' },
-  { value: 'Sandi', label: 'Kata Sandi' },
+  { value: "Email", label: "Email" },
+  { value: "Password", label: "Password" },
 ];
 
-const formData = reactive({
-  jenisPerubahan: jenisPerubahanOptions[0].value,
+const formData = ref({
+  jenis_perubahan: null,
+  upload_bukti: null,
+  keterangan: "",
 });
+
+const rules = {
+  jenis_perubahan: [
+    {
+      required: true,
+      message: "Jenis perubahan wajib dipilih",
+      trigger: ["blur", "change"],
+    },
+  ],
+  upload_bukti: [
+    {
+      required: true,
+      message: "Upload bukti wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+  keterangan: [
+    {
+      required: true,
+      message: "Keterangan wajib diisi",
+      trigger: ["blur", "input"],
+    },
+  ],
+};
 
 const students = ref([
   {
     id: 1,
-    nama: 'Abdul Aziz Rahmat Ibnu Fani',
-    kelas: 'XI RPL A - 01',
-    selectedOption: 'email',
-    reason: '',
-    reasonError: '',
+    nama: "Abdul Aziz Rahmat Ibnu Fani",
+    kelas: "XI RPL A - 01",
+    selectedOption: "email",
+    reason: "",
+    reasonError: "",
     file: null,
-    fileError: '',
+    fileError: "",
   },
   {
     id: 2,
-    nama: 'Jane Doe',
-    kelas: 'XI TKJ B - 02',
-    selectedOption: 'email',
-    reason: '',
-    reasonError: '',
+    nama: "Jane Doe",
+    kelas: "XI TKJ B - 02",
+    selectedOption: "email",
+    reason: "",
+    reasonError: "",
     file: null,
-    fileError: '',
+    fileError: "",
   },
   {
     id: 3,
-    nama: 'John Smith',
-    kelas: 'XI Multimedia - 03',
-    selectedOption: 'email',
-    reason: '',
-    reasonError: '',
+    nama: "John Smith",
+    kelas: "XI Multimedia - 03",
+    selectedOption: "email",
+    reason: "",
+    reasonError: "",
     file: null,
-    fileError: '',
+    fileError: "",
   },
   {
     id: 4,
-    nama: 'Alice Johnson',
-    kelas: 'XI RPL B - 02',
-    selectedOption: 'email',
-    reason: '',
-    reasonError: '',
+    nama: "Alice Johnson",
+    kelas: "XI RPL B - 02",
+    selectedOption: "email",
+    reason: "",
+    reasonError: "",
     file: null,
-    fileError: '',
+    fileError: "",
   },
 ]);
-
-const search = ref('');
-const expanded = ref(null);
 
 const filteredStudents = computed(() => {
   if (!search.value) return students.value;
@@ -320,84 +323,25 @@ function toggle(index) {
   expanded.value = expanded.value === index ? null : index;
 }
 
-function handleFileUpload(event, student) {
-  const file = event.target.files[0];
-
-  // Reset previous errors
-  student.fileError = '';
-
-  if (!file) return;
-
-  // Check file size (2MB max)
-  if (file.size > 2 * 1024 * 1024) {
-    student.fileError = 'Ukuran file maksimal 2MB';
-    return;
-  }
-
-  // Check file type
-  const allowedTypes = [
-    'application/pdf',
-    'image/jpeg',
-    'image/png',
-    'image/jpg',
-  ];
-  if (!allowedTypes.includes(file.type)) {
-    student.fileError = 'Format file harus PDF, JPG, JPEG, atau PNG';
-    return;
-  }
-
-  student.file = file;
-}
-
-function removeFile(student) {
-  student.file = null;
-  student.fileError = '';
-}
-
 function submit(student) {
   // Reset errors
-  student.reasonError = '';
-  student.fileError = '';
+  student.reasonError = "";
+  student.fileError = "";
 
   // Validate reason
-  if (!student.reason || student.reason.trim() === '') {
-    student.reasonError = 'Alasan perubahan wajib diisi';
+  if (!student.reason || student.reason.trim() === "") {
+    student.reasonError = "Alasan perubahan wajib diisi";
   }
 
   // Validate file
   if (!student.file) {
-    student.fileError = 'Bukti perubahan wajib diunggah';
+    student.fileError = "Bukti perubahan wajib diunggah";
   }
 
   // If any errors, stop submission
   if (student.reasonError || student.fileError) {
     return;
   }
-
-  // Prepare form data for submission
-  const formData = new FormData();
-  formData.append('id', student.id);
-  formData.append('nis', student.nis);
-  formData.append('changeType', student.selectedOption);
-  formData.append('reason', student.reason);
-  formData.append('file', student.file);
-
-  console.log('Submitting form data:', {
-    id: student.id,
-    name: student.nama,
-    nis: student.nis,
-    changeType: student.selectedOption,
-    reason: student.reason,
-    fileName: student.file.name,
-    fileType: student.file.type,
-    fileSize: `${(student.file.size / 1024).toFixed(2)} KB`,
-  });
-
-  // Here you would normally send the formData to your API
-  alert('Permintaan perubahan berhasil dikirim!');
-  student.reason = '';
-  student.file = null;
-  expanded.value = null;
 }
 </script>
 
@@ -409,17 +353,5 @@ function submit(student) {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-/* Direct CSS properties instead of @apply for Tailwind v4.1 compatibility */
-.form-radio {
-  height: 1rem;
-  width: 1rem;
-  color: #1e1e1e;
-  border-color: #d1d5db;
-}
-
-.form-radio:focus {
-  --tw-ring-color: #1e1e1e;
 }
 </style>
