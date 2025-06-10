@@ -35,7 +35,7 @@ class CreateDaftarPengurusTable extends Migration
             $table->string('bidang_keahlian');
             $table->string('pengurus');
             $table->uuid('daftar_kelas_id')->nullable();            
-            $table->string('akses_kelas')->nullable();            
+            $table->json('akses_kelas')->nullable();            
             $table->enum('status_kepegawaian', [
                 'PNS',
                 'Honorer',
