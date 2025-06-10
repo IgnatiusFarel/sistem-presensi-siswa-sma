@@ -7,7 +7,7 @@
       hoverable
       class="!border-[#C1C2C5] !rounded-xl !max-w-[300px]"
     >
-      <p class="text-base font-bold">{{ item.count }} / {{ total }} Siswa</p>
+      <p class="text-base font-bold">{{ item.count }} / {{ total }} Kegiatan Presensi</p>
     </n-card>
   </div>
 </template>
