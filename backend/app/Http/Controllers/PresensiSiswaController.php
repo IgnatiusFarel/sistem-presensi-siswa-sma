@@ -7,7 +7,6 @@ use App\Models\Presensi;
 use App\Models\PresensiSiswa;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class PresensiSiswaController extends Controller
