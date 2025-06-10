@@ -13,16 +13,17 @@
       @select="handleProfileSelect"
     >
       <div
-        class="flex items-center gap-3 cursor-pointer border-[#C1C2C5] rounded-full bg-[#F1F3F5] px-3 py-1"
+        class="flex items-center gap-3 cursor-pointer border-[#C1C2C5] rounded-full bg-blue-200 px-2 py-1 cursor-pointer hover:bg-[#2F80ED] transition-colors"
       >
         <PhCaretUpDown :size="20" v-show="!isCollapsed" />
         <div class="flex flex-col items-end">
-          <span class="font-medium text-gray-800">Abdul Abel Abdel</span>
-          <span class="text-xs text-gray-500">Siswa</span>
+          <span class="font-medium text-gray-800">{{  user?.name || user?.email  }}</span>
+          <span class="text-xs text-gray-500">{{  user?.role  || 'Siswa'}}</span>
         </div>
 
         <n-avatar
           round
+          alt="avatar"
           size="small"
           src="https://randomuser.me/api/portraits/men/1.jpg"
         />
@@ -32,11 +33,15 @@
 </template>
 
 <script setup>
-import { NAvatar, NDropdown } from 'naive-ui';
-import { PhSignOut, PhGear, PhUser, PhCaretUpDown } from '@phosphor-icons/vue';
 import { h } from 'vue';
 import { useRouter } from 'vue-router';
+import { NAvatar, NDropdown } from 'naive-ui';
+import { PhSignOut, PhGear, PhUser, PhCaretUpDown } from '@phosphor-icons/vue';
+import { useAuthStore } from "@/stores/Auth";
+import { storeToRefs } from 'pinia';
 
+const auth = useAuthStore();
+const { user } = storeToRefs(auth);
 const router = useRouter();
 
 const profileOptions = [
@@ -60,6 +65,7 @@ const profileOptions = [
 
 const handleProfileSelect = (key) => {
   if (key === 'logout') {
+    auth.logout();
     router.push('/masuk');
   }
 };
