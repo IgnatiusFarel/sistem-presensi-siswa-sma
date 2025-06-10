@@ -138,7 +138,7 @@ class PresensiController extends Controller
             'jam_buka' => $request->jam_buka,
             'jam_tutup' => $request->jam_tutup,
             'status' => 'aktif',
-            'dibuat_oleh' => Auth::user()->user_id, // ✅ tambahkan ini
+            'dibuat_oleh' => Auth::user()->user_id, 
         ]);
 
         DB::commit();
@@ -155,7 +155,7 @@ class PresensiController extends Controller
         return response()->json([
             'status' => 'error',
             'message' => 'Presensi gagal dibuat!',
-            'error' => $e->getMessage(), // untuk debugging
+            'error' => $e->getMessage(), 
         ], 500);
     }
 }
