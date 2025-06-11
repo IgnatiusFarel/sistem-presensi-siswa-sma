@@ -26,13 +26,7 @@
         </n-form-item>
 
         <div class="grid grid-cols-2 gap-2">
-          <n-form-item label="NIP " path="nip">
-            <n-input
-              :allow-input="onlyAllowNumber"
-              v-model:value="formData.nip"
-              placeholder="Masukkan NIP..."
-            />
-          </n-form-item>
+         
           <n-form-item label="Jenis Kelamin" path="jenis_kelamin">
             <div class="grid grid-cols-2">
               <n-radio-group
@@ -56,6 +50,13 @@
               placeholder="Pilih Jabatan..."
             />
           </n-form-item>
+           <n-form-item label="NIP " path="nip">
+            <n-input
+              :allow-input="onlyAllowNumber"
+              v-model:value="formData.nip"
+              placeholder="Masukkan NIP..."
+            />
+          </n-form-item>
           <n-form-item label="Jabatan" path="jabatan">
             <n-select
               v-model:value="formData.jabatan"
@@ -71,10 +72,9 @@
           </n-form-item>
        
           <n-form-item label="Pengurus" path="pengurus">
-            <n-select
-              v-model:value="formData.pengurus"
-              :options="pengurusOptions"
-              placeholder="Pilih Pengurus..."
+            <n-input
+              v-model:value="formData.pengurus"              
+              placeholder="Masukkan Pengurus..."
             />
           </n-form-item>
         </div>
@@ -130,7 +130,8 @@
             filterable
             multiple
             placeholder="Pilih Akses Kelas..."
-              value-field="daftar_kelas_id"
+            value-field="daftar_kelas_id"
+  label-field="nama_kelas"
           />
         </n-form-item>
           <n-form-item label="Tanggal Bergabung" path="tanggal_bergabung">
@@ -206,12 +207,15 @@
 import { defineComponent, ref, watch, onMounted } from 'vue';
 import { PhCaretDoubleLeft, PhFileArrowUp } from '@phosphor-icons/vue';
 import Api from "@/services/Api"; 
+import dayjs from 'dayjs';
+import { useMessage } from "naive-ui"
 
 const loading = ref(false)
 const formRef = ref(null)
 const kelasOptions = ref([]);
+const message = useMessage();
 const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
-const emit = defineEmits(['back-to-table']);
+const emit = defineEmits(['back-to-table', 'refresh']);
 
 const rules = {
   nama: [
@@ -310,7 +314,7 @@ const rules = {
       trigger: ["blur", "input"],
     },
     {
-      min: 6,
+      min: 8,
       message: "Kata sandi minimal 6 karakter",
       trigger: ["blur", "input"],
     },
@@ -378,7 +382,7 @@ const formData = ref({
   alamat: '',
   jabatan: null,
   bidang_keahlian: '',
-  pengurus: null,
+  pengurus: "",
   daftar_kelas_id: null,
   akses_kelas: [], 
   status_kepegawaian: null,
@@ -396,7 +400,7 @@ const handleSubmit = async (e) => {
       }
     });
   } catch (error) {
-    console.error("Error Validasi:", error);
+    message.error("Validasi Data Gagal!", error);    
   }
 }
 
@@ -405,15 +409,15 @@ const handleSave = async () => {
   try {
     const payload = {
       ...formData.value, 
-       tanggal_bergabung: new Date(formData.value.tanggal_bergabung)
-        .toISOString()
-        .split("T")[0],    
+        tanggal_bergabung: dayjs(formData.value.tanggal_bergabung).format('YYYY-MM-DD'),
     };
-    const response = await Api.post("/daftar-pengurus", payload)
-    console.log("Data berhasil disimpan:", response.data);
-      emit("back-to-table");
+    await Api.post("/daftar-pengurus", payload)    
+      message.success("Data pengurus berhasil ditambahkan!");
+
+    emit("refresh");
+    emit("back-to-table");
   } catch (error) {
-    console.error("Gagal menyimpan data:", error);
+     message.error("Data pengurus gagal ditambahkan!");
   } finally {
     loading.value = false;
   }
@@ -423,6 +427,7 @@ const fetchDataKelas = async () => {
   loading.value = true; 
   try {
     const response = await Api.get("/daftar-kelas")
+    kelasOptions.value = response.data.data;
   } catch (error) {
     console.error(error);
   } finally {
