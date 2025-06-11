@@ -126,6 +126,7 @@
               v-model:value="formData.tanggal_bergabung"
               type="date"
               placeholder="Pilih tanggal..."
+              class="!w-full"
             />
           </n-form-item>
 
@@ -141,9 +142,12 @@
 
         <n-button
           type="primary"
-          class="!bg-[#1E1E1E] !text-white !w-full"
+          block
+          attr-type="submit"
+          class="transition-transform transform active:scale-95"
           @click="handleSubmit"
           :loading="loading"
+          :disabled="loading"
         >
           {{ loading ? "Memproses..." : "Simpan" }}
         </n-button>
@@ -193,12 +197,15 @@
 import { defineComponent, onMounted, ref, watch } from "vue";
 import { PhCaretDoubleLeft, PhFileArrowUp } from "@phosphor-icons/vue";
 import Api from "@/services/Api";
+import { useMessage } from "naive-ui"
+import dayjs from 'dayjs';
 
 const loading = ref(false);
 const formRef = ref(null);
 const kelasOptions = ref([]);
+const message = useMessage();
 const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
-const emit = defineEmits(["back-to-table"]);
+const emit = defineEmits(['back-to-table', 'refresh']);
 
 const props = defineProps({
   editData: Object 
@@ -280,13 +287,6 @@ const rules = {
       trigger: ["blur", "input"],
     },
   ],
-  nama_kelas: [
-    {
-      required: true,
-      message: "Nama Kelas wajib diisi",
-      trigger: ["blur", "input"],
-    },
-  ],
   nomor_absen: [
     {
       required: true,
@@ -294,18 +294,6 @@ const rules = {
       trigger: ["blur", "input"],
     },
   ],
-  // password: [
-  //   {
-  //     required: true,
-  //     message: "Kata sandi wajib diisi",
-  //     trigger: ["blur", "input"],
-  //   },
-  //   {
-  //     min: 8,
-  //     message: "Kata sandi minimal 8 karakter",
-  //     trigger: ["blur", "input"],
-  //   },
-  // ],
   tanggal_bergabung: [
     {
       required: true,
@@ -347,8 +335,7 @@ const formData = ref({
   daftar_kelas_id: null,
   nama_kelas: "",
   nomor_absen: "",
-  tanggal_bergabung: null,
-  password: "",
+  tanggal_bergabung: null,  
 });
 
 const handleSubmit = async (e) => {
@@ -370,16 +357,14 @@ const handleSave = async () => {
   try {
     const payload = {
       ...formData.value,
-      tanggal_bergabung: new Date(formData.value.tanggal_bergabung)
-        .toISOString()
-        .split("T")[0],
+      tanggal_bergabung: dayjs(formData.value.tanggal_bergabung).format('YYYY-MM-DD'),
     };
-    const response = await Api.patch(`/daftar-siswa/${props.editData.id}`, payload);
-    console.log("Data berhasil disimpan:", response.data);
-    emit("back-to-table");
+    await Api.patch(`/daftar-siswa/${props.editData.daftar_siswa_id}`, payload);
+    message.success("Data siswa berhasil diperbarui!");
     emit("refresh");
+    emit("back-to-table");
   } catch (error) {
-    console.error("Gagal mengupdate data:", error);
+    message.error("Data siswa gagal diperbarui!");
   } finally {
     loading.value = false;
   }
@@ -400,27 +385,29 @@ const fetchDataKelas = async () => {
 watch(
   () => formData.value.daftar_kelas_id,
   (newId) => {
-    const found = kelasOptions.value.find((k) => k.daftar_kelas_id === newId);
-    formData.value.nama_kelas = found ? found.nama_kelas : "";
+    if (newId && kelasOptions.value.length > 0) {
+      const found = kelasOptions.value.find((k) => k.daftar_kelas_id === newId);
+      formData.value.nama_kelas = found ? found.nama_kelas : "";
+    }
   }
 );
 
 watch(() => props.editData, (newVal) => {
   if (newVal) {    
     formData.value = {
-      nama: newVal.nama,
-      nis: newVal.nis,
-      nisn: newVal.nisn,
-      jenis_kelamin: newVal.jenis_kelamin,
-      tempat_tanggal_lahir: newVal.tempat_tanggal_lahir,
-      agama: newVal.agama,
-      alamat: newVal.alamat,
-      nomor_handphone: newVal.nomor_handphone,
-      email: newVal.email,
-      daftar_kelas_id: newVal.daftar_kelas_id,
-      nama_kelas: newVal.nama_kelas,
-      nomor_absen: newVal.nomor_absen,
-      tanggal_bergabung: new Date(newVal.tanggal_bergabung).getTime(), // Konversi ke timestamp
+      nama: newVal.nama || "",
+      nis: newVal.nis || "",
+      nisn: newVal.nisn || "",
+      jenis_kelamin: newVal.jenis_kelamin || "",
+      tempat_tanggal_lahir: newVal.tempat_tanggal_lahir || "",
+      agama: newVal.agama || null,
+      alamat: newVal.alamat || "",
+      nomor_handphone: newVal.nomor_handphone || "",
+      email: newVal.email || "",
+      daftar_kelas_id: newVal.daftar_kelas_id || null,
+      nama_kelas: newVal.nama_kelas || "", // Pastikan ada value
+      nomor_absen: String(newVal.nomor_absen || ""), // Konversi ke string untuk input
+      tanggal_bergabung: newVal.tanggal_bergabung ? new Date(newVal.tanggal_bergabung).getTime() : null,
       password: "" 
     };
   }
