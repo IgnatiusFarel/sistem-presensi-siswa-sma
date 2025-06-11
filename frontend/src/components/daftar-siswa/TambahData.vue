@@ -196,13 +196,16 @@
 <script setup>
 import { defineComponent, onMounted, ref, watch } from "vue";
 import { PhCaretDoubleLeft, PhFileArrowUp } from "@phosphor-icons/vue";
+import { useMessage } from "naive-ui"
 import Api from "@/services/Api";
+import dayjs from 'dayjs';
 
 const loading = ref(false);
 const formRef = ref(null);
+const message = useMessage();
 const kelasOptions = ref([]);
 const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
-const emit = defineEmits(["back-to-table"]);
+const emit = defineEmits(['back-to-table', 'refresh']);
 
 const rules = {
   nama: [
@@ -277,13 +280,6 @@ const rules = {
     {
       required: true,
       message: "Kelas wajib dipilih",
-      trigger: ["blur", "input"],
-    },
-  ],
-  nama_kelas: [
-    {
-      required: true,
-      message: "Nama Kelas wajib diisi",
       trigger: ["blur", "input"],
     },
   ],
@@ -370,15 +366,14 @@ const handleSave = async () => {
   try {
     const payload = {
       ...formData.value,
-      tanggal_bergabung: new Date(formData.value.tanggal_bergabung)
-        .toISOString()
-        .split("T")[0],
+      tanggal_bergabung: dayjs(formData.value.tanggal_bergabung).format('YYYY-MM-DD'),
     };
-    const response = await Api.post("/daftar-siswa", payload);
-    console.log("Data berhasil disimpan:", response.data);
+    await Api.post("/daftar-siswa", payload);
+    message.success("Data siswa berhasil ditambahkan!");
+    emit("refresh");
     emit("back-to-table");
   } catch (error) {
-    console.error("Gagal menyimpan data:", error);
+    message.error("Data siswa gagal ditambahkan!");
   } finally {
     loading.value = false;
   }
