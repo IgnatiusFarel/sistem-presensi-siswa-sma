@@ -41,7 +41,7 @@ const dataTable = ref([]);
 const selectedRows = ref([]);
 
 const showModal = ref(false);
-const deleteTarget = ref(null); // Bisa single id atau array ids
+const deleteTarget = ref(null); 
 const message = useMessage();
 
 const showView = (viewName) => {
