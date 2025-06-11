@@ -13,7 +13,6 @@ class DaftarPengurus extends Model
     protected $primaryKey = 'daftar_pengurus_id';
     public $incrementing = false;
     protected $keyType = 'string';
-
     public const JABATAN_ADMIN = 'Administrator';
     public const JABATAN_KEPSEK = 'Kepala Sekolah';
     public const JABATAN_WAKASEK = 'Wakil Kepala Sekolah';
