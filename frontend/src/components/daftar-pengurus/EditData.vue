@@ -26,13 +26,7 @@
         </n-form-item>
 
         <div class="grid grid-cols-2 gap-2">
-          <n-form-item label="NIP " path="nip">
-            <n-input
-              :allow-input="onlyAllowNumber"
-              v-model:value="formData.nip"
-              placeholder="Masukkan NIP..."
-            />
-          </n-form-item>
+         
           <n-form-item label="Jenis Kelamin" path="jenis_kelamin">
             <div class="grid grid-cols-2">
               <n-radio-group
@@ -56,6 +50,13 @@
               placeholder="Pilih Jabatan..."
             />
           </n-form-item>
+           <n-form-item label="NIP " path="nip">
+            <n-input
+              :allow-input="onlyAllowNumber"
+              v-model:value="formData.nip"
+              placeholder="Masukkan NIP..."
+            />
+          </n-form-item>
           <n-form-item label="Jabatan" path="jabatan">
             <n-select
               v-model:value="formData.jabatan"
@@ -71,9 +72,8 @@
           </n-form-item>
        
           <n-form-item label="Pengurus" path="pengurus">
-            <n-select
-              v-model:value="formData.pengurus"
-              :options="pengurusOptions"
+            <n-input
+              v-model:value="formData.pengurus"              
               placeholder="Pilih Pengurus..."
             />
           </n-form-item>
@@ -130,7 +130,8 @@
             filterable
             multiple
             placeholder="Pilih Akses Kelas..."
-              value-field="daftar_kelas_id"
+            value-field="daftar_kelas_id"
+  label-field="nama_kelas"
           />
         </n-form-item>
           <n-form-item label="Tanggal Bergabung" path="tanggal_bergabung">
@@ -153,7 +154,11 @@
 
         <n-button
           type="primary"
-          class="!bg-[#1E1E1E] !text-white !w-full"
+           block
+          attr-type="submit"   
+          :loading="loading"
+          :disabled="loading"
+          class="transition-transform transform active:scale-95"
           @click="handleSubmit"
         >
           Tambah
@@ -202,12 +207,15 @@
 import { defineComponent, ref, watch, onMounted } from 'vue';
 import { PhCaretDoubleLeft, PhFileArrowUp } from '@phosphor-icons/vue';
 import Api from "@/services/Api"; 
+import dayjs from 'dayjs';
+import { useMessage } from "naive-ui"
 
 const loading = ref(false)
 const formRef = ref(null)
 const kelasOptions = ref([]);
+const message = useMessage();
 const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
-const emit = defineEmits(['back-to-table']);
+const emit = defineEmits(['back-to-table', 'refresh']);
 
 const props = defineProps({
   editData: Object 
@@ -302,19 +310,7 @@ const rules = {
       message: "Status Kepegawaian wajib diisi",
       trigger: ["blur", "input"],
     },
-  ],
-   password: [
-    {
-      required: true,
-      message: "Kata sandi wajib diisi",
-      trigger: ["blur", "input"],
-    },
-    {
-      min: 8,
-      message: "Kata sandi minimal 6 karakter",
-      trigger: ["blur", "input"],
-    },
-  ],
+  ],   
   tanggal_bergabung: [
     {
       required: true,
@@ -325,6 +321,22 @@ const rules = {
         return true;
       },
       trigger: ["blur", "change"],
+    },
+  ],
+    password: [
+    {
+      validator: (_, value) => {
+        // Password required only for Administrator role and when creating new admin
+        if (formData.value.jabatan === 'Administrator' && !props.editData && (!value || value.trim() === '')) {
+          return new Error("Password wajib diisi untuk Administrator baru");
+        }
+        // If password is provided, check minimum length
+        if (value && value.length < 8) {
+          return new Error("Password minimal 8 karakter");
+        }
+        return true;
+      },
+      trigger: ["blur", "input"],
     },
   ],
 }
@@ -386,6 +398,7 @@ const formData = ref({
   password: "",
 });
 
+
 const handleSubmit = async (e) => {
   e.preventDefault();
   try {
@@ -405,15 +418,16 @@ const handleSave = async () => {
   try {
     const payload = {
       ...formData.value, 
-       tanggal_bergabung: new Date(formData.value.tanggal_bergabung)
-        .toISOString()
-        .split("T")[0],    
+       tanggal_bergabung: dayjs(formData.value.tanggal_bergabung).format('YYYY-MM-DD'),
     };
-    const response = await Api.post("/daftar-pengurus", payload)
-    console.log("Data berhasil disimpan:", response.data);
-      emit("back-to-table");
+      
+    await Api.patch(`/daftar-pengurus/${props.editData.daftar_pengurus_id}`, payload);
+    message.success("Data pengurus berhasil diperbarui!");
+    emit("refresh");
+    emit("back-to-table");
   } catch (error) {
-    console.error("Gagal menyimpan data:", error);
+    message.error("Data pengurus gagal diperbarui!");
+    console.error("Error:", error);
   } finally {
     loading.value = false;
   }
@@ -423,32 +437,43 @@ const fetchDataKelas = async () => {
   loading.value = true; 
   try {
     const response = await Api.get("/daftar-kelas")
-       kelasOptions.value = response.data.map(item => ({
-      label: item.nama_kelas,
-      value: item.daftar_kelas_id
-    }));
+    kelasOptions.value = response.data.data;
   } catch (error) {
     console.error(error);
   } finally {
     loading.value = false;
   }
 }
-
 watch(
-  () => props.editData,
-  (newData) => {
-    if (newData) {
-      formData.value = {
-        ...formData.value,
-        ...newData,
-        akses_kelas: newData.akses_kelas || [], // default empty array
-        tanggal_bergabung: new Date(newData.tanggal_bergabung)
-      };
-    }
-  },
-  { immediate: true }
+  () => formData.value.daftar_kelas_id,
+  (newId) => {
+    const found = kelasOptions.value.find((k) => k.daftar_kelas_id === newId);
+    formData.value.nama_kelas = found ? found.nama_kelas : "";
+  }
 );
 
+watch(() => props.editData, (newVal) => {
+  if (newVal) {    
+    formData.value = {
+      nama: newVal.nama || "",
+      jenis_kelamin: newVal.jenis_kelamin || "",
+      agama: newVal.agama || null,
+      nip: newVal.nip || "",
+      email: newVal.email || "",
+      nomor_handphone: newVal.nomor_handphone || "", 
+      tempat_tanggal_lahir: newVal.tempat_tanggal_lahir || "", 
+      alamat: newVal.alamat || "",
+      jabatan: newVal.jabatan || null,
+      bidang_keahlian: newVal.bidang_keahlian || "",
+      pengurus: newVal.pengurus || "",
+      daftar_kelas_id: newVal.daftar_kelas_id || null,
+      akses_kelas: newVal.akses_kelas || [], 
+      status_kepegawaian: newVal.status_kepegawaian || null,
+      tanggal_bergabung: newVal.tanggal_bergabung ? new Date(newVal.tanggal_bergabung).getTime() : null,
+      password: "" // Always reset password field for security
+    };
+  }
+}, { immediate: true });
 
 onMounted(() => {
   fetchDataKelas();
