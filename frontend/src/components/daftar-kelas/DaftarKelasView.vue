@@ -4,7 +4,7 @@
     :loading="loading"
     :data="dataTable"
     :editData="editData"
-       :selectedRows="selectedRows"   
+    :selectedRows="selectedRows"   
     @update:selectedRows="val => selectedRows = val"
     @add-data="showView('TambahData')"
     @back-to-table="showView('Table')"
@@ -12,8 +12,6 @@
     @edit-data="showEditForm"
     @delete-data="confirmDelete"
   />
-
-  
      <n-modal
     v-model:show="showModal"
     preset="dialog"
@@ -40,9 +38,8 @@ const editData = ref(null);
 const loading = ref(false);
 const dataTable = ref([]);
 const selectedRows = ref([]);
-
 const showModal = ref(false);
-const deleteTarget = ref(null); // Bisa single id atau array ids
+const deleteTarget = ref(null); 
 const message = useMessage();
 
 const showView = (viewName) => {
