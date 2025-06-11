@@ -41,7 +41,7 @@ const dataTable = ref([])
 const selectedRows = ref([]);
 
 const showModal = ref(false);
-const deleteTarget = ref(null); // Bisa single id atau array ids
+const deleteTarget = ref(null); 
 const message = useMessage();
 
 const showView = (viewName) => {
@@ -88,7 +88,7 @@ const fetchData = async () => {
   try {
     const response = await Api.get('/daftar-siswa')
     dataTable.value = response.data.data;
-     selectedRows.value = [];
+    selectedRows.value = [];
   } catch (error) { 
     console.log(error)
   } finally { 
