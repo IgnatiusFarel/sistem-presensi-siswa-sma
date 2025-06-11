@@ -11,7 +11,6 @@ class DaftarSiswa extends Model
     use HasFactory;
     protected $table = 'daftar_siswa';
     protected $primaryKey = 'daftar_siswa_id';
-
     public $incrementing = false;
     protected $keyType = 'string';
     protected $fillable = [        
