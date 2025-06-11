@@ -1,45 +1,74 @@
 <?php
 
 use App\Http\Controllers\DaftarKelasController;
+use App\Http\Controllers\DaftarLaporanController;
 use App\Http\Controllers\DaftarPengurusController;
 use App\Http\Controllers\DaftarSiswaController;
-use App\Http\Controllers\LaporanPerubahanAkunController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\PresensiSiswaController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RiwayatPresensiController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/masuk', [AuthController::class, 'masuk']);
-Route::get('/daftar-siswa-aktif', [LaporanPerubahanAkunController::class, 'getDaftarSiswa']);
-Route::post('/laporan-perubahan-akun', [LaporanPerubahanAkunController::class, 'store']);
+Route::get('/daftar-siswa-aktif', [DaftarLaporanController::class, 'getDaftarSiswa']);
+Route::post('/daftar-laporan', [DaftarLaporanController::class, 'store']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/keluar', [AuthController::class, 'logout']);
-        
+
     Route::middleware('role:superadmin')->group(function () {
 
-        Route::apiResource('/daftar-siswa', DaftarSiswaController::class, [
-            'parameters' => ['daftar-siswa' => 'id'] ]);
-        Route::delete('/daftar-siswa', [DaftarSiswaController::class, 'destroyMultiple']);
+        // 📁 Daftar Laporan
+        Route::get('/daftar-laporan', [DaftarLaporanController::class, 'index']);
 
-        Route::apiResource('/daftar-pengurus', DaftarPengurusController::class, [
-            'parameters' => ['daftar-pengurus' => 'id'] ]);
-        Route::delete('/daftar-pengurus', [DaftarPengurusController::class, 'destroyMultiple']);
+        // 📁 Daftar Siswa
+        Route::prefix('daftar-siswa')->controller(DaftarSiswaController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('{id}', 'show');
+            Route::patch('{id}', 'update');
+            Route::delete('{id}', 'destroy');
+            Route::delete('/', 'destroyMultiple');
+        });
 
-        Route::apiResource('/daftar-kelas', DaftarKelasController::class, [
-            'parameters' => ['daftar-kelas' => 'id'] ]);
-        Route::delete('/daftar-kelas', [DaftarKelasController::class, 'destroyMultiple']);
+        // 📁 Daftar Pengurus
+        Route::prefix('daftar-pengurus')->controller(DaftarPengurusController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('{id}', 'show');
+            Route::patch('{id}', 'update');
+            Route::delete('{id}', 'destroy');
+            Route::delete('/', 'destroyMultiple');
+        });
 
-        Route::get('/rekap-presensi', [PresensiController::class, 'getRekapPresensi']);
-        Route::get('/presensi', [PresensiController::class, 'index']);        
-        Route::post('/presensi', [PresensiController::class, 'store']);
-        Route::delete('/riwayat-presensi', [DaftarKelasController::class, 'destroyMultiple']);
-        Route::get('/presensi/{id}', [PresensiController::class, 'show']);      
+        // 📁 Daftar Kelas
+        Route::prefix('daftar-kelas')->controller(DaftarKelasController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('{id}', 'show');
+            Route::patch('{id}', 'update');
+            Route::delete('{id}', 'destroy');
+            Route::delete('/', 'destroyMultiple');
+        });
 
-        Route::get('/laporan-perubahan-akun', [LaporanPerubahanAkunController::class, 'index']);
+        // 📁 Presensi
+        Route::prefix('presensi')->controller(PresensiController::class)->group(function () {
+            Route::get('/aktif', 'getPresensiAktif');
+            Route::get('/rekap', 'getRekapPresensi');
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+        });
+
+        // 📁 Riwayat Presensi
+        Route::prefix('riwayat-presensi')->controller(RiwayatPresensiController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::get('{id}', 'show');
+            Route::delete('{id}', 'destroy');
+            Route::delete('/', 'destroyMultiple');
+        });
     });
-    
-    
+
     Route::middleware('role:siswa')->group(function () {
         Route::get('/profile', function () {
             $siswa = auth()->user()->siswa;
@@ -48,10 +77,14 @@ Route::middleware('auth:sanctum')->group(function () {
                 'data' => $siswa
             ]);
         });
-                
-        Route::get('/presensi-siswa/aktif', [PresensiSiswaController::class, 'getPresensiAktif']);
-        Route::post('/presensi-siswa/hadir', [PresensiSiswaController::class, 'submitHadir']);
-        Route::post('/presensi-siswa/izin', [PresensiSiswaController::class, 'submitIzin']);
-        Route::get('/presensi-siswa/riwayat', [PresensiSiswaController::class, 'riwayatPresensi']);
+
+        // 📁 Presensi Siswa
+        Route::prefix('presensi-siswa')->controller(PresensiSiswaController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('/hadir', [PresensiSiswaController::class, 'submitHadir']);
+            Route::post('/izin', [PresensiSiswaController::class, 'submitIzin']);
+            Route::post('/sakit', [PresensiSiswaController::class, 'submitIzin']);
+            Route::get('/riwayat-presensi', [PresensiSiswaController::class, 'riwayatPresensi']);
+        });
     });
 });
