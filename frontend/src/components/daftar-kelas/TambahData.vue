@@ -117,12 +117,14 @@
 <script setup>
 import { defineComponent, ref, onMounted } from "vue";
 import { PhCaretDoubleLeft, PhFileArrowUp } from "@phosphor-icons/vue";
+import { useMessage } from "naive-ui"
 import Api from "@/services/Api";
 
 const loading = ref(false);
 const formRef = ref(null);
+const message = useMessage();
 const waliKelasOptions = ref([]);
-const emit = defineEmits(["back-to-table"]);
+const emit = defineEmits(['back-to-table', 'refresh']);
 
 const jurusanOptions = [
   { value: "IPA", label: "IPA" },
@@ -179,6 +181,13 @@ const rules = {
       trigger: ["blur", "input"],
     },
   ],
+  daftar_pengurus_id: [
+    {
+      required: true,
+      message: "Wali kelas wajib dipilih",
+      trigger: ["blur", "input"],
+    },
+  ],
 };
 
 const formData = ref({
@@ -210,11 +219,12 @@ const handleSave = async () => {
     const payload = {
       ...formData.value,
     };
-    const response = await Api.post("/daftar-kelas", payload);
-    console.log("Data berhasil disimpan:", response.data);
+    await Api.post("/daftar-kelas", payload);
+    message.success("Data kelas berhasil ditambahkan!");
+    emit("refresh");
     emit("back-to-table");
   } catch (error) {
-    console.error("Gagal menyimpan data:", error);
+    message.error("Data kelas gagal ditambahkan!");
   } finally {
     loading.value = false;
   }
