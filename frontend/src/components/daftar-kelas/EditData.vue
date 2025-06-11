@@ -64,9 +64,13 @@
         </div>
 
         <n-button
-          type="primary"
-          class="!bg-[#1E1E1E] !text-white !w-full"
+         type="primary"
+          block
+          attr-type="submit"  
           @click="handleSubmit"
+          :loading="loading"
+          :disabled="loading"
+          class="transition-transform transform active:scale-95"
         >
           Simpan
         </n-button>
@@ -114,11 +118,14 @@
 import { defineComponent, ref, onMounted, watch } from "vue";
 import { PhCaretDoubleLeft, PhFileArrowUp } from "@phosphor-icons/vue";
 import Api from "@/services/Api";
+import dayjs from 'dayjs';
+import { useMessage } from "naive-ui"
 
 const loading = ref(false);
 const formRef = ref(null);
 const waliKelasOptions = ref([]);
-const emit = defineEmits(["back-to-table"]);
+const message = useMessage();
+const emit = defineEmits(['back-to-table', 'refresh']);
 
 const props = defineProps({
   editData: Object 
@@ -210,12 +217,13 @@ const handleSave = async () => {
     const payload = {
       ...formData.value,
     };
-    const response = await Api.post("/daftar-kelas", payload);
-    console.log("Data berhasil disimpan:", response.data);
-    emit("back-to-table");
+   await Api.patch(`/daftar-kelas/${props.editData.daftar_kelas_id}`, payload);
+    message.success("Data kelas berhasil diperbarui!");
     emit("refresh");
+    emit("back-to-table");
   } catch (error) {
-    console.error("Gagal menupdate data:", error);
+    message.error("Data kelas gagal diperbarui!");
+    console.error("Error:", error);
   } finally {
     loading.value = false;
   }
