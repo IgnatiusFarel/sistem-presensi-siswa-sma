@@ -86,7 +86,7 @@ class DaftarPengurusController extends Controller
             }
             
             $pengurus = DaftarPengurus::create([
-                'user_id' => $user->user_id,
+                'user_id' => $user ? $user->user_id : null,
                 'nama' => $request->nama,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 'agama' => $request->agama,
@@ -150,10 +150,10 @@ class DaftarPengurusController extends Controller
     $validator = Validator::make($request->all(), [
         'nama' => 'required|string',
         'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
-        'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu,Lainnya',
+        'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu',
         'tempat_tanggal_lahir' => 'required|string',
         'alamat' => 'required|string',
-        'nip' => 'required|string|unique:daftar_pengurus,nip,' . $id,
+        'nip' => 'required|string|unique:daftar_pengurus,nip,' . $id . ',daftar_pengurus_id',
         'email' => 'required|email|unique:users,email,' . $pengurus->user_id . ',user_id',
         'nomor_handphone' => 'required|string',
         'jabatan' => 'required|in:Administrator,Kepala Sekolah,Wakil Kepala Sekolah,Guru,Kepala Laboratorium,Pustakawan,Operator Sekolah,Staf TU,Satpam,Petugas Kebersihan',
