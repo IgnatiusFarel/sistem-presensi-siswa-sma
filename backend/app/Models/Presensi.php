@@ -22,8 +22,8 @@ class Presensi extends Model
         'jam_buka',
         'jam_tutup',        
         'status',
-        'dibuat_oleh',
-        'keterangan'
+        'dibuat_oleh',        
+        'user_id',
     ];
     protected $casts = [
         'tanggal' => 'date',
