@@ -11,7 +11,7 @@ class CreateDaftarKelasTable extends Migration
         Schema::create('daftar_kelas', function (Blueprint $table) {
             $table->uuid('daftar_kelas_id')->primary();            
             $table->string('kode_kelas')->unique();
-            $table->string('nama_kelas'); 
+            $table->string('nama_kelas')->unique(); 
             $table->enum('jurusan', ['IPA', 'IPS', 'Bahasa']);
             $table->enum('tingkat', ['X', 'XI', 'XII']);
             $table->uuid('daftar_pengurus_id')->nullable();            
