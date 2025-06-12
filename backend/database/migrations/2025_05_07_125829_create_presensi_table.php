@@ -10,18 +10,14 @@ class CreatePresensiTable extends Migration
     {
         Schema::create('presensi', function (Blueprint $table) {
             $table->uuid('presensi_id')->primary();            
-            $table->date('tanggal');
+            $table->date('tanggal')->unique();
             $table->time('jam_buka'); 
-            $table->time('jam_tutup'); 
-            $table->timestamp('dibuka_pada')->nullable(); 
-            $table->timestamp('ditutup_pada')->nullable(); 
+            $table->time('jam_tutup');             
             $table->enum('status', ['aktif', 'selesai'])->default('aktif');
-            $table->uuid('dibuat_oleh');
-            $table->foreign('dibuat_oleh')->references('user_id')->on('users')->onDelete('cascade');
-            $table->string('keterangan')->nullable(); 
-            $table->timestamps();
-
-            $table->unique(['tanggal', 'jam_buka']);
+            $table->uuid('user_id');
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
+            $table->string('dibuat_oleh');
+            $table->timestamps();            
         });
     }
  
