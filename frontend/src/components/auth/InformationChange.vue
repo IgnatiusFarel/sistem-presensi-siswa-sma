@@ -15,7 +15,7 @@
 
       <div class="px-6 py-4">
         <n-input
-          v-model="search"
+          v-model:value="search"
           type="text"
           clearable
           placeholder="Cari Nama Lengkap Anda..."
@@ -31,7 +31,7 @@
           <div class="space-y-3 max-h-[calc(3*70px+2rem)] overflow-y-auto">
             <div
               v-for="(student, idx) in filteredStudents"
-              :key="student.id"
+              :key="student.daftar_siswa_id"
               class="bg-white rounded-xl border border-[#C1C2C5] overflow-hidden"
             >
               <div>
@@ -44,7 +44,10 @@
                       {{ student.nama }}
                     </div>
                     <div class="text-sm text-[#232323]">
-                      {{ student.kelas }}
+                      {{ student.nama_kelas }}
+                    </div>
+                    <div class="text-sm text-[#232323]">
+                      {{ student.nomor_absen }}
                     </div>
                   </div>
                   <PhCaretUpDown
@@ -54,7 +57,7 @@
                 </button>
                 <transition name="fade">
                   <div v-if="expanded === idx" class="px-4 pb-4 bg-white">
-                    <n-form :model="formData" :rules="rules" ref="formRef">
+                    <n-form :model="formData" :rules="rules"   ref="formRef">
                       <n-form-item
                         label="Jenis Perubahan"
                         path="jenis_perubahan"
@@ -76,12 +79,14 @@
                         label="Upload Bukti Perubahan"
                         path="upload_bukti"
                       >
-                        <n-upload
-                          multiple
+                        <n-upload                                                  
                           directory-dnd
-                          action="https://www.mocky.io/v2/5e4bafc63100007100d8b70f"
+                          :on-change="handleUploadChange"
+                          :on-remove="() => (uploadFiles.value = [])"
                           :max="1"
-                          accept="image/*,.pdf, word, doc"
+                          :on-before-upload="handleBeforeUpload"
+                          list-type="image"
+                          accept="image/*"
                         >
                           <n-upload-dragger>
                             <div style="margin-bottom: 12px">
@@ -98,7 +103,7 @@
                               >
                             </p>
                             <p class="text-sm text-gray-500 mt-1">
-                              Maksimal ukuran file 2MB (.jpg, .png)
+                              Maksimal ukuran file 2MB (.jpeg, .jpg, .png)
                             </p>
                             <p class="text-sm text-gray-500 mt-1">
                               Bukti dapat berupa foto atau tangkapan layar.
@@ -115,6 +120,8 @@
                           type="textarea"
                           v-model:value="formData.keterangan"
                           placeholder="Masukkan alasan perubahan data akun Anda..."
+                            show-count
+                          maxlength="300"
                         />
                       </n-form-item>
 
@@ -124,7 +131,7 @@
                         block
                         type="primary"
                         attr-type="submit"
-                        @click="submit(student)"
+                         @click="handleSubmit"
                         class="transition-transform transform active:scale-95"
                       >
                         <span v-if="loading">Memproses...</span>
@@ -220,17 +227,21 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { RouterLink } from "vue-router";
+import { useMessage } from "naive-ui";
 import {
   PhMagnifyingGlass,
   PhPaperPlaneTilt,
   PhCaretUpDown,
   PhFileArrowUp,
 } from "@phosphor-icons/vue";
+import Api from "@/services/Api"
 
 const search = ref("");
 const loading = ref(false);
+const message = useMessage();
+const students = ref([]); 
 const formRef = ref(null);
 const expanded = ref(null);
 
@@ -269,48 +280,17 @@ const rules = {
   ],
 };
 
-const students = ref([
-  {
-    id: 1,
-    nama: "Abdul Aziz Rahmat Ibnu Fani",
-    kelas: "XI RPL A - 01",
-    selectedOption: "email",
-    reason: "",
-    reasonError: "",
-    file: null,
-    fileError: "",
-  },
-  {
-    id: 2,
-    nama: "Jane Doe",
-    kelas: "XI TKJ B - 02",
-    selectedOption: "email",
-    reason: "",
-    reasonError: "",
-    file: null,
-    fileError: "",
-  },
-  {
-    id: 3,
-    nama: "John Smith",
-    kelas: "XI Multimedia - 03",
-    selectedOption: "email",
-    reason: "",
-    reasonError: "",
-    file: null,
-    fileError: "",
-  },
-  {
-    id: 4,
-    nama: "Alice Johnson",
-    kelas: "XI RPL B - 02",
-    selectedOption: "email",
-    reason: "",
-    reasonError: "",
-    file: null,
-    fileError: "",
-  },
-]);
+const fetchData = async () => {
+  loading.value = true; 
+  try {
+    const response = await Api.get('/daftar-siswa-aktif')  
+    students.value = response.data.data
+  } catch (error) {
+    console.error(error)
+  } finally {
+    loading.value = false; 
+  }
+};
 
 const filteredStudents = computed(() => {
   if (!search.value) return students.value;
@@ -323,35 +303,64 @@ function toggle(index) {
   expanded.value = expanded.value === index ? null : index;
 }
 
-function submit(student) {
-  // Reset errors
-  student.reasonError = "";
-  student.fileError = "";
-
-  // Validate reason
-  if (!student.reason || student.reason.trim() === "") {
-    student.reasonError = "Alasan perubahan wajib diisi";
+function handleBeforeUpload({ file }) {
+  const isAllowedType = ['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)
+  const isLimitSize = file.file.size / 1024 / 1024 < 2 
+  if (!isAllowedType) {
+    message.error('Tipe file tidak didukung!')
+    return false
   }
 
-  // Validate file
-  if (!student.file) {
-    student.fileError = "Bukti perubahan wajib diunggah";
+  if (!isLimitSize) {
+    message.error('Ukuran file harus kurang dari 2MB!')
+    return false
   }
 
-  // If any errors, stop submission
-  if (student.reasonError || student.fileError) {
-    return;
-  }
+  return true
 }
+
+const handleSubmit = async (siswaId) => {
+  const form = formRefs.value[siswaId]
+  if (!form) return
+
+  try {
+    await form.validate(errors => {
+      if (!errors) {
+        handleSave(siswaId)
+        form.restoreValidation()
+      }
+    })
+  } catch (error) {
+    console.error("Error Validasi:", error);
+    message.error('Laporan Perubahan Akun Anda Gagal Tervalidasi!')
+  }
+}; 
+
+const handleSave = async () => {
+  loading.value = true;
+  try {
+    const payload = {
+      ...formData.value,
+    };
+    await Api.post('/daftar-laporan', payload, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    message.success("Laporan Perubahan Akun Anda Berhasil Dikirim!");
+  } catch (error) {
+    message.error("Laporan Perubahan Akun Anda Gagal Dikirim!");
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(fetchData); 
 </script>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
+.fade-enter-active, .fade-leave-active {
   transition: opacity 0.2s ease;
 }
-.fade-enter-from,
-.fade-leave-to {
+.fade-enter-from, .fade-leave-to {
   opacity: 0;
 }
 </style>
