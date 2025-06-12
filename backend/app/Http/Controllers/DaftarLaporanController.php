@@ -13,7 +13,7 @@ class DaftarLaporanController extends Controller
      public function getDaftarSiswa()
     {
         try {
-            $siswa = DaftarSiswa::select('daftar_siswa_id', 'nama', 'kelas', 'no_absen')->get();
+            $siswa = DaftarSiswa::select('daftar_siswa_id', 'nama', 'nama_kelas', 'nomor_absen')->get();
 
             return response()->json([
                 'status' => 'success',
@@ -47,7 +47,7 @@ class DaftarLaporanController extends Controller
 
         try {
             $laporan = DB::transaction(function () use ($request) {
-                $path = $request->file('upload_bukti')->store('bukti_laporan', 'public');
+                $path = $request->file('upload_bukti')->store('bukti-perubahan', 'public');
 
                 return DaftarLaporan::create([
                     'daftar_siswa_id' => $request->daftar_siswa_id,
