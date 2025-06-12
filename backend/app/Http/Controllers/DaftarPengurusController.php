@@ -156,10 +156,10 @@ class DaftarPengurusController extends Controller
         'nip' => 'required|string|unique:daftar_pengurus,nip,' . $id . ',daftar_pengurus_id',
         'email' => 'required|email|unique:users,email,' . $pengurus->user_id . ',user_id',
         'nomor_handphone' => 'required|string',
-        'jabatan' => 'required|in:Administrator,Kepala Sekolah,Wakil Kepala Sekolah,Guru,Kepala Laboratorium,Pustakawan,Operator Sekolah,Staf TU,Satpam,Petugas Kebersihan',
+        'jabatan' => 'required|in:' . implode(',', DaftarPengurus::getAllJabatan()),
         'bidang_keahlian' => 'required|string',
         'pengurus' => 'required|string',
-        'status_kepegawaian' => 'required|in:PNS,Honorer,GTY,PTY,Kontrak,Magang,PPPK,Outsourcing',
+        'status_kepegawaian' => 'required|in:' . implode(',', DaftarPengurus::getAllStatus()),
         'akses_kelas' => 'nullable|array',
         'tanggal_bergabung' => 'required|date',
         'password' => 'nullable|string|min:8',
@@ -312,7 +312,7 @@ class DaftarPengurusController extends Controller
         DB::commit();
         return response()->json([
             'status' => 'success',
-            'message' => 'Data pengursu berhasil dihapus!'
+            'message' => 'Data pengurus berhasil dihapus!'
         ]);
     } catch (\Exception $e) {
         DB::rollBack();
