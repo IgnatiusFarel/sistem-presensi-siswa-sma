@@ -4,6 +4,7 @@ use App\Http\Controllers\DaftarKelasController;
 use App\Http\Controllers\DaftarLaporanController;
 use App\Http\Controllers\DaftarPengurusController;
 use App\Http\Controllers\DaftarSiswaController;
+use App\Http\Controllers\GeolocationController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\PresensiSiswaController;
 use App\Http\Controllers\AuthController;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/masuk', [AuthController::class, 'masuk']);
 Route::get('/daftar-siswa-aktif', [DaftarLaporanController::class, 'getDaftarSiswa']);
 Route::post('/daftar-laporan', [DaftarLaporanController::class, 'store']);
+Route::get('/reverse-geocode', [GeolocationController::class, 'reverseGeocode']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/keluar', [AuthController::class, 'logout']);
@@ -81,10 +83,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // 📁 Presensi Siswa
         Route::prefix('presensi-siswa')->controller(PresensiSiswaController::class)->group(function () {
             Route::get('/', 'index');
-            Route::post('/hadir', [PresensiSiswaController::class, 'submitHadir']);
-            Route::post('/izin', [PresensiSiswaController::class, 'submitIzin']);
-            Route::post('/sakit', [PresensiSiswaController::class, 'submitIzin']);
-            Route::get('/riwayat-presensi', [PresensiSiswaController::class, 'riwayatPresensi']);
+            Route::post('/', 'store');            
+            Route::get('/rekap', 'getRekapPresensi');
+            Route::get('/hari-ini', [PresensiController::class, 'getPresensiAktif']);
         });
+
     });
+    
 });
