@@ -4,20 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Str;
 
 class PresensiSiswa extends Model
 {
     use HasFactory;
-
     protected $table = 'presensi_siswa';
     protected $primaryKey = 'presensi_siswa_id';
     public $incrementing = false;
     protected $keyType = 'string';
-
     public const STATUS_HADIR = 'hadir';
     public const STATUS_IZIN = 'izin';
     public const STATUS_SAKIT = 'sakit';
-
     public const STATUS_ALPHA = 'alpha';
 
     protected $fillable = [
@@ -28,8 +26,9 @@ class PresensiSiswa extends Model
         'waktu_presensi',
         'latitude',
         'longitude',
-        'jenis_izin',
-        'bukti_surat',
+        'lokasi', 
+        'jenis_kegiatan',
+        'upload_bukti',
         'keterangan',
     ];
 
@@ -39,6 +38,15 @@ class PresensiSiswa extends Model
         'longitude' => 'float',
         'status' => 'string',
     ];
+
+       protected static function booted()
+    {
+        static::creating(function ($model) {            
+            if (empty($model->presensi_siswa_id)) {
+                $model->presensi_siswa_id = (string) Str::uuid();
+            }
+        });
+    }
 
     public function presensi()
     {
