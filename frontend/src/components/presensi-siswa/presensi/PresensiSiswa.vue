@@ -1,31 +1,28 @@
 <template>
   <div class="min-h-screen py-8">
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <!-- Form Section -->
-      <div class="bg-white rounded-xl shadow-lg p-8">
-        <!-- Form Header -->
+      <div class="relative bg-white rounded-xl shadow-lg p-8">
+        <div
+          v-if="!props.presensiAktif"
+          class="absolute inset-0 bg-red-50 border border-red-300 flex flex-col items-center justify-center rounded-xl z-10"
+        >
+          <n-icon :component="PhProhibit" size="48" color="#dc2626" />
+          <p class="mt-4 text-red-600 font-semibold">
+            Belum Satnya Untuk Melakukan Kegiatan Presensi!
+          </p>
+        </div>
+
         <div class="mb-6">
           <h1 class="text-2xl font-bold text-gray-800 mb-1">
             {{ showAbsenceForm ? "Form Izin/Sakit" : "Form Presensi" }}
           </h1>
 
-          <!-- Location Permission Notice -->
           <div
             v-if="!showAbsenceForm"
             class="flex items-start gap-2 bg-blue-50 p-4 rounded-lg mb-4"
           >
             <n-icon size="20" color="#1d4ed8" class="mt-0.5">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z"
-                  clip-rule="evenodd"
-                />
-              </svg>
+              <PhMapPinArea />
             </n-icon>
             <div>
               <p class="text-blue-800 font-medium">
@@ -37,28 +34,23 @@
             </div>
           </div>
 
-           <div
-  v-if="showAbsenceForm"
-  class="flex items-start gap-2 bg-orange-50 p-4 rounded-lg mb-4"
->
-  <n-icon size="20" color="#ea580c" class="mt-0.5">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path
-        fill-rule="evenodd"
-        d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z"
-        clip-rule="evenodd"
-      />
-    </svg>
-  </n-icon>
-  <div>
-    <p class="text-orange-800 font-medium">
-      Pastikan kamu mengirimkan bukti kegiatan
-    </p>
-    <p class="text-orange-600 text-sm">
-      Kami membutuhkan bukti kegiatan untuk memverifikasi permohonan jenis kegiatan.
-    </p>
-  </div>
-</div>
+          <div
+            v-if="showAbsenceForm"
+            class="flex items-start gap-2 bg-orange-50 p-4 rounded-lg mb-4"
+          >
+            <n-icon size="20" color="#ea580c" class="mt-0.5">
+              <PhFileArrowUp />
+            </n-icon>
+            <div>
+              <p class="text-orange-800 font-medium">
+                Pastikan kamu mengirimkan bukti kegiatan
+              </p>
+              <p class="text-orange-600 text-sm">
+                Kami membutuhkan bukti kegiatan untuk memverifikasi permohonan
+                jenis kegiatan.
+              </p>
+            </div>
+          </div>
 
           <p class="text-gray-600 italic mb-2">
             {{
@@ -68,7 +60,6 @@
             }}
           </p>
 
-          <!-- Tampilkan tombol & info lokasi hanya untuk Form Presensi -->
           <div
             v-if="!showAbsenceForm && !locationInitialized"
             class="flex items-center justify-between gap-2 bg-red-50 border border-red-300 rounded-lg p-4 mb-6"
@@ -84,18 +75,8 @@
               class="rounded-full bg-white shadow text-gray-700"
             >
               <template #icon>
-                <n-icon size="18" class="text-blue-600">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
+                <n-icon size="20" class="text-blue-600">
+                  <PhMapPinArea />
                 </n-icon>
               </template>
               Aktifkan Lokasi
@@ -103,61 +84,61 @@
           </div>
         </div>
 
-        <!-- Izin/Sakit Form -->
         <div v-if="showAbsenceForm" class="space-y-6">
           <n-form :model="formData" :rules="rules" ref="formRef">
-
             <n-form-item label="Jenis Kegiatan:" path="jenis_kegiatan">
               <div class="grid grid-cols-2">
-                <n-radio-group v-model:value="formData.jenis_kegiatan"
-                name="jenis_kegiatan">
-                 <n-radio-button
-                  v-for="option in jenisKegiatanOptions"
-                  :key="option.value"
-                  :value="option.value"
-                  :label="option.label"
-                  class="!w-full"
-                />
-              </n-radio-group>
-              </div>           
+                <n-radio-group
+                  v-model:value="formData.jenis_kegiatan"
+                  name="jenis_kegiatan"
+                >
+                  <n-radio-button
+                    v-for="option in jenisKegiatanOptions"
+                    :key="option.value"
+                    :value="option.value"
+                    :label="option.label"
+                    class="!w-full"
+                  />
+                </n-radio-group>
+              </div>
             </n-form-item>
 
             <n-form-item label="Upload Bukti:" path="upload_bukti">
               <n-upload
                 multiple
                 directory-dnd
-                action="https://www.mocky.io/v2/5e4bafc63100007100d8b70f"
                 :max="1"
                 accept="image/*,.pdf, word, doc"
               >
+                <!-- action="https://www.mocky.io/v2/5e4bafc63100007100d8b70f" -->
                 <n-upload-dragger>
                   <div style="margin-bottom: 12px">
-                     <n-icon
-                :component="PhFileArrowUp"
-                :size="48"
-                class="text-gray-400 "
-              />
+                    <n-icon
+                      :component="PhFileArrowUp"
+                      :size="48"
+                      class="text-gray-400"
+                    />
                   </div>
                   <p class="text-gray-600">
-                Drag file ke sini atau
-                <span class="text-[#1E1E1E] font-medium"
-                  >klik untuk upload</span
-                >
-              </p>
-              <p class="text-sm text-gray-500 mt-1">
-                  Maksimal ukuran file 5MB (.jpg, .png, .pdf)
-              </p>
-               <p class="text-sm text-gray-500 mt-1">
-                Bukti dapat berupa surat izin atau foto surat atau foto kegiatan yang memperlihatkan wajah.
-              </p>
-                 
+                    Drag file ke sini atau
+                    <span class="text-[#1E1E1E] font-medium"
+                      >klik untuk upload</span
+                    >
+                  </p>
+                  <p class="text-sm text-gray-500 mt-1">
+                    Maksimal ukuran file 5MB (.jpg, .png, .pdf)
+                  </p>
+                  <p class="text-sm text-gray-500 mt-1">
+                    Bukti dapat berupa surat izin atau foto surat atau foto
+                    kegiatan yang memperlihatkan wajah.
+                  </p>
                 </n-upload-dragger>
               </n-upload>
             </n-form-item>
 
-            <n-form-item label="Catatan:" class="!mb-4">
+            <n-form-item label="Keterangan:" class="!mb-4">
               <n-input
-                v-model:value="additionalInfo"
+                v-model:value="formData.keterangan"
                 type="textarea"
                 placeholder="Contoh: saya sakit / ada acara keluarga..."
                 :rows="3"
@@ -168,36 +149,38 @@
           </n-form>
         </div>
 
-        <!-- Submit Button -->
         <div class="pt-2">
           <n-button
             :type="showAbsenceForm ? 'warning' : 'success'"
-            size="large"
             block
-            @click="handleSubmit"
-             :disabled="showAbsenceForm ? !isAbsenceFormValid : !inSchoolArea"
-            class="!font-semibold"
+            @click="showAbsenceForm ? handleIzinSakit() : handlePresensi()"
+            class="transition-transform transform active:scale-95"
+            :disabled="showAbsenceForm ? !isAbsenceFormValid : !inSchoolArea"
           >
-            {{ showAbsenceForm ? "Kirim Izin/Sakit" : "Submit Presensi" }} -
+            {{
+              showAbsenceForm ? "Kirim Form Izin/Sakit" : "Kirim Form Presensi"
+            }}
+            -
             {{ currentTime }}
           </n-button>
         </div>
 
-        <!-- Toggle Absence Form -->
         <div class="mt-4">
           <n-button
             :type="showAbsenceForm ? 'success' : 'warning'"
             dashed
+            block
             @click="showAbsenceForm = !showAbsenceForm"
-            class="!w-full"
+            class="transition-transform transform active:scale-95"
           >
             {{
-              showAbsenceForm ? "Kembali ke Form Presensi" : "Ajukan Izin/Sakit"
+              showAbsenceForm
+                ? "Kembali ke Form Presensi"
+                : "Ajukan Form Izin/Sakit"
             }}
           </n-button>
         </div>
 
-        <!-- Location Info -->
         <div
           v-if="!showAbsenceForm"
           class="mt-8 space-y-4 text-sm text-gray-600 border-t pt-6"
@@ -210,32 +193,21 @@
             </p>
           </div>
           <div>
-            <p class="font-semibold">Lokasi Kamu:</p>
+            <p class="font-semibold">Lokasi Anda:</p>
             <p class="flex items-center gap-1">
               <n-icon
                 v-if="userLocation"
                 size="16"
                 :color="inSchoolArea ? '#16a34a' : '#dc2626'"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
+                <PhMapPinArea :size="20" />
               </n-icon>
-              {{ userLocation || "Mendeteksi lokasi..." }}
+              {{ userLocation || "Mendeteksi lokasi anda..." }}
             </p>
           </div>
         </div>
       </div>
 
-      <!-- Map Section -->
       <div class="bg-white rounded-xl shadow-lg overflow-hidden">
         <div id="map" class="h-full min-h-[500px]"></div>
       </div>
@@ -244,7 +216,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, defineProps } from "vue";
 // import {
 //   NForm,
 //   NFormItem,
@@ -256,35 +228,47 @@ import { ref, onMounted, computed } from "vue";
 //   NSpace,
 //   NIcon,
 // } from "naive-ui";
-import { PhFileArrowUp } from "@phosphor-icons/vue";
+import { PhFileArrowUp, PhMapPinArea, PhProhibit } from "@phosphor-icons/vue";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useMessage } from "naive-ui";
+import Api from "@/services/Api";
 
 const map = ref(null);
+const loading = ref(false);
+const message = useMessage();
 const showAbsenceForm = ref(false);
-const absenceType = ref("sakit");
 const fileList = ref([]);
-const additionalInfo = ref("");
+const userLatLng = ref(null);
 const userLocation = ref("");
 const inSchoolArea = ref(false);
 const locationInitialized = ref(false);
 const formRef = ref(null);
-
 const currentTime = computed(() => {
   return new Date().toLocaleTimeString("id-ID", {
     hour: "2-digit",
     minute: "2-digit",
   });
 });
-const SCHOOL_RADIUS = 500;
+const SCHOOL_RADIUS = 50000;
 const SCHOOL_COORDS = [-7.559501483655755, 110.83844505717236];
 
-// Map Setup
+const props = defineProps({
+  presensiAktif: Object,
+});
+
+const formData = ref({
+  jenis_kegiatan: null,
+  upload_bukti: null,
+  keterangan: "",
+});
+
 onMounted(() => {
   map.value = L.map("map").setView(SCHOOL_COORDS, 17);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap contributors",
   }).addTo(map.value);
+    
 
   const schoolIcon = L.icon({
     iconUrl: "https://cdn-icons-png.flaticon.com/512/4476/4476154.png",
@@ -303,19 +287,21 @@ onMounted(() => {
     fillOpacity: 0.2,
     radius: SCHOOL_RADIUS,
   }).addTo(map.value);
+
+  initLocation();
 });
 
-// Lokasi Deteksi Manual
+
 const initLocation = () => {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const userLatLng = [
+        userLatLng.value = [
           position.coords.latitude,
           position.coords.longitude,
         ];
 
-        const distance = map.value.distance(userLatLng, SCHOOL_COORDS);
+        const distance = map.value.distance(userLatLng.value, SCHOOL_COORDS);
         inSchoolArea.value = distance <= SCHOOL_RADIUS;
 
         const userIcon = L.icon({
@@ -325,20 +311,29 @@ const initLocation = () => {
           popupAnchor: [0, -32],
         });
 
-        L.marker(userLatLng, { icon: userIcon })
+        L.marker(userLatLng.value, { icon: userIcon })
           .addTo(map.value)
           .bindPopup("Lokasi Anda")
           .openPopup();
 
-        fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLatLng[0]}&lon=${userLatLng[1]}`
-        )
-          .then((res) => res.json())
-          .then((data) => {
+        const { latitude, longitude } = position.coords;
+
+        Api.get("/reverse-geocode", {
+          params: {
+            lat: latitude,
+            lon: longitude,
+          },
+        })
+          .then((res) => {
+            const data = res.data;
             userLocation.value =
               data.display_name?.split(",")[0] +
                 ", " +
                 data.display_name?.split(",")[1] || "Lokasi Anda";
+          })
+          .catch((error) => {
+            console.error("Gagal mendapatkan lokasi:", error);
+            userLocation.value = "Gagal mendapatkan lokasi";
           });
 
         locationInitialized.value = true;
@@ -352,7 +347,7 @@ const initLocation = () => {
   }
 };
 
-const rules = { 
+const rules = {
   jenis_kegiatan: [
     {
       required: true,
@@ -369,47 +364,78 @@ const rules = {
         }
         return true;
       },
-        trigger: ["blur", "change"],
+      trigger: ["blur", "change"],
     },
-  ]
-}
+  ],
+  keterangan: [
+    {
+      required: true,
+      message: "Keterangan wajib dipilih",
+      trigger: ["blur", "input"],
+    },
+  ],
+};
 
 const jenisKegiatanOptions = [
-  { value: 'Sakit', label: 'Sakit' },
-  { value: 'Izin', label: 'Izin' },
+  { value: "Sakit", label: "Sakit" },
+  { value: "Izin", label: "Izin" },
 ];
 
-const formData = ref({
-  jenis_kegiatan: null,
-  upload_bukti: null, 
-  catatan: ""
-});
-
 const isAbsenceFormValid = computed(() => {
-  return (
-    formData.value.jenis_kegiatan &&
-    fileList.value.length > 0
-  );
+  return formData.value.jenis_kegiatan && fileList.value.length > 0;
 });
 
-// Methods
-const handleSubmit = () => {
-  if (showAbsenceForm.value) {
-    console.log("Submit izin/sakit:", {
-      type: absenceType.value,
-      file: fileList.value,
-      info: additionalInfo.value,
-    });
-    // API call here
-  } else {
-    console.log("Submit presensi");
-    // API call here
+const handlePresensi = async () => {
+  if (!locationInitialized.value) {
+    message.error("Silahkan aktifkan lokasi terlebih dahulu!");
+    return;
+  }
+
+  if (!inSchoolArea.value) {
+    message.error("Anda berada di luar area sekolah!");
+    return;
+  }
+  try {
+    loading.value = true;
+
+    const payload = {
+      presensi_id: props.presensiAktif.presensi_id,
+      waktu_presensi: new Date().toISOString(),
+      latitude: userLatLng.value[0],
+      longitude: userLatLng.value[1],
+    };
+
+    await Api.post("/presensi-siswa", payload);
+    message.success("Berhasil mengirimkan presensi!");
+  } catch (error) {
+    console.log(error);
+    message.error("Gagal mengirimkan presensi!");
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleIzinSakit = async () => {
+  try {
+    await formRef.value?.validate();
+    loading.value = true;
+
+    const payload = {
+      ...formData.value,
+    };
+    await Api.post("/presensi-siswa", payload);
+    message.success("Form izin/sakit berhasil dikirim!");
+    showAbsenceForm.value = false;
+  } catch (error) {
+    console.error(error);
+    message.success("Form izin/sakit gagal dikirim!");
+  } finally {
+    loading.value = false;
   }
 };
 </script>
 
 <style scoped>
-/* Custom marker fix */
 :deep(.leaflet-div-icon) {
   background: transparent;
   border: none;
