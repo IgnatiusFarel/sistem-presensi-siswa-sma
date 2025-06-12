@@ -10,11 +10,11 @@ class CreatePresensiSiswaTable extends Migration
     {
         Schema::create('presensi_siswa', function (Blueprint $table) {
             $table->uuid('presensi_siswa_id')->primary();
-            $table->uuid('presensi_id');
+            $table->uuid('presensi_id')->unique();
             $table->foreign('presensi_id')
                 ->references('presensi_id')->on('presensi')
                 ->onDelete('cascade');
-            $table->uuid('daftar_siswa_id');
+            $table->uuid('daftar_siswa_id')->unique();
             $table->foreign('daftar_siswa_id')
                 ->references('daftar_siswa_id')->on('daftar_siswa')
                 ->onDelete('cascade');
@@ -26,8 +26,9 @@ class CreatePresensiSiswaTable extends Migration
             $table->timestamp('waktu_presensi')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
-            $table->string('jenis_izin')->nullable();
-            $table->string('bukti_surat')->nullable();
+            $table->text('lokasi')->nullable();
+            $table->enum('jenis_kegiatan', ['izin', 'sakit'])->nullable();
+            $table->string('upload_bukti')->nullable();
             $table->text('keterangan')->nullable();
             $table->timestamps();
 
