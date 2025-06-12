@@ -1,8 +1,10 @@
 <template>
   <div class="flex justify-between items-center mb-4">
+    <div class="flex items-center gap-2">
     <n-button
-    type="primary"
+      type="primary"
       class="transition-transform transform active:scale-95"
+      :disabled="presensiAktif"
       @click="showModal = true"
     >
       <template #icon>
@@ -10,6 +12,17 @@
       </template>
       Mulai Presensi
     </n-button>
+
+    <n-tag
+      v-if="statusBadge"
+      :type="statusBadge.color"
+      size="small"
+      round
+    >
+      {{ statusBadge.label }}
+    </n-tag>
+  </div>
+
 
     <n-input
       placeholder="Cari Data Presensi Hari Ini..."
@@ -23,45 +36,40 @@
   </div>
 
   <n-modal
-  v-model:show="showModal"
-  preset="dialog"
-  title="Mulai Presensi Hari Ini?"  
-  positive-text="Ya, Mulai"
-  negative-text="Batal"
-  @positive-click="handlePresensi"
-   @negative-click="() => showModal = false"
->
-  <!-- Tambahkan deskripsi -->
-  <p class="text-sm text-gray-600 mb-4">
-    Silakan isi jam buka dan jam tutup presensi hari ini!
-  </p>
+    v-model:show="showModal"
+    preset="dialog"
+    title="Mulai Presensi Hari Ini?"
+    positive-text="Ya, Mulai"
+    negative-text="Batal"
+    @positive-click="handlePresensi"
+    @negative-click="() => (showModal = false)"
+  >
+    <p class="text-sm text-gray-600 mb-4">
+      Silakan isi jam buka dan jam tutup presensi hari ini!
+    </p>
 
-    <n-form
-    ref="formRef"
-    :model="form"
-    :rules="rules"
-    >
-  <div class="flex gap-4 ">
-    <n-form-item label="Jam Buka" path="jam_buka" class="w-1/2 m-0">
-      <n-time-picker
-        v-model:value="form.jam_buka"
-        format="HH:mm"
-        placeholder="Jam Buka"
-        class="w-full"
-      />
-    </n-form-item>
+    <n-form ref="formRef" :model="form" :rules="rules">
+      <div class="flex gap-4">
+        <n-form-item label="Jam Buka" path="jam_buka" class="w-1/2 m-0">
+          <n-time-picker
+            v-model:value="form.jam_buka"
+            format="HH:mm"
+            placeholder="Jam Buka"
+            class="w-full"
+          />
+        </n-form-item>
 
-    <n-form-item label="Jam Tutup" path="jam_tutup" class="w-1/2 m-0">
-      <n-time-picker
-        v-model:value="form.jam_tutup"
-        format="HH:mm"
-        placeholder="Jam Tutup"
-        class="w-full"
-      />
-    </n-form-item>
-  </div>
-  </n-form>
-</n-modal>
+        <n-form-item label="Jam Tutup" path="jam_tutup" class="w-1/2 m-0">
+          <n-time-picker
+            v-model:value="form.jam_tutup"
+            format="HH:mm"
+            placeholder="Jam Tutup"
+            class="w-full"
+          />
+        </n-form-item>
+      </div>
+    </n-form>
+  </n-modal>
 
   <n-data-table
     ref="tableRef"
@@ -70,16 +78,16 @@
     :pagination="pagination"
     @update:filters="handleUpdateFilter"
     @update:sorter="handleSorterChange"
-  />  
+  />
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted, h } from "vue";
+import { defineComponent, reactive, ref, onMounted, h, computed, onBeforeUnmount} from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { NTag, NSpin, useMessage} from "naive-ui";
+import { NTag, NSpin, useMessage } from "naive-ui";
 import { PhMagnifyingGlass, PhPlay } from "@phosphor-icons/vue";
 import Api from "@/services/Api.js";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 
 export default defineComponent({
   name: "TablePresensi",
@@ -103,12 +111,14 @@ export default defineComponent({
     const jamBuka = ref(null);
     const jamTutup = ref(null);
     const submitting = ref(false);
+    const presensiAktif = ref(null);
     const message = useMessage();
-    const formRef = ref(null)
-const form = reactive({
-  jam_buka: null,
-  jam_tutup: null,
-})
+    const formRef = ref(null);
+    const form = reactive({
+      jam_buka: null,
+      jam_tutup: null,
+    });
+    let intervalId = null;
 
 
     const statusConfig = {
@@ -118,6 +128,23 @@ const form = reactive({
       Hadir: { type: "success" },
       Sakit: { type: "error" },
     };
+
+    const statusBadge = computed(() => {
+  if (!presensiAktif.value) return null;
+  const status = presensiAktif.value.status_dinamis;
+
+  switch (status) {
+    case 'belum dimulai':
+      return { label: '✅ Sudah dibuat', color: 'info' };
+    case 'aktif':
+      return { label: '⏳ Masih aktif', color: 'warning' };
+    case 'selesai':
+      return { label: '🚫 Sudah selesai', color: 'error' };
+    default:
+      return null;
+  }
+});
+
 
     const statusColumn = reactive({
       title: "Status",
@@ -183,6 +210,7 @@ const form = reactive({
       {
         title: "Surat Izin / Sakit",
         key: "Surat",
+         width: 150,
       },
     ]);
 
@@ -207,50 +235,82 @@ const form = reactive({
 
     const rules = {
   jam_buka: [
-    { required: true, message: 'Jam buka harus diisi' }
+    { required: true, message: 'Jam buka harus diisi' },
+    {
+      validator: (rule, value) => {
+        if (!value || !form.jam_tutup) return true;
+        return dayjs(value).isBefore(dayjs(form.jam_tutup));
+      },
+      message: 'Jam buka harus lebih awal dari jam tutup',
+    },
   ],
   jam_tutup: [
-    { required: true, message: 'Jam tutup harus diisi' }
+    { required: true, message: 'Jam tutup harus diisi' },
+    {
+      validator: (rule, value) => {
+        if (!value || !form.jam_buka) return true;
+        return dayjs(value).isAfter(dayjs(form.jam_buka));
+      },
+      message: 'Jam tutup harus lebih akhir dari jam buka',
+    },
   ],
-}
+};
 
     const handleSorterChange = (sorter) => {
       Object.assign(currentSortState, sorter);
     };
 
-    const handlePresensi = async () => {
-      try {
-    await formRef.value.validate()
 
-   const payload = {
-  tanggal: dayjs().format('YYYY-MM-DD'),
-  jam_buka: dayjs(form.jam_buka).format('HH:mm'),
-  jam_tutup: dayjs(form.jam_tutup).format('HH:mm'),
+const fetchPresensiAktif = async () => {
+  try {
+    const res = await Api.get('/presensi/aktif');
+    if (res.data.status === 'success' && res.data.data) {
+      presensiAktif.value = res.data.data;
+    } else {
+      presensiAktif.value = null;
+    }
+  } catch (error) {
+    console.error("Gagal mengambil presensi aktif", error);
+  }
 };
 
-    await Api.post('/presensi', payload)
 
-    message.success('Presensi berhasil dimulai!')
-    
-    // Reset form
-    form.jam_buka = null
-    form.jam_tutup = null
-    showModal.value = false
-  } catch (err) {
-    if (err?.errors) {
-      message.error('Validasi gagal. Mohon lengkapi semua data.')
-    } else {
-      console.error(err)
-      message.error('Terjadi kesalahan saat memulai presensi.')
-    }
-  }
-}
+    const handlePresensi = async () => {
+      try {
+        await formRef.value.validate();
 
-    onMounted(() => {
-      setTimeout(() => {
-        loading.value = false;
-      }, 100);
+        const payload = {
+          tanggal: dayjs().format("YYYY-MM-DD"),
+          jam_buka: dayjs(form.jam_buka).format("HH:mm"),
+          jam_tutup: dayjs(form.jam_tutup).format("HH:mm"),
+        };
+
+        await Api.post("/presensi", payload);
+
+        message.success("Presensi berhasil dimulai!");
+
+        await fetchPresensiAktif();  
+        form.jam_buka = null;
+        form.jam_tutup = null;
+        showModal.value = false;
+      } catch (err) {
+        if (err?.errors) {
+          message.error("Validasi gagal. Mohon lengkapi semua data.");
+        } else {
+          console.error(err);
+          message.error("Terjadi kesalahan saat memulai presensi.");
+        }
+      }
+    };
+
+onMounted(() => {
+      fetchPresensiAktif();
+      intervalId = setInterval(fetchPresensiAktif, 60000);
+      setTimeout(() => (loading.value = false), 100);
     });
+    onBeforeUnmount(() => clearInterval(intervalId));
+
+
 
     return {
       PhPlay,
@@ -264,8 +324,11 @@ const form = reactive({
       jamTutup,
       submitting,
       form,
-  formRef,
-  rules,
+      formRef,
+      rules,
+       presensiAktif,         
+     statusBadge,           
+     fetchPresensiAktif, 
       handlePresensi,
       handleSorterChange,
     };
