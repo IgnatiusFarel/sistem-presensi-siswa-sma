@@ -15,11 +15,11 @@ class CreateDaftarPengurusTable extends Migration
             $table->string('nama');
             $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan']);
             $table->enum('agama', ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu']);
+            $table->string('tempat_tanggal_lahir');
+            $table->text('alamat');        
             $table->string('nip')->unique();
             $table->string('email')->unique();
             $table->string('nomor_handphone');
-            $table->string('tempat_tanggal_lahir');
-            $table->text('alamat');        
             $table->enum('jabatan', [
                 'Administrator', 
                 'Kepala Sekolah', 
