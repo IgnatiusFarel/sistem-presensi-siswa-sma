@@ -315,7 +315,7 @@ const rules = {
     },
     {
       min: 8,
-      message: "Kata sandi minimal 6 karakter",
+      message: "Kata sandi minimal 8 karakter",
       trigger: ["blur", "input"],
     },
   ],
