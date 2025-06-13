@@ -137,8 +137,8 @@ class PresensiController extends Controller
                 'jam_buka' => $request->jam_buka,
                 'jam_tutup' => $request->jam_tutup,
                 'status' => 'aktif',
-                 'dibuat_oleh' => auth()->user()->user_id,
-    'user_id' => auth()->user()->user_id
+                'dibuat_oleh' => auth()->user()->name,
+                'user_id' => auth()->user()->user_id
             ]);
 
             DB::commit();
