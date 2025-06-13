@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class DaftarPengurus extends Model
 {
@@ -107,5 +108,10 @@ class DaftarPengurus extends Model
     public function waliKelas()
     {
         return $this->hasMany(DaftarKelas::class, 'wali_kelas', 'daftar_pengurus_id');
+    }
+
+       public function aksesKelas(): BelongsToMany
+    {
+        return $this->belongsToMany(DaftarKelas::class);     
     }
 }
