@@ -45,7 +45,7 @@
       </template>
     </n-input>
   </div>
-<n-config-provider :theme-overrides="themeOverrides">
+
   <n-data-table
     ref="tableRef"
     :data="filteredData"
@@ -57,11 +57,11 @@
     @update:sorter="handleSorterChange"
     v-model:checked-row-keys="selectedRows"
   />
-  </n-config-provider>
+
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted ,computed,  watch} from "vue";
+import { defineComponent, reactive, ref, onMounted ,computed, watch} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { NIcon, NButton } from "naive-ui";
 import {
