@@ -43,7 +43,7 @@ class Presensi extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
+        return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id',);
     }
 
     public function presensiSiswa()
