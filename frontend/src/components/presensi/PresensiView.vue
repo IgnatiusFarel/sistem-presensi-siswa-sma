@@ -17,7 +17,7 @@
     </n-tab-pane>
   </n-tabs>
 
-  <component :is="currentComponent" />
+  <component :is="currentComponent" :key="activeTab" />
 </template>
 
 <script setup>
