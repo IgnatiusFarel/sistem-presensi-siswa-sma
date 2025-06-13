@@ -21,8 +21,8 @@
     </div>
 
     <n-input
-      placeholder="Cari Data Riwayat Presensi..."
-      class="search-input"
+      placeholder="Cari Data Riwayat Presensi..."      
+      class="!w-[258px]"
       clearable
     >
       <template #prefix>
@@ -33,87 +33,46 @@
 
   <n-data-table
     ref="tableRef"
+    :data="dataTable"
     :columns="columns"
-    :data="tableData"
     :loading="loading"
     :pagination="pagination"
-    @update:filters="handleUpdateFilter"
+    :row-key="(row) => row.riwayat_presensi_id"
+    @refresh="fetchData"    
     @update:sorter="handleSorterChange"
+    v-model:checked-row-keys="selectedRows"
   />
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted, h } from 'vue';
+import { defineComponent, reactive, ref, onMounted} from 'vue';
 import { NTag, NInput, NIcon, NButton } from 'naive-ui';
 import { PhMagnifyingGlass, PhTrash, PhInfo } from '@phosphor-icons/vue';
+import Api from "@/services/Api"
 
 export default defineComponent({
-  components: {
-    NInput,
-    NIcon,
-    NButton,
+  name: "TableRiwayatPresensi",
+  props: {
+    data: {
+      type: Array,
+      default: () => [],
+       selectedRows: Array,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+     selectedRows: {
+    type: Array,
+    default: () => [],
+  }
   },
   setup() {
-    const loading = ref(true);
+    const loading = ref(false);
+    const dataTable = ref([])
     const tableRef = ref(null);
-    const currentSortState = reactive({});
-    const tableData = [
-      {
-        key: 0,
-        tanggal: '2023-10-01',
-        buka: '07:00',
-        tutup: '15:00',
-        hadir: 24,
-        terlambat: 3,
-        izin: 1,
-        sakit: 1,
-        alpha: 1,
-      },
-      {
-        key: 1,
-        tanggal: '2023-10-02',
-        buka: '07:00',
-        tutup: '15:00',
-        hadir: 25,
-        terlambat: 2,
-        izin: 1,
-        sakit: 0,
-        alpha: 0,
-      },
-      {
-        key: 2,
-        tanggal: '2023-10-03',
-        buka: '07:00',
-        tutup: '15:00',
-        hadir: 23,
-        terlambat: 4,
-        izin: 0,
-        sakit: 1,
-        alpha: 2,
-      },
-      {
-        key: 3,
-        tanggal: '2023-10-04',
-        buka: '07:00',
-        tutup: '15:00',
-        hadir: 26,
-        terlambat: 1,
-        izin: 0,
-        sakit: 0,
-        alpha: 0,
-      },
-      {
-        key: 4,
-        tanggal: '2023-10-05',
-        buka: '07:00',
-        tutup: '15:00',
-        hadir: 22,
-        terlambat: 5,
-        izin: 2,
-        sakit: 0,
-        alpha: 1,
-      },
-    ];
+    const currentSortState = reactive({});    
+    
 
     const columns = reactive([
       {
@@ -127,47 +86,41 @@ export default defineComponent({
         render: (row, index) => index + 1,
       },
       {
-        title: 'Tanggal',
+        title: 'Tanggal Presensi',
         key: 'tanggal',
         width: 150,
         sorter: (a, b) => new Date(a.tanggal) - new Date(b.tanggal),
       },
       {
-        title: 'Buka',
-        key: 'buka',
+        title: 'Jam Buka',
+        key: 'jam_buka',
         width: 100,
       },
       {
-        title: 'Tutup',
-        key: 'tutup',
+        title: 'Jam Tutup',
+        key: 'jam_tutup',
         width: 100,
       },
       {
-        title: 'Hadir',
+        title: 'Jumlah Hadir',
         key: 'hadir',
         width: 100,
         sorter: (a, b) => a.hadir - b.hadir,
-      },
+      },      
       {
-        title: 'Terlambat',
-        key: 'terlambat',
-        width: 102,
-        sorter: (a, b) => a.terlambat - b.terlambat,
-      },
-      {
-        title: 'Izin',
+        title: 'Jumlah Izin',
         key: 'izin',
         width: 100,
         sorter: (a, b) => a.izin - b.izin,
       },
       {
-        title: 'Sakit',
+        title: 'Jumlah Sakit',
         key: 'sakit',
         width: 100,
         sorter: (a, b) => a.sakit - b.sakit,
       },
       {
-        title: 'Alpha',
+        title: 'Jumlah Alpha',
         key: 'alpha',
         width: 100,
         sorter: (a, b) => a.alpha - b.alpha,
@@ -196,26 +149,39 @@ export default defineComponent({
       Object.assign(currentSortState, sorter);
     };
 
-    const handleUpdateFilter = (filters) => {
-      console.log('Filter update:', filters);
-    };
+    const fetchData = async () => {
+      loading.value = true; 
+      try {
+        const response = await Api.get('/riwayat-presensi')
+        dataTable.value = response.data.data
+      } catch (error) {
+        console.error(error)        
+      } finally {
+        loading.value = false;
+      }
+    }
 
     onMounted(() => {
       setTimeout(() => {
         loading.value = false;
-      }, 500);
+      }, 100);
     });
 
+    
+onMounted(() => {
+  fetchData()                           
+})
+
+
     return {
-      PhMagnifyingGlass,
-      PhTrash,
       PhInfo,
-      tableData,
+      PhTrash,
+      PhMagnifyingGlass,
+      columns,
       loading,
       tableRef,
-      columns,
-      pagination,
-      handleUpdateFilter,
+      dataTable,
+      pagination,      
       handleSorterChange,
     };
   },
@@ -225,12 +191,5 @@ export default defineComponent({
 <style scoped>
 .n-data-table {
   --n-border-radius: 12px !important;
-}
-
-.search-input {
-  width: 248px;
-  height: 42px;
-  border-radius: 8px;
-  align-items: center;
 }
 </style>
