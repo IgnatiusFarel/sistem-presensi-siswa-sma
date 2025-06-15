@@ -17,7 +17,7 @@ class GeolocationController extends Controller
         }
 
         $response = Http::withHeaders([
-            'User-Agent' => 'SistemPresensiSiswaSMA/1.0 (ignatius@email.com)' 
+            'User-Agent' => 'SistemPresensiSiswaSMA/1.0 (ignatius@email.com)'
         ])->get('https://nominatim.openstreetmap.org/reverse', [
                     'format' => 'json',
                     'lat' => $lat,
