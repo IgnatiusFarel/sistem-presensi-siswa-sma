@@ -1,28 +1,18 @@
 <template>
   <div class="flex justify-between items-center mb-4">
     <div class="flex items-center gap-2">
-    <n-button
-      type="primary"
-      class="transition-transform transform active:scale-95"
-      :disabled="presensiAktif"
-      @click="showModal = true"
-    >
-      <template #icon>
-        <n-icon :component="PhPlay" :size="18" />
-      </template>
-      Mulai Presensi
-    </n-button>
-
-    <n-tag
-      v-if="statusBadge"
-      :type="statusBadge.color"
-      size="small"
-      round
-    >
-      {{ statusBadge.label }}
-    </n-tag>
-  </div>
-
+      <n-button
+        type="primary"
+        class="transition-transform transform active:scale-95"
+        :disabled="presensiAktif"
+        @click="showModal = true"
+      >
+        <template #icon>
+          <n-icon :component="PhPlay" :size="18" />
+        </template>
+        {{ statusBadge ? statusBadge.label : "Mulai Presensi" }}
+      </n-button>
+    </div>
 
     <n-input
       placeholder="Cari Data Presensi Hari Ini..."
@@ -73,6 +63,7 @@
 
   <n-data-table
     ref="tableRef"
+    :data="dataTable"
     :columns="columns"
     :loading="loading"
     :pagination="pagination"
@@ -82,7 +73,15 @@
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted, h, computed, onBeforeUnmount} from "vue";
+import {
+  defineComponent,
+  reactive,
+  ref,
+  onMounted,
+  h,
+  computed,
+  onBeforeUnmount,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { NTag, NSpin, useMessage } from "naive-ui";
 import { PhMagnifyingGlass, PhPlay } from "@phosphor-icons/vue";
@@ -101,8 +100,8 @@ export default defineComponent({
       default: false,
     },
   },
-  setup(props, { emit }) {
-    const loading = ref(true);
+  setup() {
+    const loading = ref(false);
     const tableRef = ref(null);
     const currentSortState = reactive({});
     const route = useRoute();
@@ -112,50 +111,44 @@ export default defineComponent({
     const jamTutup = ref(null);
     const submitting = ref(false);
     const presensiAktif = ref(null);
+    const dataTable = ref([]);
     const message = useMessage();
     const formRef = ref(null);
-    const form = reactive({
-      jam_buka: null,
-      jam_tutup: null,
-    });
+    const form = reactive({ jam_buka: null, jam_tutup: null });
     let intervalId = null;
 
-
     const statusConfig = {
-      Izin: { type: "warning" },
-      Alpha: { type: "info" },
-      Terlambat: {},
-      Hadir: { type: "success" },
-      Sakit: { type: "error" },
+      izin: { type: "warning" },
+      alpha: { type: "info" },      
+      hadir: { type: "success" },
+      sakit: { type: "error" },
     };
 
     const statusBadge = computed(() => {
-  if (!presensiAktif.value) return null;
-  const status = presensiAktif.value.status_dinamis;
+      if (!presensiAktif.value) return null;
+      const status = presensiAktif.value.status_dinamis;
 
-  switch (status) {
-    case 'belum dimulai':
-      return { label: '✅ Sudah dibuat', color: 'info' };
-    case 'aktif':
-      return { label: '⏳ Masih aktif', color: 'warning' };
-    case 'selesai':
-      return { label: '🚫 Sudah selesai', color: 'error' };
-    default:
-      return null;
-  }
-});
-
+      switch (status) {
+        case "belum dimulai":
+          return { label: "✅ Sudah dibuat", color: "info" };
+        case "aktif":
+          return { label: "⏳ Masih aktif", color: "warning" };
+        case "selesai":
+          return { label: "🚫 Sudah selesai", color: "error" };
+        default:
+          return null;
+      }
+    });
 
     const statusColumn = reactive({
       title: "Status",
       key: "status",
       width: 150,
       filterOptions: [
-        { label: "Izin", value: "Izin" },
-        { label: "Hadir", value: "Hadir" },
-        { label: "Terlambat", value: "Terlambat" },
-        { label: "Sakit", value: "Sakit" },
-        { label: "Alpha", value: "Alpha" },
+        { label: "Izin", value: "izin" },
+        { label: "Hadir", value: "hadir" },        
+        { label: "Sakit", value: "sakit" },
+        { label: "Alpha", value: "alpha" },
       ],
       filter: (value, row) => row.status === value,
       render(row) {
@@ -183,6 +176,9 @@ export default defineComponent({
         key: "no",
         width: 70,
         sorter: (a, b) => a.no - b.no,
+         render(_, index) {
+          return (pagination.page - 1) * pagination.pageSize + index + 1;
+        },
       },
       {
         title: "Nama Lengkap",
@@ -192,7 +188,7 @@ export default defineComponent({
       },
       {
         title: "Kelas",
-        key: "nama_kelas",
+        key: "kelas",
         width: 108,
       },
       { title: "No. Absen", key: "nomor_absen", width: 85 },
@@ -208,9 +204,19 @@ export default defineComponent({
         width: 100,
       },
       {
+        title: "Jenis Kegiatan",
+        key: "jenis_kegiatan",
+        width: 120,
+      },
+      {
         title: "Surat Izin / Sakit",
-        key: "Surat",
-         width: 150,
+        key: "upload_bukti",
+        width: 120,
+      },
+      {
+        title: "Keterangan",
+        key: "keterangan",
+        width: 150,
       },
     ]);
 
@@ -234,46 +240,56 @@ export default defineComponent({
     });
 
     const rules = {
-  jam_buka: [
-    { required: true, message: 'Jam buka harus diisi' },
-    {
-      validator: (rule, value) => {
-        if (!value || !form.jam_tutup) return true;
-        return dayjs(value).isBefore(dayjs(form.jam_tutup));
-      },
-      message: 'Jam buka harus lebih awal dari jam tutup',
-    },
-  ],
-  jam_tutup: [
-    { required: true, message: 'Jam tutup harus diisi' },
-    {
-      validator: (rule, value) => {
-        if (!value || !form.jam_buka) return true;
-        return dayjs(value).isAfter(dayjs(form.jam_buka));
-      },
-      message: 'Jam tutup harus lebih akhir dari jam buka',
-    },
-  ],
-};
+      jam_buka: [
+        { required: true, message: "Jam buka harus diisi" },
+        {
+          validator: (rule, value) => {
+            if (!value || !form.jam_tutup) return true;
+            return dayjs(value).isBefore(dayjs(form.jam_tutup));
+          },
+          message: "Jam buka harus lebih awal dari jam tutup",
+        },
+      ],
+      jam_tutup: [
+        { required: true, message: "Jam tutup harus diisi" },
+        {
+          validator: (rule, value) => {
+            if (!value || !form.jam_buka) return true;
+            return dayjs(value).isAfter(dayjs(form.jam_buka));
+          },
+          message: "Jam tutup harus lebih akhir dari jam buka",
+        },
+      ],
+    };
 
     const handleSorterChange = (sorter) => {
       Object.assign(currentSortState, sorter);
     };
 
+    const fetchPresensiAktif = async () => {
+      try {
+        const res = await Api.get("/presensi/aktif");
+        if (res.data.status === "success" && res.data.data) {
+          presensiAktif.value = res.data.data;
+        } else {
+          presensiAktif.value = null;
+        }
+      } catch (error) {
+        console.error("Gagal mengambil presensi aktif", error);
+      }
+    };
 
-const fetchPresensiAktif = async () => {
-  try {
-    const res = await Api.get('/presensi/aktif');
-    if (res.data.status === 'success' && res.data.data) {
-      presensiAktif.value = res.data.data;
-    } else {
-      presensiAktif.value = null;
+    const fetchData = async () => {
+      loading.value = true;
+      try {
+        const response = await Api.get('/presensi')
+        dataTable.value = response.data.data.daftar_siswa              
+      } catch (error) {
+        console.error(error)
+      } finally { 
+        loading.value = false; 
+      }
     }
-  } catch (error) {
-    console.error("Gagal mengambil presensi aktif", error);
-  }
-};
-
 
     const handlePresensi = async () => {
       try {
@@ -286,10 +302,8 @@ const fetchPresensiAktif = async () => {
         };
 
         await Api.post("/presensi", payload);
-
         message.success("Presensi berhasil dimulai!");
-
-        await fetchPresensiAktif();  
+        await fetchPresensiAktif();
         form.jam_buka = null;
         form.jam_tutup = null;
         showModal.value = false;
@@ -303,14 +317,16 @@ const fetchPresensiAktif = async () => {
       }
     };
 
-onMounted(() => {
+    onMounted(() => {
+      fetchData();
+    });
+
+    onMounted(() => {
       fetchPresensiAktif();
       intervalId = setInterval(fetchPresensiAktif, 60000);
       setTimeout(() => (loading.value = false), 100);
     });
     onBeforeUnmount(() => clearInterval(intervalId));
-
-
 
     return {
       PhPlay,
@@ -320,15 +336,16 @@ onMounted(() => {
       tableRef,
       pagination,
       showModal,
+      dataTable,
       jamBuka,
       jamTutup,
       submitting,
       form,
       formRef,
       rules,
-       presensiAktif,         
-     statusBadge,           
-     fetchPresensiAktif, 
+      presensiAktif,
+      statusBadge,
+      fetchPresensiAktif,
       handlePresensi,
       handleSorterChange,
     };
