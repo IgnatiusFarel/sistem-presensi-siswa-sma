@@ -7,14 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class DaftarLaporan extends Model
-{ 
-    use HasFactory; 
-
+{
+    use HasFactory;
     protected $table = 'daftar_laporan';
     protected $primaryKey = 'daftar_laporan_id';
     public $incrementing = false;
     protected $keyType = 'string';
-
     protected $fillable = [
         'daftar_laporan_id',
         'daftar_siswa_id',
@@ -23,9 +21,9 @@ class DaftarLaporan extends Model
         'keterangan',
     ];
 
-       protected static function booted()
+    protected static function booted()
     {
-        static::creating(function ($model) {            
+        static::creating(function ($model) {
             if (empty($model->daftar_laporan_id)) {
                 $model->daftar_laporan_id = (string) Str::uuid();
             }
