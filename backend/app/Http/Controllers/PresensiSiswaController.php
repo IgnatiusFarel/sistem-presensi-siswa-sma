@@ -123,7 +123,7 @@ class PresensiSiswaController extends Controller
                 'user_id' => $user->user_id,
                 'daftar_siswa_id' => $siswa->daftar_siswa_id,
                 'status' => $status,
-                'waktu_presensi'   => $request->waktu_presensi,
+                'waktu_presensi' => $request->waktu_presensi,
                 'latitude' => $status === PresensiSiswa::STATUS_HADIR
                     ? $request->latitude
                     : null,
@@ -159,7 +159,7 @@ class PresensiSiswaController extends Controller
                     'id' => $ps->presensi_siswa_id,
                     'presensi_id' => $ps->presensi_id,
                     'status' => $ps->status,
-                   'waktu_presensi' => $ps->waktu_presensi, 
+                    'waktu_presensi' => $ps->waktu_presensi,
                     'latitude' => $ps->latitude,
                     'longitude' => $ps->longitude,
                     'lokasi' => $ps->lokasi,
@@ -179,5 +179,6 @@ class PresensiSiswaController extends Controller
             ], 500);
         }
     }
+    
 }
 
