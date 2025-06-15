@@ -2,7 +2,7 @@
   <div class="flex justify-between items-center mb-4">
     <div class="flex gap-2">
       <n-button
-      type="primary"
+        type="primary"
         class="transition-transform transform active:scale-95"
       >
         <template #icon>
@@ -11,7 +11,7 @@
         Lihat Detail
       </n-button>
       <n-button
-        class="!bg-[#F03E3E] hover:!bg-[#D12B2B] !w-[120px] !text-white transition-transform transform active:scale-95 "
+        class="!bg-[#F03E3E] hover:!bg-[#D12B2B] !w-[120px] !text-white transition-transform transform active:scale-95"
       >
         <template #icon>
           <n-icon :component="PhTrash" :size="18" />
@@ -21,7 +21,7 @@
     </div>
 
     <n-input
-      placeholder="Cari Data Riwayat Presensi..."      
+      placeholder="Cari Data Riwayat Presensi..."
       class="!w-[258px]"
       clearable
     >
@@ -38,17 +38,17 @@
     :loading="loading"
     :pagination="pagination"
     :row-key="(row) => row.riwayat_presensi_id"
-    @refresh="fetchData"    
+    @refresh="fetchData"
     @update:sorter="handleSorterChange"
     v-model:checked-row-keys="selectedRows"
   />
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted} from 'vue';
-import { NTag, NInput, NIcon, NButton } from 'naive-ui';
-import { PhMagnifyingGlass, PhTrash, PhInfo } from '@phosphor-icons/vue';
-import Api from "@/services/Api"
+import { defineComponent, reactive, ref, onMounted } from "vue";
+import { NTag, NInput, NIcon, NButton } from "naive-ui";
+import { PhMagnifyingGlass, PhTrash, PhInfo } from "@phosphor-icons/vue";
+import Api from "@/services/Api";
 
 export default defineComponent({
   name: "TableRiwayatPresensi",
@@ -56,72 +56,71 @@ export default defineComponent({
     data: {
       type: Array,
       default: () => [],
-       selectedRows: Array,
+      selectedRows: Array,
     },
     loading: {
       type: Boolean,
       default: false,
     },
-     selectedRows: {
-    type: Array,
-    default: () => [],
-  }
+    selectedRows: {
+      type: Array,
+      default: () => [],
+    },
   },
   setup() {
     const loading = ref(false);
-    const dataTable = ref([])
+    const dataTable = ref([]);
     const tableRef = ref(null);
-    const currentSortState = reactive({});    
-    
+    const currentSortState = reactive({});
 
     const columns = reactive([
       {
-        type: 'selection',
+        type: "selection",
         width: 30,
       },
       {
-        title: 'No',
-        key: 'no',
+        title: "No",
+        key: "no",
         width: 60,
         render: (row, index) => index + 1,
       },
       {
-        title: 'Tanggal Presensi',
-        key: 'tanggal',
+        title: "Tanggal Presensi",
+        key: "tanggal",
         width: 150,
         sorter: (a, b) => new Date(a.tanggal) - new Date(b.tanggal),
       },
       {
-        title: 'Jam Buka',
-        key: 'jam_buka',
+        title: "Jam Buka",
+        key: "jam_buka",
         width: 100,
       },
       {
-        title: 'Jam Tutup',
-        key: 'jam_tutup',
+        title: "Jam Tutup",
+        key: "jam_tutup",
         width: 100,
       },
       {
-        title: 'Jumlah Hadir',
-        key: 'hadir',
+        title: "Jumlah Hadir",
+        key: "hadir",
         width: 100,
         sorter: (a, b) => a.hadir - b.hadir,
-      },      
+      },
       {
-        title: 'Jumlah Izin',
-        key: 'izin',
+        title: "Jumlah Izin",
+        key: "izin",
         width: 100,
         sorter: (a, b) => a.izin - b.izin,
       },
       {
-        title: 'Jumlah Sakit',
-        key: 'sakit',
+        title: "Jumlah Sakit",
+        key: "sakit",
         width: 100,
         sorter: (a, b) => a.sakit - b.sakit,
       },
       {
-        title: 'Jumlah Alpha',
-        key: 'alpha',
+        title: "Jumlah Alpha",
+        key: "alpha",
         width: 100,
         sorter: (a, b) => a.alpha - b.alpha,
       },
@@ -132,10 +131,10 @@ export default defineComponent({
       pageSize: 10,
       showSizePicker: true,
       pageSizes: [10, 25, 50, 100],
-       pageSizes: [10, 25, 50, 100],
-        prefix({ itemCount }) {
-        return `Total Jumlah Riwayat Presensi Siswa: ${itemCount}`
-      },     
+      pageSizes: [10, 25, 50, 100],
+      prefix({ itemCount }) {
+        return `Total Jumlah Riwayat Presensi Siswa: ${itemCount}`;
+      },
       onChange: (page) => {
         pagination.page = page;
       },
@@ -150,16 +149,16 @@ export default defineComponent({
     };
 
     const fetchData = async () => {
-      loading.value = true; 
+      loading.value = true;
       try {
-        const response = await Api.get('/riwayat-presensi')
-        dataTable.value = response.data.data
+        const response = await Api.get("/riwayat-presensi");
+        dataTable.value = response.data.data;
       } catch (error) {
-        console.error(error)        
+        console.error(error);
       } finally {
         loading.value = false;
       }
-    }
+    };
 
     onMounted(() => {
       setTimeout(() => {
@@ -167,11 +166,9 @@ export default defineComponent({
       }, 100);
     });
 
-    
-onMounted(() => {
-  fetchData()                           
-})
-
+    onMounted(() => {
+      fetchData();
+    });
 
     return {
       PhInfo,
@@ -181,7 +178,7 @@ onMounted(() => {
       loading,
       tableRef,
       dataTable,
-      pagination,      
+      pagination,
       handleSorterChange,
     };
   },
