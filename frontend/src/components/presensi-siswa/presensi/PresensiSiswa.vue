@@ -231,6 +231,7 @@ import { ref, onMounted, computed, defineProps } from "vue";
 import { PhFileArrowUp, PhMapPinArea, PhProhibit } from "@phosphor-icons/vue";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import dayjs from 'dayjs';
 import { useMessage } from "naive-ui";
 import Api from "@/services/Api";
 
@@ -291,7 +292,6 @@ onMounted(() => {
   initLocation();
 });
 
-
 const initLocation = () => {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -316,12 +316,13 @@ const initLocation = () => {
           .bindPopup("Lokasi Anda")
           .openPopup();
 
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, display_name } = position.coords;
 
         Api.get("/reverse-geocode", {
           params: {
             lat: latitude,
             lon: longitude,
+            lokasi: display_name,
           },
         })
           .then((res) => {
@@ -400,9 +401,10 @@ const handlePresensi = async () => {
 
     const payload = {
       presensi_id: props.presensiAktif.presensi_id,
-      waktu_presensi: new Date().toISOString(),
+      waktu_presensi:  dayjs().format("HH:mm"),
       latitude: userLatLng.value[0],
       longitude: userLatLng.value[1],
+      lokasi: userLocation.value,     
     };
 
     await Api.post("/presensi-siswa", payload);
