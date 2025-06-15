@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DaftarKelas;
-use App\Models\DaftarSiswa;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use App\Models\DaftarSiswa;
+use App\Models\DaftarKelas;
+use App\Models\User;
 
 class DaftarSiswaController extends Controller
 {
