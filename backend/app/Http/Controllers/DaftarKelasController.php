@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DaftarKelas;
-use App\Models\DaftarPengurus;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Http\Request;
+use App\Models\DaftarPengurus;
+use App\Models\DaftarKelas;
 
 class DaftarKelasController extends Controller
 {
