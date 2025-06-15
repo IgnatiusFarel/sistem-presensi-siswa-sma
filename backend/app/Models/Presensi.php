@@ -16,7 +16,6 @@ class Presensi extends Model
     protected $keyType = 'string';
     public const STATUS_AKTIF = 'aktif';
     public const STATUS_SELESAI = 'selesai';
-
     protected $fillable = [
         'tanggal',
         'jam_buka',
@@ -26,6 +25,7 @@ class Presensi extends Model
         'user_id',
     ];
     protected $casts = [
+        
         'tanggal' => 'date',
         'jam_buka' => 'string',
         'jam_tutup' => 'string',        
