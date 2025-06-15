@@ -19,7 +19,6 @@ class DaftarKelas extends Model
     public const TINGKAT_X = 'X';
     public const TINGKAT_XI = 'XI';
     public const TINGKAT_XII = 'XII';
-
     protected $fillable = [
         'kode_kelas',
         'nama_kelas',
