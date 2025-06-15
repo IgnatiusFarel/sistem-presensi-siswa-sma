@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Presensi;
-use App\Models\DaftarSiswa;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use App\Models\DaftarSiswa;
+use App\Models\Presensi;
+use Carbon\Carbon;
 
 class PresensiController extends Controller
 {
-
     public function getPresensiAktif()
     {
         $today = now()->toDateString();
@@ -44,79 +42,90 @@ class PresensiController extends Controller
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Belum ada kegiatan presensi untuk hari ini!',
-                    'total' => $totalSiswa,
-                    'data' => [],
+                    'data' => [
+                        'total' => $totalSiswa,
+                        'rekap' => [
+                            'Hadir' => 0,
+                            'Sakit' => 0,
+                            'Izin' => 0,
+                            'Alpha' => 0,
+                        ]
+                    ],
                 ], 200);
             }
 
-            $data = [
-                'Hadir' => $presensi->presensiSiswa->where('status_kehadiran', 'hadir')->count(),
-                'Sakit' => $presensi->presensiSiswa->where('status_kehadiran', 'sakit')->count(),
-                'Izin' => $presensi->presensiSiswa->where('status_kehadiran', 'izin')->count(),
-                'Alpha' => $presensi->presensiSiswa->where('status_kehadiran', 'alpha')->count(),
-            ];
+            $rekap =
+                [
+                    'Hadir' => $presensi->presensiSiswa->where('status', 'hadir')->count(),
+                    'Sakit' => $presensi->presensiSiswa->where('status', 'sakit')->count(),
+                    'Izin' => $presensi->presensiSiswa->where('status', 'izin')->count(),
+                    'Alpha' => $presensi->presensiSiswa->where('status', 'alpha')->count(),
+                ];
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Rekap presensi harian berhasil diambil!',
-                'total' => $totalSiswa,
-                'data' => $data,
+                'message' => 'Rekap presensi hari ini  berhasil diambil!',
+                'data' => [
+                    'total' => $totalSiswa,
+                    'rekap' => $rekap
+                ]
             ], 200);
         } catch (\Exception $e) {
             \Log::error('Error getting rekap presensi: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Rekap presensi harian gagal diambil!',
+                'message' => 'Rekap presensi hari ini gagal diambil!',
             ], 500);
         }
     }
     public function index()
     {
         try {
-            $list = Presensi::with(['presensiSiswa.siswa.kelas'])
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $today = Carbon::today()->toDateString();
 
-            $data = $list->map(function ($p) {
-                $totalSiswa = DaftarSiswa::count();
-                $hadir = $p->presensiSiswa->where('status_kehadiran', 'hadir')->count();
-                $izin = $p->presensiSiswa->where('status_kehadiran', 'izin')->count();
-                $sakit = $p->presensiSiswa->where('status_kehadiran', 'sakit')->count();
-                $alpha = $p->presensiSiswa->where('status_kehadiran', 'alpha')->count();
+            $p = Presensi::with(['presensiSiswa.siswa.kelas'])
+                ->whereDate('tanggal', $today)
+                ->first();
 
-                $siswaList = $p->presensiSiswa->map(fn($ps) => [
-                    'nama' => $ps->siswa->nama,
-                    'nomor_absen' => $ps->siswa->nomor_absen,
-                    'kelas' => $ps->siswa->kelas->nama_kelas ?? null,
-                    'status' => $ps->status_kehadiran,
-                    'surat_izin' => $ps->surat_izin ?? null,
-                ]);
+            if (!$p) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Tidak ada presensi untuk hari ini',
+                    'data' => [],
+                ], 200);
+            }
 
-                return [
-                    'presensi_id' => $p->presensi_id,
-                    'tanggal' => $p->tanggal,
-                    'jam_buka' => $p->jam_buka,
-                    'jam_tutup' => $p->jam_tutup,
-                    'status' => $p->status,
-                    'total_siswa' => $totalSiswa,
-                    'hadir' => $hadir,
-                    'izin' => $izin,
-                    'sakit' => $sakit,
-                    'alpha' => $alpha,
-                    'daftar_siswa' => $siswaList,
-                ];
-            });
+
+            $daftarSiswa = $p->presensiSiswa->map(fn($ps) => [
+                'nama' => $ps->siswa->nama,
+                'nomor_absen' => $ps->siswa->nomor_absen,
+                'kelas' => $ps->siswa->kelas->nama_kelas,
+                'jam_masuk' => $ps->waktu_presensi,
+                'status' => $ps->status,
+                'lokasi' => $ps->lokasi,
+                'jenis_kegiatan' => $ps->jenis_kegiatan ?? null,
+                'upload_bukti' => $ps->upload_bukti ?? null,
+                'keterangan' => $ps->keterangan ?? null,
+            ]);
+
+            $data = [
+                'presensi_id' => $p->presensi_id,
+                'tanggal' => $p->tanggal,
+                'jam_buka' => $p->jam_buka,
+                'jam_tutup' => $p->jam_tutup,
+                'daftar_siswa' => $daftarSiswa,
+            ];
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Data presensi harian berhasil diambil!',
+                'message' => 'Data presensi hari ini berhasil diambil!',
                 'data' => $data,
             ], 200);
         } catch (\Exception $e) {
             \Log::error('Error fetching presensi data: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data presensi harian gagal diambil!',
+                'message' => 'Data presensi hari ini gagal diambil!',
             ], 500);
         }
     }
