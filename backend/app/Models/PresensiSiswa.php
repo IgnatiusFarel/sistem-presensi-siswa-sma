@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Str;
+use Illuminate\Support\Str;
 
 class PresensiSiswa extends Model
 {
@@ -17,7 +17,6 @@ class PresensiSiswa extends Model
     public const STATUS_IZIN = 'izin';
     public const STATUS_SAKIT = 'sakit';
     public const STATUS_ALPHA = 'alpha';
-
     protected $fillable = [
         'presensi_id',
         'daftar_siswa_id',
@@ -32,8 +31,8 @@ class PresensiSiswa extends Model
         'keterangan',
     ];
 
-    protected $casts = [
-        'waktu_presensi' => 'datetime',
+    protected $casts = [  
+          'waktu_presensi' => 'string',    
         'latitude' => 'float',
         'longitude' => 'float',
         'status' => 'string',
