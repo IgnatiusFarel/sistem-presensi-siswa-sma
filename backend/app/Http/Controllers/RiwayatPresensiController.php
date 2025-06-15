@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Presensi;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use App\Models\Presensi;
 
 class RiwayatPresensiController extends Controller
 {
