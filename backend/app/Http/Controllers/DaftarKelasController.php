@@ -223,35 +223,35 @@ class DaftarKelasController extends Controller
     public function destroyMultiple(Request $request)
     {
         $ids = $request->input('ids');
-    
-            if (!is_array($ids) || empty($ids)) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Data kelas tidak ada!'
-                ], 400);
-            }
 
-            DB::beginTransaction();
-            try {
-               $daftarkelas = DaftarKelas::whereIn('daftar_kelas_id', $ids)->get();
-foreach ($daftarkelas as $kelas) {
-    $kelas->delete();
-}
-
-                DB::commit();
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Data kelas berhasil dihapus!'
-                ], 200);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                \Log::error('Error deleting kelas: ' . $e->getMessage());
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Data kelas gagal dihapus!',
-                    'error' => $e->getMessage(),
-                ], 500);
-            }
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data kelas tidak ada!'
+            ], 400);
         }
-    
+
+        DB::beginTransaction();
+        try {
+            $daftarkelas = DaftarKelas::whereIn('daftar_kelas_id', $ids)->get();
+            foreach ($daftarkelas as $kelas) {
+                $kelas->delete();
+            }
+
+            DB::commit();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data kelas berhasil dihapus!'
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error deleting kelas: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data kelas gagal dihapus!',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }
