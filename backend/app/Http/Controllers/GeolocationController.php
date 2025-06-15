@@ -1,10 +1,9 @@
-<?php 
+<?php
 
-// app/Http/Controllers/GeolocationController.php
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
 
 class GeolocationController extends Controller
 {
@@ -17,13 +16,13 @@ class GeolocationController extends Controller
             return response()->json(['error' => 'Invalid coordinates'], 400);
         }
 
-       $response = Http::withHeaders([
-    'User-Agent' => 'SistemPresensiSiswaSMA/1.0 (ignatius@email.com)' // ganti dengan info aplikasi kamu
-])->get('https://nominatim.openstreetmap.org/reverse', [
-    'format' => 'json',
-    'lat' => $lat,
-    'lon' => $lon,
-]);
+        $response = Http::withHeaders([
+            'User-Agent' => 'SistemPresensiSiswaSMA/1.0 (ignatius@email.com)' 
+        ])->get('https://nominatim.openstreetmap.org/reverse', [
+                    'format' => 'json',
+                    'lat' => $lat,
+                    'lon' => $lon,
+                ]);
 
         if ($response->successful()) {
             return $response->json();
