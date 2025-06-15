@@ -10,7 +10,7 @@ use App\Models\DaftarSiswa;
 
 class DaftarLaporanController extends Controller
 {
-     public function getDaftarSiswa()
+    public function getDaftarSiswa()
     {
         try {
             $siswa = DaftarSiswa::select('daftar_siswa_id', 'nama', 'nama_kelas', 'nomor_absen')->get();
@@ -28,7 +28,7 @@ class DaftarLaporanController extends Controller
             ], 500);
         }
     }
- public function store(Request $request)
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'daftar_siswa_id' => 'required|exists:daftar_siswa,daftar_siswa_id',
@@ -84,7 +84,7 @@ class DaftarLaporanController extends Controller
                 'data' => $laporan,
             ], 200);
         } catch (\Exception $e) {
-             \Log::error('Error fetching laporan: ' . $e->getMessage());
+            \Log::error('Error fetching laporan: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data laporan perubahan akun gagal diambil!'
