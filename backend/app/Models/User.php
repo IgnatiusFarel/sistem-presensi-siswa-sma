@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use App\Models\DaftarSiswa;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
 use App\Models\DaftarPengurus;
 use App\Models\PresensiSiswa;
-use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use App\Models\DaftarSiswa;
 
 class User extends Authenticatable
 {
@@ -18,7 +18,6 @@ class User extends Authenticatable
     protected $primaryKey = 'user_id';
     public $incrementing = false;
     protected $keyType = 'string';
-
     protected $fillable = [
         'user_id',
         'name',
