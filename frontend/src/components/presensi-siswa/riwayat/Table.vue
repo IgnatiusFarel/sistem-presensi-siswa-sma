@@ -7,10 +7,9 @@
     <n-data-table
       ref="tableRef"
       :columns="columns"
-      :data="tableData"
+      :data="dataTable"
       :loading="loading"
-      :pagination="pagination"
-      @update:filters="handleUpdateFilter"
+      :pagination="pagination"      
       @update:sorter="handleSorterChange"
     />
   </main>
@@ -19,24 +18,33 @@
 <script>
 import { defineComponent, reactive, ref, onMounted, h } from 'vue';
 import { NTag, NIcon, NSpin } from 'naive-ui';
+import { useRoute, useRouter } from "vue-router";
 import { PhMagnifyingGlass, PhPlay } from '@phosphor-icons/vue';
+import Api from "@/services/Api.js";
 
 export default defineComponent({
-  components: {
-    NIcon,
+   name: "TableRiwayatPresensi",
+  props: {
+    data: {
+      type: Array,
+      default: () => [],
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup() {
     const loading = ref(true);
     const tableRef = ref(null);
     const currentSortState = reactive({});
-    const tableData = [
-     
-    ];
+    const dataTable = ref([]);
+    const route = useRoute();
+    const router = useRouter();
 
     const statusConfig = {
       Izin: { type: 'warning' },
-      Alpha: { type: 'info' },
-      Terlambat: {},
+      Alpha: { type: 'info' },      
       Hadir: { type: 'success' },
       Sakit: { type: 'error' },
     };
@@ -74,9 +82,13 @@ export default defineComponent({
 
     const columns = reactive([
       {
-        title: 'No',
-        key: 'no',
-        width: 60,
+        title: "No",
+        key: "no",
+        width: 70,
+        sorter: (a, b) => a.no - b.no,
+        render(_, index) {
+          return (pagination.page - 1) * pagination.pageSize + index + 1;
+        },
       },
       {
         title: 'Tanggal',
@@ -84,20 +96,30 @@ export default defineComponent({
         width: 200,
         sorter: (a, b) => new Date(a.tanggal) - new Date(b.tanggal),
       },
+      {
+        title: 'Jam Masuk',
+        key: 'jam_masuk',
+        width: 100, 
+      },
       statusColumn,
     ]);
 
-    const pagination = reactive({
-      page: 1,
-      pageSize: 10,
+   const pagination = reactive({
+      page: Number(route.query.page) || 1,
+      pageSize: Number(route.query.pageSize) || 10,
       showSizePicker: true,
       pageSizes: [10, 25, 50, 100],
+      prefix({ itemCount }) {
+        return `Total Jumlah Presensi Siswa Hari ini: ${itemCount}`;
+      },
       onChange: (page) => {
         pagination.page = page;
+        router.push({ query: { ...route.query, page } });
       },
       onUpdatePageSize: (pageSize) => {
         pagination.pageSize = pageSize;
         pagination.page = 1;
+        router.push({ query: { ...route.query, page: 1, pageSize } });
       },
     });
 
@@ -105,25 +127,36 @@ export default defineComponent({
       Object.assign(currentSortState, sorter);
     };
 
-    const handleUpdateFilter = (filters) => {
-      console.log('Filter update:', filters);
-    };
+    const fetchData = async () => {
+      loading.value = true;
+      try {
+        const response = await Api.get('/presensi-siswa')
+        dataTable.value = response.data.data
+      } catch (error) {
+        console.log(error)
+      } finally { 
+        loading.value = false; 
+      }
+    }
 
+     onMounted(() => {
+      fetchData();
+    });
+  
     onMounted(() => {
       setTimeout(() => {
         loading.value = false;
-      }, 500);
+      }, 100);
     });
 
     return {
       PhPlay,
       PhMagnifyingGlass,
-      tableData,
+     dataTable,
       loading,
       tableRef,
       columns,
-      pagination,
-      handleUpdateFilter,
+      pagination,      
       handleSorterChange,
     };
   },
