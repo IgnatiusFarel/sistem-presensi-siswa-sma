@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-row px-5 gap-2 mb-4">
-    <n-card
+ <n-card
       v-for="item in stats"
       :key="item.title"
       :title="item.title"
@@ -14,13 +14,37 @@
 
 <script setup>
 import { NCard } from 'naive-ui';
+import { ref, onMounted } from "vue";
+import Api from "@/services/Api";
 
-const total = 3000;
+const loading = ref(false);
+const total = ref(0);
+const stats = ref([]);
 
-const stats = [
-  { title: '✅ Hadir', count: 1280 }, 
-  { title: '🤕 Sakit', count: 1280 },
-  { title: '📝 Izin', count: 1280 },
-  { title: '❌ Alpha', count: 1280 },
-];
+const fetchData = async () => {
+  loading.value = true;
+  try {
+    const response = await Api.get("/presensi-siswa/rekap");
+    const data = response.data.data;
+
+    if (data) {
+      total.value = data.total;
+
+      stats.value = [
+        { title: "✅ Hadir", count: data.rekap?.Hadir || 0 },
+        { title: "🤕 Sakit", count: data.rekap?.Sakit || 0 },
+        { title: "📝 Izin", count: data.rekap?.Izin || 0 },
+        { title: "❌ Alpha", count: data.rekap?.Alpha || 0 },
+      ];
+    }
+  } catch (error) {
+    console.error("Gagal mengambil data rekap presensi:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchData();
+});
 </script>
