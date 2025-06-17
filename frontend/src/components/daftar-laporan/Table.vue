@@ -53,11 +53,7 @@
 <script>
 import { onMounted, reactive, defineComponent, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import {
-  PhCheck,
-  PhTrash,  
-  PhMagnifyingGlass,
-} from "@phosphor-icons/vue";
+import { PhCheck, PhTrash, PhMagnifyingGlass } from "@phosphor-icons/vue";
 
 export default defineComponent({
   name: "TableLaporan",
@@ -96,30 +92,33 @@ export default defineComponent({
       },
       {
         title: "Nama Lengkap",
-        key: "nama",
+        key: "siswa.nama",
         width: 250,
       },
       {
         title: "Kelas",
-        key: "nama_kelas",
+        key: "siswa.nama_kelas",
         width: 120,
       },
       {
         title: "No. Absen",
-        key: "nomor_absen",
+        key: "siswa.nomor_absen",
         width: 90,
       },
       {
         title: "Jenis Perubahan",
         key: "jenis_perubahan",
+        width: 120,
       },
       {
         title: "Upload Bukti",
         key: "upload_bukti",
+        width: 250,
       },
       {
         title: "Keterangan",
         key: "keterangan",
+        width: 250,
       },
     ]);
 
