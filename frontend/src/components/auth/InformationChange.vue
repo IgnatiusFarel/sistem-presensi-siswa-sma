@@ -57,7 +57,13 @@
                 </button>
                 <transition name="fade">
                   <div v-if="expanded === idx" class="px-4 pb-4 bg-white">
-                    <n-form :model="formData" :rules="rules"   :ref="el => el && (formRef[student.daftar_siswa_id] = el)">
+                    <n-form
+                      :model="formData"
+                      :rules="rules"
+                      :ref="
+                        (el) => el && (formRef[student.daftar_siswa_id] = el)
+                      "
+                    >
                       <n-form-item
                         label="Jenis Perubahan"
                         path="jenis_perubahan"
@@ -79,7 +85,7 @@
                         label="Upload Bukti Perubahan"
                         path="upload_bukti"
                       >
-                        <n-upload                                                  
+                        <n-upload
                           directory-dnd
                           :on-change="handleUploadChange"
                           :on-remove="() => (uploadFiles.value = [])"
@@ -120,7 +126,7 @@
                           type="textarea"
                           v-model:value="formData.keterangan"
                           placeholder="Masukkan alasan perubahan data akun Anda..."
-                            show-count
+                          show-count
                           maxlength="300"
                         />
                       </n-form-item>
@@ -131,7 +137,7 @@
                         block
                         type="primary"
                         attr-type="submit"
-                         @click="() => handleSubmit(student.daftar_siswa_id)"
+                        @click="() => handleSubmit(student.daftar_siswa_id)"
                         class="transition-transform transform active:scale-95"
                       >
                         <span v-if="loading">Memproses...</span>
@@ -148,7 +154,7 @@
         <template v-else>
           <div class="flex flex-col items-center justify-center py-12">
             <div class="w-32 h-32 mb-4">
-             <img src="@/assets/notfound.svg" alt="Ilustrasi" />
+              <img src="@/assets/notfound.svg" alt="Ilustrasi" />
             </div>
             <p class="text-gray-500">Tidak Ada Nama Lengkap Tersebut!</p>
           </div>
@@ -177,12 +183,12 @@ import {
   PhPaperPlaneTilt,
   PhMagnifyingGlass,
 } from "@phosphor-icons/vue";
-import Api from "@/services/Api"
+import Api from "@/services/Api";
 
 const search = ref("");
 const loading = ref(false);
 const message = useMessage();
-const students = ref([]); 
+const students = ref([]);
 const formRef = reactive({});
 const expanded = ref(null);
 
@@ -206,19 +212,19 @@ const rules = {
     },
   ],
   upload_bukti: [
-  {
-    validator(rule, value) {
-      if (!value) {
-        return new Error("Upload bukti wajib diisi");
-      }
-      if (!(value instanceof File)) {
-        return new Error("Upload bukti tidak valid");
-      }
-      return true;
+    {
+      validator(rule, value) {
+        if (!value) {
+          return new Error("Upload bukti wajib diisi");
+        }
+        if (!(value instanceof File)) {
+          return new Error("Upload bukti tidak valid");
+        }
+        return true;
+      },
+      trigger: ["change"],
     },
-    trigger: ["change"],
-  },
-],
+  ],
   keterangan: [
     {
       required: true,
@@ -229,14 +235,14 @@ const rules = {
 };
 
 const fetchData = async () => {
-  loading.value = true; 
+  loading.value = true;
   try {
-    const response = await Api.get('/daftar-siswa-aktif')  
-    students.value = response.data.data
+    const response = await Api.get("/daftar-siswa-aktif");
+    students.value = response.data.data;
   } catch (error) {
-    console.error(error)
+    console.error(error);
   } finally {
-    loading.value = false; 
+    loading.value = false;
   }
 };
 
@@ -261,37 +267,39 @@ const handleUploadChange = ({ fileList }) => {
 };
 
 function handleBeforeUpload({ file }) {
-  const isAllowedType = ['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)
-  const isLimitSize = file.file.size / 1024 / 1024 < 2 
+  const isAllowedType = ["image/jpeg", "image/jpg", "image/png"].includes(
+    file.type
+  );
+  const isLimitSize = file.file.size / 1024 / 1024 < 2;
   if (!isAllowedType) {
-    message.error('Tipe file tidak didukung!')
-    return false
+    message.error("Tipe file tidak didukung!");
+    return false;
   }
 
   if (!isLimitSize) {
-    message.error('Ukuran file harus kurang dari 2MB!')
-    return false
+    message.error("Ukuran file harus kurang dari 2MB!");
+    return false;
   }
 
-  return true
+  return true;
 }
 
 const handleSubmit = async (siswaId) => {
-  const form = formRef[siswaId]
-  if (!form) return
+  const form = formRef[siswaId];
+  if (!form) return;
 
   try {
-    await form.validate(errors => {
+    await form.validate((errors) => {
       if (!errors) {
-        handleSave(siswaId)
-        form.restoreValidation()
+        handleSave(siswaId);
+        form.restoreValidation();
       }
-    })
+    });
   } catch (error) {
     console.error("Error Validasi:", error);
-    message.error('Laporan Perubahan Akun Anda Gagal Tervalidasi!')
+    message.error("Laporan Perubahan Akun Anda Gagal Tervalidasi!");
   }
-}; 
+};
 
 const handleSave = async (siswaId) => {
   loading.value = true;
@@ -301,27 +309,29 @@ const handleSave = async (siswaId) => {
     formPayload.append("jenis_perubahan", formData.value.jenis_perubahan);
     formPayload.append("upload_bukti", formData.value.upload_bukti); // ini File
     formPayload.append("keterangan", formData.value.keterangan);
-    
-    await Api.post('/daftar-laporan', formPayload, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+
+    await Api.post("/daftar-laporan", formPayload, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     message.success("Laporan Perubahan Akun Anda Berhasil Dikirim!");
   } catch (error) {
-   console.error(error)
+    console.error(error);
     message.error("Laporan Perubahan Akun Anda Gagal Dikirim!");
   } finally {
     loading.value = false;
   }
 };
 
-onMounted(fetchData); 
+onMounted(fetchData);
 </script>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.2s ease;
 }
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 </style>
