@@ -24,11 +24,13 @@ class PresensiSiswaController extends Controller
                 ->get()
                 ->map(function ($item) {
                     return [
-                        'id' => $item->presensi_siswa_id,
+                        'presensi_siswa_id' => $item->presensi_siswa_id,
                         'tanggal' => Carbon::parse($item->presensi->tanggal)->format('Y-m-d'),
-                        'jam' => optional($item->waktu_presensi)->format('H:i'),
-                        'status' => ucfirst($item->status),
-                        'keterangan' => $item->keterangan,
+                        'jam_masuk' => $item->waktu_presensi 
+    ? Carbon::parse($item->waktu_presensi)->format('H:i')
+    : null,
+
+                        'status' => ucfirst($item->status),                        
                     ];
                 });
 
@@ -49,33 +51,32 @@ class PresensiSiswaController extends Controller
     public function getRekapPresensi()
     {
         try {
-            $userId = auth()->id();
+             $userId = auth()->id();  
 
-            // Total kegiatan presensi di sistem
-            $totalKegiatan = Presensi::count();
-
-            // Hitung per status untuk siswa ini
             $counts = PresensiSiswa::where('user_id', $userId)
-                ->selectRaw("status, COUNT(*) as jumlah")
-                ->groupBy('status')
-                ->pluck('jumlah', 'status')
-                ->toArray();
-
-            // Pastikan semua status ada
-            $data = [
-                'hadir' => $counts['hadir'] ?? 0,
-                'izin' => $counts['izin'] ?? 0,
-                'sakit' => $counts['sakit'] ?? 0,
-                'alpha' => $counts['alpha'] ?? 0,
+            ->selectRaw("status, COUNT(*) as jumlah")
+            ->groupBy('status')
+            ->pluck('jumlah', 'status')
+            ->toArray();
+            
+            $totalKegiatan = Presensi::count();
+            
+            $rekap = [
+                'Hadir' => $counts['hadir'] ?? 0,
+                'Izin' => $counts['izin'] ?? 0,
+                'Sakit' => $counts['sakit'] ?? 0,
+                'Alpha' => $counts['alpha'] ?? 0,
             ];
             return response()->json([
                 'status' => 'success',
-                'message' => 'Rekap presensi anda berhasil diambil!',
-                'total' => $totalKegiatan,
-                'data' => $data,
+                'message' => 'Rekap presensi anda berhasil diambil!',             
+                'data' => [
+                    'total' => $totalKegiatan,
+                    'rekap' => $rekap                   
+                ],
             ], 200);
         } catch (\Exception $e) {
-            \Log::error('Error getting rekap presensi: ' . $e->getMessage());
+            \Log::error('Error getting rekap presensi siswa: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Rekap presensi harian gagal diambil!',
@@ -113,7 +114,7 @@ class PresensiSiswaController extends Controller
             }
 
             if ($request->filled('jenis_kegiatan')) {
-                $status = strtolower($request->jenis_kegiatan); // "izin" atau "sakit"
+                $status = strtolower($request->jenis_kegiatan); 
             } else {
                 $status = PresensiSiswa::STATUS_HADIR;
             }
@@ -156,7 +157,7 @@ class PresensiSiswaController extends Controller
                 'status' => 'success',
                 'message' => 'Presensi berhasil disimpan!',
                 'data' => [
-                    'id' => $ps->presensi_siswa_id,
+                    'presensi_siswa_id' => $ps->presensi_siswa_id,
                     'presensi_id' => $ps->presensi_id,
                     'status' => $ps->status,
                     'waktu_presensi' => $ps->waktu_presensi,
