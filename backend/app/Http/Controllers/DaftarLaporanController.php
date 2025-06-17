@@ -74,7 +74,7 @@ class DaftarLaporanController extends Controller
     public function index()
     {
         try {
-            $laporan = DaftarLaporan::with('siswa:daftar_siswa_id,nama,kelas,no_absen')
+            $laporan = DaftarLaporan::with('siswa:daftar_siswa_id,nama,nama_kelas,nomor_absen')
                 ->orderBy('created_at', 'desc')
                 ->get();
 
