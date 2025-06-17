@@ -32,7 +32,7 @@ class PresensiSiswa extends Model
     ];
 
     protected $casts = [  
-          'waktu_presensi' => 'string',    
+        'waktu_presensi' => 'string',    
         'latitude' => 'float',
         'longitude' => 'float',
         'status' => 'string',
