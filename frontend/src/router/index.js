@@ -6,6 +6,7 @@ import PresensiPage from '@/pages/presensi/PresensiPage.vue';
 import DaftarSiswaPage from '@/pages/daftar-siswa/DaftarSiswaPage.vue';
 import DaftarPengurusPage from '@/pages/daftar-pengurus/DaftarPengurusPage.vue';
 import DaftarKelasPage from '@/pages/daftar-kelas/DaftarKelasPage.vue';
+import DaftarLaporanPage from '@/pages/daftar-laporan/DaftarLaporanPage.vue';
 import PresensiSiswaPage from '@/pages/presensi-siswa/PresensiSiswaPage.vue';
 
 const routes = [
@@ -15,6 +16,7 @@ const routes = [
   { path: '/daftar-siswa', component: DaftarSiswaPage, meta: {requiresAuth: true, roles: ['superadmin']} },
   { path: '/daftar-pengurus', component: DaftarPengurusPage, meta: {requiresAuth: true, roles: ['superadmin']} },
   { path: '/daftar-kelas', component: DaftarKelasPage, meta: {requiresAuth: true, roles: ['superadmin']} },
+  { path: '/daftar-laporan', component: DaftarLaporanPage, meta: {requiresAuth: true, roles: ['superadmin']} },
   { path: '/presensi-siswa', component: PresensiSiswaPage, meta: {requiresAuth: true, roles: ['siswa']} },
 ];
 
