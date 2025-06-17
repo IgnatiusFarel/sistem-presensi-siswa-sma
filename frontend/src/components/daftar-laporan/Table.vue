@@ -2,7 +2,6 @@
   <h1 class="text-2xl text-[#232323] font-bold mb-4">Daftar Laporan</h1>
   <div class="flex justify-between items-center mb-4">
     <div class="flex gap-2">
-     
       <n-button
         type="primary"
         class="transition-transform transform active:scale-95"
@@ -12,7 +11,7 @@
         <template #icon>
           <n-icon :component="PhCheck" :size="18" />
         </template>
-        Approve 
+        Approve
       </n-button>
 
       <n-button
@@ -72,9 +71,9 @@ export default defineComponent({
     },
   },
   setup(props, {}) {
-    const loading = ref(false); 
-    const tableRef = ref(null); 
-    const searchKeyword = ref('')
+    const loading = ref(false);
+    const tableRef = ref(null);
+    const searchKeyword = ref("");
     const selectedRows = ref([...props.selectedRows]);
     const route = useRoute();
     const router = useRouter();
@@ -148,15 +147,15 @@ export default defineComponent({
     });
 
     return {
-      PhTrash,     
+      PhTrash,
       PhCheck,
       PhMagnifyingGlass,
       columns,
       loading,
       tableRef,
       pagination,
-      selectedRows, 
-      searchKeyword, 
+      selectedRows,
+      searchKeyword,
     };
   },
 });
