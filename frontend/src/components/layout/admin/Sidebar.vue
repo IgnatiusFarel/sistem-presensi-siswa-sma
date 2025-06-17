@@ -2,14 +2,15 @@
 import { ref, h } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import {
-  PhCaretUpDown,
-  PhScan,
   PhUser,
-  PhUserGear,
-  PhChalkboardSimple,
-  PhSidebarSimple,
-  PhSignOut,
+  PhScan,
   PhGear,
+  PhSignOut,
+  PhUserGear,
+  PhFolders, 
+  PhCaretUpDown,
+  PhSidebarSimple,
+  PhChalkboardSimple,
 } from '@phosphor-icons/vue';
 import { useAuthStore } from '@/stores/Auth';
 import { storeToRefs } from 'pinia'; 
@@ -25,6 +26,7 @@ const menuItems = [
   { name: 'Daftar Siswa', path: '/daftar-siswa', icon: PhUser },
   { name: 'Daftar Pengurus', path: '/daftar-pengurus', icon: PhUserGear },
   { name: 'Daftar Kelas', path: '/daftar-kelas', icon: PhChalkboardSimple },
+  { name: 'Daftar Laporan', path: '/daftar-laporan', icon: PhFolders },
 ];
 
 const profileOptions = [
