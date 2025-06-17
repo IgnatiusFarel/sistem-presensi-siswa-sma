@@ -87,7 +87,7 @@ export default defineComponent({
   },
   },
   setup(props, { emit }) {
-    const loading = ref(true);
+    const loading = ref(false);
     const tableRef = ref(null);
     const searchKeyword = ref('')
     const selectedRows = ref([...props.selectedRows]);
@@ -209,7 +209,6 @@ export default defineComponent({
      watch(() => props.selectedRows, (val) => {
     selectedRows.value = [...val];
   });
-
 
     onMounted(() => {
       setTimeout(() => {
