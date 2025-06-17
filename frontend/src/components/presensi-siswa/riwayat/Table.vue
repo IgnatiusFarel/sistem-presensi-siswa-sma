@@ -133,7 +133,7 @@ export default defineComponent({
         const response = await Api.get('/presensi-siswa')
         dataTable.value = response.data.data
       } catch (error) {
-        console.log(error)
+        console.error(error)
       } finally { 
         loading.value = false; 
       }
@@ -152,10 +152,10 @@ export default defineComponent({
     return {
       PhPlay,
       PhMagnifyingGlass,
-     dataTable,
+      columns,
       loading,
       tableRef,
-      columns,
+      dataTable,
       pagination,      
       handleSorterChange,
     };
