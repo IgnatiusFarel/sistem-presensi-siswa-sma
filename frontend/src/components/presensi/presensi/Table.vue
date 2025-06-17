@@ -74,12 +74,12 @@
 
 <script>
 import {
-  defineComponent,
-  reactive,
-  ref,
-  onMounted,
   h,
+  ref,
   computed,
+  reactive,
+  onMounted,
+  defineComponent,
   onBeforeUnmount,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -331,22 +331,22 @@ export default defineComponent({
     return {
       PhPlay,
       PhMagnifyingGlass,
+      form,
+      rules,
+      formRef,
+      jamBuka,
       columns,
+      jamTutup,
       loading,
       tableRef,
-      pagination,
       showModal,
       dataTable,
-      jamBuka,
-      jamTutup,
       submitting,
-      form,
-      formRef,
-      rules,
-      presensiAktif,
+      pagination,
       statusBadge,
-      fetchPresensiAktif,
+      presensiAktif,
       handlePresensi,
+      fetchPresensiAktif,
       handleSorterChange,
     };
   },
