@@ -27,18 +27,20 @@ Route::middleware('auth:sanctum')->group(function () {
         // 📁 Daftar Siswa
         Route::prefix('daftar-siswa')->controller(DaftarSiswaController::class)->group(function () {
             Route::get('/', 'index');
-            Route::post('/', 'store');
             Route::get('{id}', 'show');
+            Route::post('/', 'store');
+            Route::post('/import','import');
             Route::patch('{id}', 'update');
             Route::delete('{id}', 'destroy');
-            Route::delete('/', 'destroyMultiple');
+            Route::delete('/', 'destroyMultiple');            
         });
 
         // 📁 Daftar Pengurus
         Route::prefix('daftar-pengurus')->controller(DaftarPengurusController::class)->group(function () {
             Route::get('/', 'index');
-            Route::post('/', 'store');
             Route::get('{id}', 'show');
+            Route::post('/', 'store');
+            Route::post('/import','import');
             Route::patch('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::delete('/', 'destroyMultiple');
@@ -47,8 +49,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // 📁 Daftar Kelas
         Route::prefix('daftar-kelas')->controller(DaftarKelasController::class)->group(function () {
             Route::get('/', 'index');
-            Route::post('/', 'store');
             Route::get('{id}', 'show');
+            Route::post('/', 'store');
+            Route::post('/import','import');
             Route::patch('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::delete('/', 'destroyMultiple');
@@ -83,8 +86,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // 📁 Presensi Siswa
         Route::prefix('presensi-siswa')->controller(PresensiSiswaController::class)->group(function () {
             Route::get('/', 'index');
-            Route::post('/', 'store');            
             Route::get('/rekap', 'getRekapPresensi');
+            Route::post('/', 'store');            
             Route::get('/hari-ini', [PresensiController::class, 'getPresensiAktif']);
         });
 
