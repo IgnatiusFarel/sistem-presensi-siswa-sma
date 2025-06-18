@@ -152,64 +152,27 @@
           {{ loading ? "Memproses..." : "Simpan" }}
         </n-button>
       </n-form>
-
-      <div class="my-2 flex items-center">
-        <div class="flex-1 border-t border-gray-300"></div>
-        <span class="px-4 text-gray-500 text-sm">atau</span>
-        <div class="flex-1 border-t border-gray-300"></div>
-      </div>
-
-      <div class="space-y-4">
-        <h3 class="font-medium text-gray-700">Import dari Dokumen</h3>
-        <n-upload
-          action="https://example.com/upload"
-          :max="1"
-          accept=".csv,.xls,.xlsx"
-          class="w-full"
-        >
-          <n-upload-dragger
-            class="border-2 border-dashed border-[#9ca3af] rounded-md transition-all duration-300 p-6 hover:bg-gray-50"
-          >
-            <div class="py-8 text-center">
-              <n-icon
-                :component="PhFileArrowUp"
-                :size="48"
-                class="text-gray-400 mb-2"
-              />
-              <p class="text-gray-600">
-                Drag file ke sini atau
-                <span class="text-[#1E1E1E] font-medium"
-                  >klik untuk upload</span
-                >
-              </p>
-              <p class="text-sm text-gray-500 mt-1">
-                Format yang didukung: .CSV, .XLS, .XLSX
-              </p>
-            </div>
-          </n-upload-dragger>
-        </n-upload>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { defineComponent, onMounted, ref, watch } from "vue";
-import { PhCaretDoubleLeft, PhFileArrowUp } from "@phosphor-icons/vue";
+import { PhCaretDoubleLeft } from "@phosphor-icons/vue";
 import Api from "@/services/Api";
-import { useMessage } from "naive-ui"
-import dayjs from 'dayjs';
+import { useMessage } from "naive-ui";
+import dayjs from "dayjs";
 
 const loading = ref(false);
 const formRef = ref(null);
 const kelasOptions = ref([]);
 const message = useMessage();
 const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
-const emit = defineEmits(['back-to-table', 'refresh']);
+const emit = defineEmits(["back-to-table", "refresh"]);
 
 const props = defineProps({
-  editData: Object 
-})
+  editData: Object,
+});
 
 const rules = {
   nama: [
@@ -335,7 +298,7 @@ const formData = ref({
   daftar_kelas_id: null,
   nama_kelas: "",
   nomor_absen: "",
-  tanggal_bergabung: null,  
+  tanggal_bergabung: null,
 });
 
 const handleSubmit = async (e) => {
@@ -357,7 +320,9 @@ const handleSave = async () => {
   try {
     const payload = {
       ...formData.value,
-      tanggal_bergabung: dayjs(formData.value.tanggal_bergabung).format('YYYY-MM-DD'),
+      tanggal_bergabung: dayjs(formData.value.tanggal_bergabung).format(
+        "YYYY-MM-DD"
+      ),
     };
     await Api.patch(`/daftar-siswa/${props.editData.daftar_siswa_id}`, payload);
     message.success("Data siswa berhasil diperbarui!");
@@ -392,31 +357,36 @@ watch(
   }
 );
 
-watch(() => props.editData, (newVal) => {
-  if (newVal) {    
-    formData.value = {
-      nama: newVal.nama || "",
-      nis: newVal.nis || "",
-      nisn: newVal.nisn || "",
-      jenis_kelamin: newVal.jenis_kelamin || "",
-      tempat_tanggal_lahir: newVal.tempat_tanggal_lahir || "",
-      agama: newVal.agama || null,
-      alamat: newVal.alamat || "",
-      nomor_handphone: newVal.nomor_handphone || "",
-      email: newVal.email || "",
-      daftar_kelas_id: newVal.daftar_kelas_id || null,
-      nama_kelas: newVal.nama_kelas || "", // Pastikan ada value
-      nomor_absen: String(newVal.nomor_absen || ""), // Konversi ke string untuk input
-      tanggal_bergabung: newVal.tanggal_bergabung ? new Date(newVal.tanggal_bergabung).getTime() : null,
-      password: "" 
-    };
-  }
-}, { immediate: true });
+watch(
+  () => props.editData,
+  (newVal) => {
+    if (newVal) {
+      formData.value = {
+        nama: newVal.nama || "",
+        nis: newVal.nis || "",
+        nisn: newVal.nisn || "",
+        jenis_kelamin: newVal.jenis_kelamin || "",
+        tempat_tanggal_lahir: newVal.tempat_tanggal_lahir || "",
+        agama: newVal.agama || null,
+        alamat: newVal.alamat || "",
+        nomor_handphone: newVal.nomor_handphone || "",
+        email: newVal.email || "",
+        daftar_kelas_id: newVal.daftar_kelas_id || null,
+        nama_kelas: newVal.nama_kelas || "",
+        nomor_absen: String(newVal.nomor_absen || ""),
+        tanggal_bergabung: newVal.tanggal_bergabung
+          ? new Date(newVal.tanggal_bergabung).getTime()
+          : null,
+        password: "",
+      };
+    }
+  },
+  { immediate: true }
+);
 
 onMounted(() => {
   fetchDataKelas();
 });
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
