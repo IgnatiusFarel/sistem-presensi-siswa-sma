@@ -94,6 +94,7 @@ const fetchData = async () => {
     loading.value = false;
   }
 };
+
 onMounted(() => {
   updateDateTime();
   interval = setInterval(updateDateTime, 1000);
