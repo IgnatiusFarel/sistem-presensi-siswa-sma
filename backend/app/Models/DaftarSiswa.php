@@ -45,6 +45,21 @@ class DaftarSiswa extends Model
         });
     }
 
+      public function setNisAttribute($value)
+    {
+        $this->attributes['nis'] = trim((string) $value, '"');
+    }
+
+    public function setNisnAttribute($value)
+    {
+        $this->attributes['nisn'] = trim((string) $value, '"');
+    }
+
+    public function setNomorHandphoneAttribute($value)
+    {
+        $this->attributes['nomor_handphone'] = trim((string) $value, '"');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
