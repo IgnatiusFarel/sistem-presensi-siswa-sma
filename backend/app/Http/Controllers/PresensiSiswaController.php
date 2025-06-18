@@ -18,21 +18,24 @@ class PresensiSiswaController extends Controller
         try {
             $userId = auth()->id();
 
-            $riwayat = PresensiSiswa::with('presensi')
-                ->where('user_id', $userId)
-                ->orderBy('waktu_presensi', 'desc')
-                ->get()
-                ->map(function ($item) {
-                    return [
-                        'presensi_siswa_id' => $item->presensi_siswa_id,
-                        'tanggal' => Carbon::parse($item->presensi->tanggal)->format('Y-m-d'),
-                        'jam_masuk' => $item->waktu_presensi 
-    ? Carbon::parse($item->waktu_presensi)->format('H:i')
-    : null,
+           $riwayat = PresensiSiswa::with('presensi')
+    ->where('user_id', $userId)
+    ->get()
+    ->sortByDesc(function ($item) {
+        return Carbon::parse($item->presensi->tanggal)->format('Y-m-d') . ' ' . $item->waktu_presensi;
+    })
+    ->values()
+    ->map(function ($item) {
+        return [
+            'presensi_siswa_id' => $item->presensi_siswa_id,
+            'tanggal' => Carbon::parse($item->presensi->tanggal)->format('Y-m-d'),
+            'jam_masuk' => $item->waktu_presensi
+                ? Carbon::parse($item->waktu_presensi)->format('H:i')
+                : null,
+            'status' => ucfirst($item->status),
+        ];
+    });
 
-                        'status' => ucfirst($item->status),                        
-                    ];
-                });
 
             return response()->json([
                 'status' => 'success',
@@ -51,16 +54,16 @@ class PresensiSiswaController extends Controller
     public function getRekapPresensi()
     {
         try {
-             $userId = auth()->id();  
+            $userId = auth()->id();
 
             $counts = PresensiSiswa::where('user_id', $userId)
-            ->selectRaw("status, COUNT(*) as jumlah")
-            ->groupBy('status')
-            ->pluck('jumlah', 'status')
-            ->toArray();
-            
+                ->selectRaw("status, COUNT(*) as jumlah")
+                ->groupBy('status')
+                ->pluck('jumlah', 'status')
+                ->toArray();
+
             $totalKegiatan = Presensi::count();
-            
+
             $rekap = [
                 'Hadir' => $counts['hadir'] ?? 0,
                 'Izin' => $counts['izin'] ?? 0,
@@ -69,10 +72,10 @@ class PresensiSiswaController extends Controller
             ];
             return response()->json([
                 'status' => 'success',
-                'message' => 'Rekap presensi anda berhasil diambil!',             
+                'message' => 'Rekap presensi anda berhasil diambil!',
                 'data' => [
                     'total' => $totalKegiatan,
-                    'rekap' => $rekap                   
+                    'rekap' => $rekap
                 ],
             ], 200);
         } catch (\Exception $e) {
@@ -80,6 +83,29 @@ class PresensiSiswaController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Rekap presensi harian gagal diambil!',
+            ], 500);
+        }
+    }
+
+    public function getStatusPresensi(Request $request)
+    {
+        try {
+            $userId = auth()->id();
+            $today = now()->toDateString();
+            $sudahPresensi = PresensiSiswa::whereDate('created_at', $today)
+        ->where('user_id', $userId)
+        ->exists();
+
+         return response()->json([
+                'status' => 'success',
+                'message' => 'Status presensi siswa berhasil diambil!',
+                'data' => $sudahPresensi                
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error('Error getting status presensi siswa: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Status presensi siswa gagal diambil!',
             ], 500);
         }
     }
@@ -114,7 +140,7 @@ class PresensiSiswaController extends Controller
             }
 
             if ($request->filled('jenis_kegiatan')) {
-                $status = strtolower($request->jenis_kegiatan); 
+                $status = strtolower($request->jenis_kegiatan);
             } else {
                 $status = PresensiSiswa::STATUS_HADIR;
             }
@@ -180,6 +206,6 @@ class PresensiSiswaController extends Controller
             ], 500);
         }
     }
-    
+
 }
 
