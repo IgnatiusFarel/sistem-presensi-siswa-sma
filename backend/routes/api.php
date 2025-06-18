@@ -91,6 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('presensi-siswa')->controller(PresensiSiswaController::class)->group(function () {
             Route::get('/', 'index');
             Route::get('/rekap', 'getRekapPresensi');
+            Route::get('/status', 'getStatusPresensi');
             Route::post('/', 'store');            
             Route::get('/hari-ini', [PresensiController::class, 'getPresensiAktif']);
         });
