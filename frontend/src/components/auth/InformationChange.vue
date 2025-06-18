@@ -69,7 +69,9 @@
                         path="jenis_perubahan"
                       >
                         <n-radio-group
-                          v-model:value="formData[student.daftar_siswa_id].jenis_perubahan"
+                          v-model:value="
+                            formData[student.daftar_siswa_id].jenis_perubahan
+                          "
                           name="jenis_perubahan"
                         >
                           <n-radio-button
@@ -87,8 +89,15 @@
                       >
                         <n-upload
                           directory-dnd
-                           :on-change="(info) => handleUploadChange(info, student.daftar_siswa_id)"
-  :on-remove="() => (formData[student.daftar_siswa_id].upload_bukti = null)"
+                          :on-change="
+                            (info) =>
+                              handleUploadChange(info, student.daftar_siswa_id)
+                          "
+                          :on-remove="
+                            () =>
+                              (formData[student.daftar_siswa_id].upload_bukti =
+                                null)
+                          "
                           :max="1"
                           :on-before-upload="handleBeforeUpload"
                           list-type="image"
@@ -124,7 +133,9 @@
                       >
                         <n-input
                           type="textarea"
-                         v-model:value="formData[student.daftar_siswa_id].keterangan"
+                          v-model:value="
+                            formData[student.daftar_siswa_id].keterangan
+                          "
                           placeholder="Masukkan alasan perubahan data akun Anda..."
                           show-count
                           maxlength="300"
@@ -197,7 +208,7 @@ const jenisPerubahanOptions = [
   { value: "Password", label: "Password" },
 ];
 
-const formData = reactive({})
+const formData = reactive({});
 
 const rules = {
   jenis_perubahan: [
@@ -274,7 +285,6 @@ const handleUploadChange = ({ fileList }, siswaId) => {
   }
 };
 
-
 function handleBeforeUpload({ file }) {
   const isAllowedType = ["image/jpeg", "image/jpg", "image/png"].includes(
     file.type
@@ -324,11 +334,10 @@ const resetForm = (siswaId) => {
 const handleSave = async (siswaId) => {
   loading.value = true;
   try {
-
-  const data = formData[siswaId];
+    const data = formData[siswaId];
 
     const formPayload = new FormData();
-     formPayload.append("daftar_siswa_id", siswaId);
+    formPayload.append("daftar_siswa_id", siswaId);
     formPayload.append("jenis_perubahan", data.jenis_perubahan);
     formPayload.append("upload_bukti", data.upload_bukti);
     formPayload.append("keterangan", data.keterangan);
@@ -337,7 +346,7 @@ const handleSave = async (siswaId) => {
       headers: { "Content-Type": "multipart/form-data" },
     });
     message.success("Laporan Perubahan Akun Anda Berhasil Dikirim!");
-     resetForm(siswaId);
+    resetForm(siswaId);
   } catch (error) {
     console.error(error);
     message.error("Laporan Perubahan Akun Anda Gagal Dikirim!");
