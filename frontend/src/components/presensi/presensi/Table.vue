@@ -83,9 +83,9 @@ import {
   onBeforeUnmount,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { NTag, NSpin, useMessage } from "naive-ui";
+import { NTag, NSpin, useMessage, NImage } from "naive-ui";
 import { PhMagnifyingGlass, PhPlay } from "@phosphor-icons/vue";
-import Api from "@/services/Api.js";
+import Api from "@/services/Api";
 import dayjs from "dayjs";
 
 export default defineComponent({
@@ -116,6 +116,8 @@ export default defineComponent({
     const formRef = ref(null);
     const form = reactive({ jam_buka: null, jam_tutup: null });
     let intervalId = null;
+
+    const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
     const statusConfig = {
       izin: { type: "warning" },
@@ -186,11 +188,7 @@ export default defineComponent({
         width: 200,
         sorter: (a, b) => a.nama.localeCompare(b.nama),
       },
-      {
-        title: "Kelas",
-        key: "kelas",
-        width: 108,
-      },
+      { title: "Kelas", key: "kelas", width: 108 },
       { title: "No. Absen", key: "nomor_absen", width: 85 },
       {
         title: "Jam Masuk",
@@ -198,11 +196,7 @@ export default defineComponent({
         width: 100,
       },
       statusColumn,
-      {
-        title: "Lokasi",
-        key: "lokasi",
-        width: 100,
-      },
+      { title: "Lokasi", key: "lokasi", width: 100 },
       {
         title: "Jenis Kegiatan",
         key: "jenis_kegiatan",
@@ -212,12 +206,42 @@ export default defineComponent({
         title: "Surat Izin / Sakit",
         key: "upload_bukti",
         width: 120,
-      },
+       render(row) {
+  const filePath = row.upload_bukti;
+  const fullPath = `${baseUrl}/storage/${filePath}`;
+
+  if (!filePath) return "—";
+
+  const isPdf = filePath.endsWith(".pdf");
+
+  if (isPdf) {
+    return h(
+      "a",
       {
-        title: "Keterangan",
-        key: "keterangan",
-        width: 150,
+        href: fullPath,
+        target: "_blank",
+        style: {
+          color: "#2F80ED",
+          textDecoration: "underline"
+        }
       },
+      "Lihat PDF"
+    );
+  }
+
+  return h(NImage, {
+    src: fullPath,
+    width: 80,
+    height: "auto",
+    style: {
+      borderRadius: "6px",
+      objectFit: "cover"
+    }
+  });
+}
+
+      },
+      { title: "Keterangan", key: "keterangan", width: 150 },
     ]);
 
     const pagination = reactive({
