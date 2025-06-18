@@ -50,9 +50,10 @@
 </template>
 
 <script>
-import { onMounted, reactive, defineComponent, ref } from "vue";
+import { onMounted, reactive, defineComponent, ref, h} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { PhCheck, PhTrash, PhMagnifyingGlass } from "@phosphor-icons/vue";
+import { NImage } from 'naive-ui';
 
 export default defineComponent({
   name: "TableLaporan",
@@ -78,6 +79,8 @@ export default defineComponent({
     const route = useRoute();
     const router = useRouter();
 
+     const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
     const columns = reactive([
       { type: "selection", width: 50 },
       {
@@ -89,21 +92,13 @@ export default defineComponent({
           return (pagination.page - 1) * pagination.pageSize + index + 1;
         },
       },
-      {
-        title: "Nama Lengkap",
-        key: "siswa.nama",
-        width: 250,
-      },
+      { title: "Nama Lengkap", key: "siswa.nama", width: 250 },
       {
         title: "Kelas",
         key: "siswa.nama_kelas",
         width: 120,
       },
-      {
-        title: "No. Absen",
-        key: "siswa.nomor_absen",
-        width: 90,
-      },
+      { title: "No. Absen", key: "siswa.nomor_absen", width: 90 },
       {
         title: "Jenis Perubahan",
         key: "jenis_perubahan",
@@ -112,13 +107,13 @@ export default defineComponent({
       {
         title: "Upload Bukti",
         key: "upload_bukti",
-        width: 250,
+        width: 100,
+        render(row) {
+          const src = `${baseUrl}/storage/${row.upload_bukti}`;
+          return h(NImage, { src, width: 80 });
+        }
       },
-      {
-        title: "Keterangan",
-        key: "keterangan",
-        width: 250,
-      },
+      { title: "Keterangan", key: "keterangan", width: 250 },
     ]);
 
     const pagination = reactive({
