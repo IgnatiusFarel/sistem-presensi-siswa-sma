@@ -164,6 +164,7 @@
         <n-upload
          :custom-request="handleUpload"        
           :max="1"
+          directory-dnd
           accept=".csv,.xls,.xlsx"
           class="w-full"
            :default-file-list="fileList"
