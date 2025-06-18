@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\DaftarLaporan;
 use App\Models\DaftarSiswa;
+use App\Models\User;
 
 class DaftarLaporanController extends Controller
 {
@@ -91,5 +92,79 @@ class DaftarLaporanController extends Controller
             ], 500);
         }
     }
+
+    public function delete($id)
+    {
+        $laporan = DaftarLaporan::find($id);
+
+        if (!$laporan) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data laporan tidak ditemukan!'
+            ], 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            if ($laporan->user_id && User::find($laporan->user_id)) {
+                User::destroy($laporan->user_id);
+            }
+
+            $laporan->delete();
+
+            DB::commit();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data laporan berhasil dihapus!'
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data laporan gagal dihapus!',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function destroyMultiple(Request $request)
+    {
+        $ids = $request->input('ids');
+
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data ID laporan tidak ditemukan!'
+            ], 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            $laporanList = DaftarLaporan::whereIn('daftar_laporan_id', $ids)->get();
+
+            foreach ($laporanList as $laporan) {
+                if ($laporan->user_id && User::find($laporan->user_id)) {
+                    User::destroy($laporan->user_id);
+                }
+
+                $laporan->delete();
+            }
+
+            DB::commit();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Semua data laporan berhasil dihapus!'
+            ],200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Penghapusan data laporan gagal!',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 
 }
