@@ -16,7 +16,7 @@
       <h1 class="text-3xl font-bold text-[#1E1E1E] mb-8 text-center">
         Edit Data Pengurus
       </h1>
-      
+
       <n-form :model="formData" :rules="rules" ref="formRef">
         <n-form-item label="Nama Lengkap " path="nama">
           <n-input
@@ -26,7 +26,6 @@
         </n-form-item>
 
         <div class="grid grid-cols-2 gap-2">
-         
           <n-form-item label="Jenis Kelamin" path="jenis_kelamin">
             <div class="grid grid-cols-2">
               <n-radio-group
@@ -43,14 +42,14 @@
               </n-radio-group>
             </div>
           </n-form-item>
-            <n-form-item label="Agama" path="agama">
+          <n-form-item label="Agama" path="agama">
             <n-select
               v-model:value="formData.agama"
               :options="agamaOptions"
               placeholder="Pilih Jabatan..."
             />
           </n-form-item>
-           <n-form-item label="NIP " path="nip">
+          <n-form-item label="NIP " path="nip">
             <n-input
               :allow-input="onlyAllowNumber"
               v-model:value="formData.nip"
@@ -70,10 +69,10 @@
               placeholder="Masukkan Bidang Keahlian..."
             />
           </n-form-item>
-       
+
           <n-form-item label="Pengurus" path="pengurus">
             <n-input
-              v-model:value="formData.pengurus"              
+              v-model:value="formData.pengurus"
               placeholder="Pilih Pengurus..."
             />
           </n-form-item>
@@ -96,7 +95,10 @@
             />
           </n-form-item>
 
-          <n-form-item label="Tempat, Tanggal Lahir" path="tempat_tanggal_lahir">
+          <n-form-item
+            label="Tempat, Tanggal Lahir"
+            path="tempat_tanggal_lahir"
+          >
             <n-input
               v-model:value="formData.tempat_tanggal_lahir"
               placeholder="Masukkan Tempat, Tanggal Lahir..."
@@ -122,27 +124,29 @@
               placeholder="Pilih Status Kepegawaian..."
             />
           </n-form-item>
-          
-        <n-form-item label="Akses Kelas" path="akses_kelas">
-          <n-select
-            v-model:value="formData.akses_kelas"
+
+          <n-form-item label="Akses Kelas" path="akses_kelas">
+            <n-select
+              v-model:value="formData.akses_kelas"
               :options="kelasOptions"
-            filterable
-            multiple
-            placeholder="Pilih Akses Kelas..."
-            value-field="daftar_kelas_id"
-  label-field="nama_kelas"
-          />
-        </n-form-item>
+              filterable
+              multiple
+              placeholder="Pilih Akses Kelas..."
+              value-field="daftar_kelas_id"
+              label-field="nama_kelas"
+            />
+          </n-form-item>
+
           <n-form-item label="Tanggal Bergabung" path="tanggal_bergabung">
             <n-date-picker
-              v-model:value="formData.tanggal_bergabung"              
+              v-model:value="formData.tanggal_bergabung"
               type="date"
               class="w-full"
               placeholder="Pilih Tanggal Bergabung..."
             />
           </n-form-item>
-            <n-form-item label="Kata Sandi" path="password">
+
+          <n-form-item label="Kata Sandi" path="password">
             <n-input
               type="password"
               show-password-on="click"
@@ -154,8 +158,8 @@
 
         <n-button
           type="primary"
-           block
-          attr-type="submit"   
+          block
+          attr-type="submit"
           :loading="loading"
           :disabled="loading"
           class="transition-transform transform active:scale-95"
@@ -164,62 +168,27 @@
           Tambah
         </n-button>
       </n-form>
-
-      <div class="my-2 flex items-center">
-        <div class="flex-1 border-t border-gray-300"></div>
-        <span class="px-4 text-gray-500 text-sm">atau</span>
-        <div class="flex-1 border-t border-gray-300"></div>
-      </div>
-
-      <div class="space-y-4">
-        <h3 class="font-medium text-gray-700">Import dari Dokumen</h3>
-        <n-upload
-          action="https://example.com/upload"
-          :max="1"
-          accept=".csv,.xls,.xlsx"
-          class="upload-dragger"
-        >
-          <n-upload-dragger class="!p-6 hover:!bg-gray-50">
-            <div class="py-8 text-center">
-              <n-icon
-                :component="PhFileArrowUp"
-                :size="48"
-                class="text-gray-400 mb-2"
-              />
-              <p class="text-gray-600">
-                Drag file ke sini atau
-                <span class="text-[#1E1E1E] font-medium"
-                  >klik untuk upload</span
-                >
-              </p>
-              <p class="text-sm text-gray-500 mt-1">
-                Format yang didukung: .CSV, .XLS, .XLSX
-              </p>
-            </div>
-          </n-upload-dragger>
-        </n-upload>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { defineComponent, ref, watch, onMounted } from 'vue';
-import { PhCaretDoubleLeft, PhFileArrowUp } from '@phosphor-icons/vue';
-import Api from "@/services/Api"; 
-import dayjs from 'dayjs';
-import { useMessage } from "naive-ui"
+import { defineComponent, ref, watch, onMounted } from "vue";
+import { PhCaretDoubleLeft, PhFileArrowUp } from "@phosphor-icons/vue";
+import Api from "@/services/Api";
+import dayjs from "dayjs";
+import { useMessage } from "naive-ui";
 
-const loading = ref(false)
-const formRef = ref(null)
+const loading = ref(false);
+const formRef = ref(null);
 const kelasOptions = ref([]);
 const message = useMessage();
 const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
-const emit = defineEmits(['back-to-table', 'refresh']);
+const emit = defineEmits(["back-to-table", "refresh"]);
 
 const props = defineProps({
-  editData: Object 
-})
+  editData: Object,
+});
 
 const rules = {
   nama: [
@@ -229,14 +198,14 @@ const rules = {
       trigger: ["blur", "input"],
     },
   ],
-   jenis_kelamin: [
+  jenis_kelamin: [
     {
       required: true,
       message: "Jenis kelamin wajib dipilih",
       trigger: ["blur", "change"],
     },
   ],
-   nip: [
+  nip: [
     {
       required: true,
       message: "NIP wajib diisi",
@@ -244,35 +213,35 @@ const rules = {
     },
   ],
   agama: [
-      {
+    {
       required: true,
       message: "Agama wajib dipilih",
       trigger: ["blur", "change"],
     },
   ],
   jabatan: [
-      {
+    {
       required: true,
       message: "Jabatan wajib dipilih",
       trigger: ["blur", "input"],
     },
   ],
   tempat_tanggal_lahir: [
-      {
+    {
       required: true,
       message: "Tempat, Tanggal Lahir wajib diisi",
       trigger: ["blur", "input"],
     },
   ],
   alamat: [
-   {
+    {
       required: true,
       message: "Alamat Rumah wajib diisi",
       trigger: ["blur", "input"],
     },
-  ], 
+  ],
   pengurus: [
-  {
+    {
       required: true,
       message: "Pengurus wajib diisi",
       trigger: ["blur", "input"],
@@ -292,7 +261,7 @@ const rules = {
       trigger: ["blur", "input"],
     },
   ],
- email: [
+  email: [
     {
       required: true,
       message: "Email wajib diisi",
@@ -305,12 +274,12 @@ const rules = {
     },
   ],
   status_kepegawaian: [
-      {
+    {
       required: true,
       message: "Status Kepegawaian wajib diisi",
       trigger: ["blur", "input"],
     },
-  ],   
+  ],
   tanggal_bergabung: [
     {
       required: true,
@@ -323,14 +292,16 @@ const rules = {
       trigger: ["blur", "change"],
     },
   ],
-    password: [
+  password: [
     {
       validator: (_, value) => {
-        // Password required only for Administrator role and when creating new admin
-        if (formData.value.jabatan === 'Administrator' && !props.editData && (!value || value.trim() === '')) {
+        if (
+          formData.value.jabatan === "Administrator" &&
+          !props.editData &&
+          (!value || value.trim() === "")
+        ) {
           return new Error("Password wajib diisi untuk Administrator baru");
         }
-        // If password is provided, check minimum length
         if (value && value.length < 8) {
           return new Error("Password minimal 8 karakter");
         }
@@ -339,65 +310,64 @@ const rules = {
       trigger: ["blur", "input"],
     },
   ],
-}
+};
 
 const agamaOptions = [
-  { value: 'Islam', label: 'Islam' },
-  { value: 'Kristen', label: 'Kristen Protestan' },
-  { value: 'Katolik', label: 'Katolik' },
-  { value: 'Hindu', label: 'Hindu' },
-  { value: 'Buddha', label: 'Buddha' },
-  { value: 'Konghucu', label: 'Konghucu' },
+  { value: "Islam", label: "Islam" },
+  { value: "Kristen", label: "Kristen Protestan" },
+  { value: "Katolik", label: "Katolik" },
+  { value: "Hindu", label: "Hindu" },
+  { value: "Buddha", label: "Buddha" },
+  { value: "Konghucu", label: "Konghucu" },
 ];
 
 const jenisKelaminOptions = [
-  { value: 'Laki-laki', label: 'Laki-laki' },
-  { value: 'Perempuan', label: 'Perempuan' },
+  { value: "Laki-laki", label: "Laki-laki" },
+  { value: "Perempuan", label: "Perempuan" },
 ];
 
 const jabatanOptions = [
-  { value: 'Administrator', label: 'Administrator' },
-  { value: 'Kepala Sekolah', label: 'Kepala Sekolah' },
-  { value: 'Wakil Kepala Sekolah', label: 'Wakil Kepala Sekolah' },
-  { value: 'Guru', label: 'Guru' },
-  { value: 'Kepala Laboratorium', label: 'Kepala Laboratorium' },
-  { value: 'Pustakawan', label: 'Pustakawan' },
-  { value: 'Operator Sekolah', label: 'Operator Sekolah' },
-  { value: 'Staf TU', label: 'Staf TU' },
-  { value: 'Satpam', label: 'Satpam' },
-  { value: 'Petugas Kebersihan', label: 'Petugas Kebersihan' },
+  { value: "Administrator", label: "Administrator" },
+  { value: "Kepala Sekolah", label: "Kepala Sekolah" },
+  { value: "Wakil Kepala Sekolah", label: "Wakil Kepala Sekolah" },
+  { value: "Guru", label: "Guru" },
+  { value: "Kepala Laboratorium", label: "Kepala Laboratorium" },
+  { value: "Pustakawan", label: "Pustakawan" },
+  { value: "Operator Sekolah", label: "Operator Sekolah" },
+  { value: "Staf TU", label: "Staf TU" },
+  { value: "Satpam", label: "Satpam" },
+  { value: "Petugas Kebersihan", label: "Petugas Kebersihan" },
 ];
 
 const statusKepegawaianOptions = [
-  { value: 'PNS', label: 'Pegawai Negeri Sipil'},
-  { value: 'Honorer', label: 'Honorer'},
-  { value: 'GTY', label: 'Guru Tetap Yayasan'},
-  { value: 'PTY', label: 'Pegawai Tetap Yayasan'},
-  { value: 'Kontrak', label: 'Kontrak'},
-  { value: 'Magang', label: 'Magang'},  
-  { value: 'PPPK', label: 'Pegawai Pemerintah Perjanjian Kerja'},
-  { value: 'Outsourcing', label: 'Outsourcing'},
-]
+  { value: "PNS", label: "Pegawai Negeri Sipil" },
+  { value: "Honorer", label: "Honorer" },
+  { value: "GTY", label: "Guru Tetap Yayasan" },
+  { value: "PTY", label: "Pegawai Tetap Yayasan" },
+  { value: "Kontrak", label: "Kontrak" },
+  { value: "Magang", label: "Magang" },
+  { value: "PPPK", label: "Pegawai Pemerintah Perjanjian Kerja" },
+  { value: "Outsourcing", label: "Outsourcing" },
+];
 
 const formData = ref({
-  nama: '',
+  nama: "",
   jenis_kelamin: null,
   agama: null,
-  nip: '',
-  email: '',
-  nomor_handphone: '', 
-  tempat_tanggal_lahir: '', 
-  alamat: '',
+  nip: "",
+  email: "",
+  nomor_handphone: "",
+  tempat_tanggal_lahir: "",
+  alamat: "",
   jabatan: null,
-  bidang_keahlian: '',
+  bidang_keahlian: "",
   pengurus: null,
   daftar_kelas_id: null,
-  akses_kelas: [], 
+  akses_kelas: [],
   status_kepegawaian: null,
   tanggal_bergabung: null,
   password: "",
 });
-
 
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -411,17 +381,22 @@ const handleSubmit = async (e) => {
   } catch (error) {
     console.error("Error Validasi:", error);
   }
-}
+};
 
 const handleSave = async () => {
   loading.value = true;
   try {
     const payload = {
-      ...formData.value, 
-       tanggal_bergabung: dayjs(formData.value.tanggal_bergabung).format('YYYY-MM-DD'),
+      ...formData.value,
+      tanggal_bergabung: dayjs(formData.value.tanggal_bergabung).format(
+        "YYYY-MM-DD"
+      ),
     };
-      
-    await Api.patch(`/daftar-pengurus/${props.editData.daftar_pengurus_id}`, payload);
+
+    await Api.patch(
+      `/daftar-pengurus/${props.editData.daftar_pengurus_id}`,
+      payload
+    );
     message.success("Data pengurus berhasil diperbarui!");
     emit("refresh");
     emit("back-to-table");
@@ -434,16 +409,16 @@ const handleSave = async () => {
 };
 
 const fetchDataKelas = async () => {
-  loading.value = true; 
+  loading.value = true;
   try {
-    const response = await Api.get("/daftar-kelas")
+    const response = await Api.get("/daftar-kelas");
     kelasOptions.value = response.data.data;
   } catch (error) {
     console.error(error);
   } finally {
     loading.value = false;
   }
-}
+};
 watch(
   () => formData.value.daftar_kelas_id,
   (newId) => {
@@ -452,33 +427,38 @@ watch(
   }
 );
 
-watch(() => props.editData, (newVal) => {
-  if (newVal) {    
-    formData.value = {
-      nama: newVal.nama || "",
-      jenis_kelamin: newVal.jenis_kelamin || "",
-      agama: newVal.agama || null,
-      nip: newVal.nip || "",
-      email: newVal.email || "",
-      nomor_handphone: newVal.nomor_handphone || "", 
-      tempat_tanggal_lahir: newVal.tempat_tanggal_lahir || "", 
-      alamat: newVal.alamat || "",
-      jabatan: newVal.jabatan || null,
-      bidang_keahlian: newVal.bidang_keahlian || "",
-      pengurus: newVal.pengurus || "",
-      daftar_kelas_id: newVal.daftar_kelas_id || null,
-      akses_kelas: newVal.akses_kelas || [], 
-      status_kepegawaian: newVal.status_kepegawaian || null,
-      tanggal_bergabung: newVal.tanggal_bergabung ? new Date(newVal.tanggal_bergabung).getTime() : null,
-      password: "" // Always reset password field for security
-    };
-  }
-}, { immediate: true });
+watch(
+  () => props.editData,
+  (newVal) => {
+    if (newVal) {
+      formData.value = {
+        nama: newVal.nama || "",
+        jenis_kelamin: newVal.jenis_kelamin || "",
+        agama: newVal.agama || null,
+        nip: newVal.nip || "",
+        email: newVal.email || "",
+        nomor_handphone: newVal.nomor_handphone || "",
+        tempat_tanggal_lahir: newVal.tempat_tanggal_lahir || "",
+        alamat: newVal.alamat || "",
+        jabatan: newVal.jabatan || null,
+        bidang_keahlian: newVal.bidang_keahlian || "",
+        pengurus: newVal.pengurus || "",
+        daftar_kelas_id: newVal.daftar_kelas_id || null,
+        akses_kelas: newVal.akses_kelas || [],
+        status_kepegawaian: newVal.status_kepegawaian || null,
+        tanggal_bergabung: newVal.tanggal_bergabung
+          ? new Date(newVal.tanggal_bergabung).getTime()
+          : null,
+        password: "", 
+      };
+    }
+  },
+  { immediate: true }
+);
 
 onMounted(() => {
   fetchDataKelas();
 });
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
