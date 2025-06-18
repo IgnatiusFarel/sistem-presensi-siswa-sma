@@ -76,47 +76,14 @@
         </n-button>
       </n-form>
 
-      <div class="my-2 flex items-center">
-        <div class="flex-1 border-t border-gray-300"></div>
-        <span class="px-4 text-gray-500 text-sm">atau</span>
-        <div class="flex-1 border-t border-gray-300"></div>
-      </div>
-
-      <div class="space-y-4">
-        <h3 class="font-medium text-gray-700">Import dari Dokumen</h3>
-        <n-upload
-          action="https://example.com/upload"
-          :max="1"
-          accept=".csv,.xls,.xlsx"
-          class="upload-dragger"
-        >
-          <n-upload-dragger class="!p-6 hover:!bg-gray-50">
-            <div class="py-8 text-center">
-              <n-icon
-                :component="PhFileArrowUp"
-                :size="48"
-                class="text-gray-400 mb-2"
-              />
-              <p class="text-gray-600">
-                Drag file ke sini atau
-                <span class="text-[#1E1E1E] font-medium"
-                  >klik untuk upload</span
-                >
-              </p>
-              <p class="text-sm text-gray-500 mt-1">
-                Format yang didukung: .CSV, .XLS, .XLSX
-              </p>
-            </div>
-          </n-upload-dragger>
-        </n-upload>
-      </div>
+     
     </div>
   </div>
 </template>
 
 <script setup>
 import { defineComponent, ref, onMounted, watch } from "vue";
-import { PhCaretDoubleLeft, PhFileArrowUp } from "@phosphor-icons/vue";
+import { PhCaretDoubleLeft } from "@phosphor-icons/vue";
 import Api from "@/services/Api";
 import dayjs from 'dayjs';
 import { useMessage } from "naive-ui"
