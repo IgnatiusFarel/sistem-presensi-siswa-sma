@@ -85,10 +85,12 @@
       <div class="space-y-4">
         <h3 class="font-medium text-gray-700">Import dari Dokumen</h3>
         <n-upload
-          action="https://example.com/upload"
+           :custom-request="handleUpload"        
           :max="1"
           accept=".csv,.xls,.xlsx"
-          class="upload-dragger"
+          class="w-full"
+           :default-file-list="fileList"
+          list-type="text"
         >
           <n-upload-dragger class="!p-6 hover:!bg-gray-50">
             <div class="py-8 text-center">
@@ -229,6 +231,28 @@ const handleSave = async () => {
     loading.value = false;
   }
 };
+
+const handleUpload = async ({ file }) => {
+  const formData = new FormData()
+  formData.append('file', file.file ?? file) // pastikan ini benar
+
+  try {
+    await Api.post('/daftar-kelas/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data' // tambahkan ini
+      }
+    })
+    message.success('Import berhasil!')
+    emit('refresh') // refresh data
+  } catch (err) {
+    console.error(err)
+    if (err.response?.data?.errors?.file) {
+      message.error(err.response.data.errors.file[0])
+    } else {
+      message.error('Gagal import!')
+    }
+  }
+}
 
 const fetchDataWaliKelas = async () => {
   loading.value = true;
