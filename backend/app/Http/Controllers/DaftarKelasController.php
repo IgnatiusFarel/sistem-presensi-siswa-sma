@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\DaftarKelasImport;
 use App\Models\DaftarPengurus;
 use App\Models\DaftarKelas;
 
@@ -250,6 +252,53 @@ class DaftarKelasController extends Controller
                 'status' => 'error',
                 'message' => 'Data kelas gagal dihapus!',
                 'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+     public function import(Request $request)
+     {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv'
+        ]);
+
+        try {
+            $path = $request->file('file')->getRealPath();
+            \Log::info('Import dimulai dari file: ' . $path);
+
+            $import = new DaftarKelasImport;
+            Excel::import($import, $request->file('file'));
+
+            $successCount = $import->getSuccessCount();
+            $errorCount = $import->getErrorCount();
+            $errors = $import->getErrors();
+
+            if ($errorCount > 0) {
+                \Log::warning("Import selesai dengan error. Berhasil: {$successCount}, Gagal: {$errorCount}");
+
+                return response()->json([
+                    'status' => 'warning',
+                    'message' => "Import selesai. Berhasil: {$successCount}, Gagal: {$errorCount}",
+                    'success_count' => $successCount,
+                    'error_count' => $errorCount,
+                    'errors' => $errors
+                ], 200);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => "Import daftar pengurus berhasil! Total: {$successCount} data",
+                'success_count' => $successCount
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Gagal import Excel: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Import daftar pengurus gagal!',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
