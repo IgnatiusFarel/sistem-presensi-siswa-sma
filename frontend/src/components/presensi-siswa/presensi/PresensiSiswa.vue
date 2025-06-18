@@ -12,6 +12,16 @@
           </p>
         </div>
 
+        <div
+          v-if="sudahPresensi"
+          class="absolute inset-0 bg-green-50 border border-green-300 flex flex-col items-center justify-center rounded-xl z-10"
+        >
+          <n-icon :component="PhSealCheck" size="48" color="#16a34a" />
+          <p class="mt-4 text-green-600 font-semibold text-center">
+            Anda sudah melakukan presensi hari ini!
+          </p>
+        </div>
+
         <div class="mb-6">
           <h1 class="text-2xl font-bold text-gray-800 mb-1">
             {{ showAbsenceForm ? "Form Izin/Sakit" : "Form Presensi" }}
@@ -109,8 +119,10 @@
                 directory-dnd
                 :max="1"
                 accept="image/*,.pdf, word, doc"
+                :default-file-list="fileList"
+                list-type="text"
+                 @change="handleUploadChange"
               >
-                <!-- action="https://www.mocky.io/v2/5e4bafc63100007100d8b70f" -->
                 <n-upload-dragger>
                   <div style="margin-bottom: 12px">
                     <n-icon
@@ -136,7 +148,7 @@
               </n-upload>
             </n-form-item>
 
-            <n-form-item label="Keterangan:" class="!mb-4">
+            <n-form-item label="Keterangan:" path="keterangan" class="!mb-4">
               <n-input
                 v-model:value="formData.keterangan"
                 type="textarea"
@@ -217,21 +229,10 @@
 
 <script setup>
 import { ref, onMounted, computed, defineProps } from "vue";
-// import {
-//   NForm,
-//   NFormItem,
-//   NRadio,
-//   NRadioGroup,
-//   NUpload,
-//   NButton,
-//   NInput,
-//   NSpace,
-//   NIcon,
-// } from "naive-ui";
-import { PhFileArrowUp, PhMapPinArea, PhProhibit } from "@phosphor-icons/vue";
+import { PhFileArrowUp, PhMapPinArea, PhProhibit, PhSealCheck } from "@phosphor-icons/vue";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 import { useMessage } from "naive-ui";
 import Api from "@/services/Api";
 
@@ -239,6 +240,7 @@ const map = ref(null);
 const loading = ref(false);
 const message = useMessage();
 const showAbsenceForm = ref(false);
+const sudahPresensi = ref(false);
 const fileList = ref([]);
 const userLatLng = ref(null);
 const userLocation = ref("");
@@ -269,7 +271,6 @@ onMounted(() => {
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap contributors",
   }).addTo(map.value);
-    
 
   const schoolIcon = L.icon({
     iconUrl: "https://cdn-icons-png.flaticon.com/512/4476/4476154.png",
@@ -290,6 +291,7 @@ onMounted(() => {
   }).addTo(map.value);
 
   initLocation();
+  fetchStatusPresensi();
 });
 
 const initLocation = () => {
@@ -386,6 +388,18 @@ const isAbsenceFormValid = computed(() => {
   return formData.value.jenis_kegiatan && fileList.value.length > 0;
 });
 
+const fetchStatusPresensi = async () => {
+  loading.value = true;
+  try {
+    const response = await Api.get("/presensi-siswa/status");
+    sudahPresensi.value = response.data.data;
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loading.value = false;
+  }
+};
+
 const handlePresensi = async () => {
   if (!locationInitialized.value) {
     message.error("Silahkan aktifkan lokasi terlebih dahulu!");
@@ -401,14 +415,15 @@ const handlePresensi = async () => {
 
     const payload = {
       presensi_id: props.presensiAktif.presensi_id,
-      waktu_presensi:  dayjs().format("HH:mm"),
+      waktu_presensi: dayjs().format("HH:mm"),
       latitude: userLatLng.value[0],
       longitude: userLatLng.value[1],
-      lokasi: userLocation.value,     
+      lokasi: userLocation.value,
     };
 
     await Api.post("/presensi-siswa", payload);
     message.success("Berhasil mengirimkan presensi!");
+    sudahPresensi.value = true;
   } catch (error) {
     console.log(error);
     message.error("Gagal mengirimkan presensi!");
@@ -417,20 +432,35 @@ const handlePresensi = async () => {
   }
 };
 
+const handleUploadChange = ({ fileList: newFileList }) => {
+  fileList.value = newFileList;
+  formData.value.upload_bukti = newFileList;
+};
+
+
 const handleIzinSakit = async () => {
   try {
     await formRef.value?.validate();
     loading.value = true;
 
-    const payload = {
-      ...formData.value,
-    };
-    await Api.post("/presensi-siswa", payload);
+     const form = new FormData();
+    form.append("presensi_id", props.presensiAktif.presensi_id);
+    form.append("jenis_kegiatan", formData.value.jenis_kegiatan);
+    form.append("keterangan", formData.value.keterangan);
+    form.append("upload_bukti", fileList.value[0].file); 
+
+    await Api.post("/presensi-siswa", form, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
     message.success("Form izin/sakit berhasil dikirim!");
     showAbsenceForm.value = false;
+    sudahPresensi.value = true;
   } catch (error) {
     console.error(error);
-    message.success("Form izin/sakit gagal dikirim!");
+    message.error("Form izin/sakit gagal dikirim!");
   } finally {
     loading.value = false;
   }
