@@ -22,7 +22,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:superadmin')->group(function () {
 
         // 📁 Daftar Laporan
-        Route::get('/daftar-laporan', [DaftarLaporanController::class, 'index']);
+        Route::prefix('daftar-laporan')->controller(DaftarLaporanController::class)->group(function () {
+            Route::get('/', 'index');        
+            Route::delete('{id}', 'destroy');
+            Route::delete('/', 'destroyMultiple');
+        });        
 
         // 📁 Daftar Siswa
         Route::prefix('daftar-siswa')->controller(DaftarSiswaController::class)->group(function () {
