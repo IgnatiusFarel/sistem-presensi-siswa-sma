@@ -44,6 +44,7 @@
     :columns="columns"
     :loading="loading"
     :pagination="pagination"
+      @refresh="fetchData"
     v-model:checked-row-keys="selectedRows"
     :row-key="(row) => row.daftar_laporan_id"
   />
@@ -71,7 +72,7 @@ export default defineComponent({
       default: () => [],
     },
   },
-  setup(props, {}) {
+  setup(props, {emit}) {
     const loading = ref(false);
     const tableRef = ref(null);
     const searchKeyword = ref("");
@@ -79,7 +80,7 @@ export default defineComponent({
     const route = useRoute();
     const router = useRouter();
 
-     const baseUrl = import.meta.env.VITE_API_BASE_URL;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
     const columns = reactive([
       { type: "selection", width: 50 },
@@ -135,6 +136,13 @@ export default defineComponent({
       },
     });
 
+    
+    const handleDeleteSelected = () => {
+      if (selectedRows.value.length > 0) {
+        emit("delete-data", selectedRows.value);
+      }
+    };
+
     onMounted(() => {
       setTimeout(() => {
         loading.value = false;
@@ -151,6 +159,7 @@ export default defineComponent({
       pagination,
       selectedRows,
       searchKeyword,
+      handleDeleteSelected,
     };
   },
 });
