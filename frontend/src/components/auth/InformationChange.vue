@@ -58,7 +58,7 @@
                 <transition name="fade">
                   <div v-if="expanded === idx" class="px-4 pb-4 bg-white">
                     <n-form
-                      :model="formData"
+                      :model="formData[student.daftar_siswa_id]"
                       :rules="rules"
                       :ref="
                         (el) => el && (formRef[student.daftar_siswa_id] = el)
@@ -69,7 +69,7 @@
                         path="jenis_perubahan"
                       >
                         <n-radio-group
-                          v-model:value="formData.jenis_perubahan"
+                          v-model:value="formData[student.daftar_siswa_id].jenis_perubahan"
                           name="jenis_perubahan"
                         >
                           <n-radio-button
@@ -87,8 +87,8 @@
                       >
                         <n-upload
                           directory-dnd
-                          :on-change="handleUploadChange"
-                          :on-remove="() => (uploadFiles.value = [])"
+                           :on-change="(info) => handleUploadChange(info, student.daftar_siswa_id)"
+  :on-remove="() => (formData[student.daftar_siswa_id].upload_bukti = null)"
                           :max="1"
                           :on-before-upload="handleBeforeUpload"
                           list-type="image"
@@ -124,7 +124,7 @@
                       >
                         <n-input
                           type="textarea"
-                          v-model:value="formData.keterangan"
+                         v-model:value="formData[student.daftar_siswa_id].keterangan"
                           placeholder="Masukkan alasan perubahan data akun Anda..."
                           show-count
                           maxlength="300"
@@ -197,11 +197,7 @@ const jenisPerubahanOptions = [
   { value: "Password", label: "Password" },
 ];
 
-const formData = ref({
-  jenis_perubahan: null,
-  upload_bukti: null,
-  keterangan: "",
-});
+const formData = reactive({})
 
 const rules = {
   jenis_perubahan: [
@@ -254,17 +250,30 @@ const filteredStudents = computed(() => {
 });
 
 function toggle(index) {
+  const student = filteredStudents.value[index];
+  const id = student.daftar_siswa_id;
+
+  // Expand/collapse logic
   expanded.value = expanded.value === index ? null : index;
+
+  // Inisialisasi formData jika belum ada
+  if (!formData[id]) {
+    formData[id] = {
+      jenis_perubahan: null,
+      upload_bukti: null,
+      keterangan: "",
+    };
+  }
 }
 
-const handleUploadChange = ({ fileList }) => {
-  // hanya simpan 1 file (karena max=1)
+const handleUploadChange = ({ fileList }, siswaId) => {
   if (fileList.length > 0) {
-    formData.value.upload_bukti = fileList[0].file; // ambil File object-nya
+    formData[siswaId].upload_bukti = fileList[0].file;
   } else {
-    formData.value.upload_bukti = null;
+    formData[siswaId].upload_bukti = null;
   }
 };
+
 
 function handleBeforeUpload({ file }) {
   const isAllowedType = ["image/jpeg", "image/jpg", "image/png"].includes(
@@ -301,19 +310,34 @@ const handleSubmit = async (siswaId) => {
   }
 };
 
+const resetForm = (siswaId) => {
+  formData[siswaId] = {
+    jenis_perubahan: null,
+    upload_bukti: null,
+    keterangan: "",
+  };
+  if (formRef[siswaId]) {
+    formRef[siswaId].restoreValidation();
+  }
+};
+
 const handleSave = async (siswaId) => {
   loading.value = true;
   try {
+
+  const data = formData[siswaId];
+
     const formPayload = new FormData();
-    formPayload.append("daftar_siswa_id", siswaId);
-    formPayload.append("jenis_perubahan", formData.value.jenis_perubahan);
-    formPayload.append("upload_bukti", formData.value.upload_bukti); // ini File
-    formPayload.append("keterangan", formData.value.keterangan);
+     formPayload.append("daftar_siswa_id", siswaId);
+    formPayload.append("jenis_perubahan", data.jenis_perubahan);
+    formPayload.append("upload_bukti", data.upload_bukti);
+    formPayload.append("keterangan", data.keterangan);
 
     await Api.post("/daftar-laporan", formPayload, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     message.success("Laporan Perubahan Akun Anda Berhasil Dikirim!");
+     resetForm(siswaId);
   } catch (error) {
     console.error(error);
     message.error("Laporan Perubahan Akun Anda Gagal Dikirim!");
