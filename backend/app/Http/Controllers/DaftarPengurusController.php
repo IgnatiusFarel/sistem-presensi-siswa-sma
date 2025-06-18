@@ -323,7 +323,7 @@ class DaftarPengurusController extends Controller
     }
 
     public function import(Request $request)
-     {
+    {
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv'
         ]);
@@ -368,5 +368,5 @@ class DaftarPengurusController extends Controller
             ], 500);
         }
     }
-    
+
 }
