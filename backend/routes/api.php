@@ -106,6 +106,12 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/hari-ini', [PresensiController::class, 'getPresensiAktif']);
         });
 
+        // 📁 Komentar Berita
+        Route::prefix('komentar')->controller(KomentarBeritaController::class)->group(function() {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+        });
+
     });
     
 });
