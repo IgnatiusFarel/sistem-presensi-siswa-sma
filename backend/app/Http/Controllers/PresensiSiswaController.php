@@ -18,24 +18,22 @@ class PresensiSiswaController extends Controller
         try {
             $userId = auth()->id();
 
-           $riwayat = PresensiSiswa::with('presensi')
-    ->where('user_id', $userId)
-    ->get()
-    ->sortByDesc(function ($item) {
-        return Carbon::parse($item->presensi->tanggal)->format('Y-m-d') . ' ' . $item->waktu_presensi;
-    })
-    ->values()
-    ->map(function ($item) {
-        return [
-            'presensi_siswa_id' => $item->presensi_siswa_id,
-            'tanggal' => Carbon::parse($item->presensi->tanggal)->format('Y-m-d'),
-            'jam_masuk' => $item->waktu_presensi
-                ? Carbon::parse($item->waktu_presensi)->format('H:i')
-                : null,
-            'status' => ucfirst($item->status),
-        ];
-    });
-
+            $riwayat = PresensiSiswa::with('presensi')
+                ->where('user_id', $userId)
+                ->get()
+                ->sortByDesc(function ($item) {
+                    return Carbon::parse($item->presensi->tanggal)->format('Y-m-d') . ' ' . $item->waktu_presensi;
+                })->values()
+                ->map(function ($item) {
+                    return [
+                        'presensi_siswa_id' => $item->presensi_siswa_id,
+                        'tanggal' => Carbon::parse($item->presensi->tanggal)->format('Y-m-d'),
+                        'jam_masuk' => $item->waktu_presensi
+                            ? Carbon::parse($item->waktu_presensi)->format('H:i')
+                            : null,
+                        'status' => ucfirst($item->status),
+                    ];
+                });
 
             return response()->json([
                 'status' => 'success',
@@ -93,13 +91,13 @@ class PresensiSiswaController extends Controller
             $userId = auth()->id();
             $today = now()->toDateString();
             $sudahPresensi = PresensiSiswa::whereDate('created_at', $today)
-        ->where('user_id', $userId)
-        ->exists();
+                ->where('user_id', $userId)
+                ->exists();
 
-         return response()->json([
+            return response()->json([
                 'status' => 'success',
                 'message' => 'Status presensi siswa berhasil diambil!',
-                'data' => $sudahPresensi                
+                'data' => $sudahPresensi
             ], 200);
         } catch (\Exception $e) {
             \Log::error('Error getting status presensi siswa: ' . $e->getMessage());
@@ -197,7 +195,7 @@ class PresensiSiswaController extends Controller
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error presensi siswa: ' . $e->getMessage());
+            \Log::error('Error creating presensi siswa: ' . $e->getMessage());
 
             return response()->json([
                 'status' => 'error',
@@ -206,6 +204,5 @@ class PresensiSiswaController extends Controller
             ], 500);
         }
     }
-
 }
 
