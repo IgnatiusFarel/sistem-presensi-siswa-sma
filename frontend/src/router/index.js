@@ -17,6 +17,7 @@ const routes = [
   { path: '/daftar-pengurus', component: DaftarPengurusPage, meta: {requiresAuth: true, roles: ['superadmin']} },
   { path: '/daftar-kelas', component: DaftarKelasPage, meta: {requiresAuth: true, roles: ['superadmin']} },
   { path: '/daftar-laporan', component: DaftarLaporanPage, meta: {requiresAuth: true, roles: ['superadmin']} },
+  // { path: '/daftar-berita', component: DaftarBeritaPage, meta: {requiresAuth: true, roles: ['superadmin']} },
   { path: '/presensi-siswa', component: PresensiSiswaPage, meta: {requiresAuth: true, roles: ['siswa']} },
 ];
 
