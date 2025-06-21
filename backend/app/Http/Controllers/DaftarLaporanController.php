@@ -116,7 +116,7 @@ class DaftarLaporanController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data laporan berhasil dihapus!'
-            ], 200);
+            ], 204);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -126,7 +126,6 @@ class DaftarLaporanController extends Controller
             ], 500);
         }
     }
-
 
     public function destroyMultiple(Request $request)
     {
@@ -155,7 +154,7 @@ class DaftarLaporanController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Semua data laporan berhasil dihapus!'
-            ],200);
+            ], 204);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -165,6 +164,4 @@ class DaftarLaporanController extends Controller
             ], 500);
         }
     }
-
-
 }
