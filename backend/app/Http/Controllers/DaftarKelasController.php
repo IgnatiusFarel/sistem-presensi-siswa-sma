@@ -210,7 +210,7 @@ class DaftarKelasController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data kelas berhasil dihapus!'
-            ], 200);
+            ], 204);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -244,7 +244,7 @@ class DaftarKelasController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data kelas berhasil dihapus!'
-            ], 200);
+            ], 204);
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error deleting kelas: ' . $e->getMessage());
@@ -282,7 +282,7 @@ class DaftarKelasController extends Controller
                     'success_count' => $successCount,
                     'error_count' => $errorCount,
                     'errors' => $errors
-                ], 200);
+                ], 201);
             }
 
             return response()->json([
