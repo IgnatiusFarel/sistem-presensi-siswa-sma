@@ -135,7 +135,7 @@ class DaftarPengurusController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $pengurus
-        ]);
+        ], 200);
     }
 
     public function update(Request $request, $id)
@@ -239,7 +239,7 @@ class DaftarPengurusController extends Controller
                 'status' => 'success',
                 'message' => 'Data pengurus berhasil diperbarui!',
                 'data' => $pengurus->fresh()
-            ]);
+            ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -275,7 +275,7 @@ class DaftarPengurusController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data pengurus berhasil dihapus!'
-            ], 200);
+            ], 204);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -311,7 +311,7 @@ class DaftarPengurusController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data pengurus berhasil dihapus!'
-            ]);
+            ], 204);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -348,14 +348,14 @@ class DaftarPengurusController extends Controller
                     'success_count' => $successCount,
                     'error_count' => $errorCount,
                     'errors' => $errors
-                ], 200);
+                ], 201);
             }
 
             return response()->json([
                 'status' => 'success',
                 'message' => "Import daftar pengurus berhasil! Total: {$successCount} data",
                 'success_count' => $successCount
-            ]);
+            ], 200);
 
         } catch (\Exception $e) {
             \Log::error('Gagal import Excel: ' . $e->getMessage());
