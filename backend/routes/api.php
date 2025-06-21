@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DaftarBeritaController;
 use App\Http\Controllers\DaftarKelasController;
 use App\Http\Controllers\DaftarLaporanController;
 use App\Http\Controllers\DaftarPengurusController;
@@ -74,6 +75,15 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/', 'index');
             Route::get('{id}', 'show');
             Route::delete('{id}', 'destroy');
+            Route::delete('/', 'destroyMultiple');
+        });
+
+        // 📁 Daftar Berita
+        Route::prefix('daftar-berita')->controller(DaftarBeritaController::class)->group(function() {
+            Route::get('/', 'index');
+            Route::get('{id}', 'show');
+            Route::patch('{id}', 'update');
+            Route::delete('{$id}', 'destroy');
             Route::delete('/', 'destroyMultiple');
         });
     });
