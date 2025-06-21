@@ -11,8 +11,7 @@ class RiwayatPresensiController extends Controller
     public function index()
     {
         try {
-            $rekap = Presensi::orderBy('created_at', 'desc')
-                ->get()
+            $rekap = Presensi::orderBy('created_at', 'desc')               
                 ->map(function ($presensi) {
                     return [
                         'presensi_id' => $presensi->presensi_id,
@@ -24,13 +23,13 @@ class RiwayatPresensiController extends Controller
                         'sakit' => $presensi->presensiSiswa()->where('status', 'sakit')->count(),
                         'alpha' => $presensi->presensiSiswa()->where('status', 'alpha')->count(),
                     ];
-                });
+                })->get();
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Riwayat presensi berhasil diambil!',
                 'data' => $rekap,
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             \Log::error('Error fetching riwayat presensi: ' . $e->getMessage());
             return response()->json([
@@ -47,16 +46,16 @@ class RiwayatPresensiController extends Controller
         if (!$presensi) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Riwayat presensi tidak ditemukan!',
+                'message' => 'ID Riwayat presensi tidak ditemukan!',
             ], 404);
         }
 
         return response()->json([
             'status' => 'success',
+            'message' => 'Data Riwayat Presensi berhasil ditampilkan!',
             'data' => $presensi,
         ], 200);
     }
-
 
     public function destroy($id)
     {
@@ -77,7 +76,7 @@ class RiwayatPresensiController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Riwayat presensi berhasil dihapus!'
-            ], 200);
+            ], 204);
 
         } catch (\Exception $e) {
             \Log::error('Error deleting riwayat presensi: ' . $e->getMessage());
@@ -109,7 +108,7 @@ class RiwayatPresensiController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Beberapa riwayat presensi berhasil dihapus!'
-            ], 200);
+            ], 204);
 
         } catch (\Exception $e) {
             \Log::error('Error deleting multiple riwayat presensi: ' . $e->getMessage());
@@ -120,6 +119,5 @@ class RiwayatPresensiController extends Controller
             ], 500);
         }
     }
-
 }
 
