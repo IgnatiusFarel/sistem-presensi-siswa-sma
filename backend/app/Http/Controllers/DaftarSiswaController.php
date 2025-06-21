@@ -118,8 +118,9 @@ class DaftarSiswaController extends Controller
 
         return response()->json([
             'status' => 'success',
+            'message' => 'Data siswa berhasil ditampilkan!',
             'data' => $siswa
-        ]);
+        ], 200);
     }
 
     public function update(Request $request, $id)
@@ -193,10 +194,10 @@ class DaftarSiswaController extends Controller
                 'status' => 'success',
                 'message' => 'Data siswa berhasil diperbarui!',
                 'data' => $siswa
-            ]);
+            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Gagal update siswa: ' . $e->getMessage());
+            \Log::error('Error updating data siswa: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data siswa gagal diperbarui!',
@@ -228,7 +229,7 @@ class DaftarSiswaController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data siswa berhasil dihapus!'
-            ]);
+            ], 204);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -265,7 +266,7 @@ class DaftarSiswaController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data siswa berhasil dihapus!'
-            ]);
+            ], 204);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -302,14 +303,14 @@ class DaftarSiswaController extends Controller
                     'success_count' => $successCount,
                     'error_count' => $errorCount,
                     'errors' => $errors
-                ], 200);
+                ], 201);
             }
 
             return response()->json([
                 'status' => 'success',
                 'message' => "Import daftar siswa berhasil! Total: {$successCount} data",
                 'success_count' => $successCount
-            ]);
+            ], 200);
 
         } catch (\Exception $e) {
             \Log::error('Gagal import Excel: ' . $e->getMessage());
