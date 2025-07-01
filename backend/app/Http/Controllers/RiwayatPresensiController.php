@@ -11,7 +11,8 @@ class RiwayatPresensiController extends Controller
     public function index()
     {
         try {
-            $rekap = Presensi::orderBy('created_at', 'desc')               
+            $rekap = Presensi::orderBy('created_at', 'desc')
+                ->get()              
                 ->map(function ($presensi) {
                     return [
                         'presensi_id' => $presensi->presensi_id,
@@ -23,7 +24,7 @@ class RiwayatPresensiController extends Controller
                         'sakit' => $presensi->presensiSiswa()->where('status', 'sakit')->count(),
                         'alpha' => $presensi->presensiSiswa()->where('status', 'alpha')->count(),
                     ];
-                })->get();
+                });
 
             return response()->json([
                 'status' => 'success',
