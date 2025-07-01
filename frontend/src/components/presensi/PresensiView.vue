@@ -12,7 +12,7 @@
           <span class="text-[#232323] font-semibold">-</span>
         </template>
         <template v-else>
-          <div class="text-base text-red-600">Belum Ada Kegiatan Presensi.</div>
+          <div class="text-base text-red-600">Belum Ada Kegiatan Presensi |</div>
         </template>        
         <p class="text-base text-[#232323] font-semibold">{{ currentDate }}</p>
       </div>
