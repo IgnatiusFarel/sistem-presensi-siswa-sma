@@ -1,5 +1,5 @@
 <script setup>
-import { ref, h } from 'vue';
+import { ref, h,  onMounted } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import {
   PhUser,
@@ -20,6 +20,21 @@ const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
 const { user } = storeToRefs(auth); 
+
+const collapseBreakpoint = 768; 
+
+function handleResize() { 
+  if (window.innerWidth < collapseBreakpoint) {
+    isCollapsed.value = true; 
+  } else {
+    isCollapsed.value = false; 
+  }
+}
+
+onMounted(() => {
+  handleResize();
+  window.addEventListener('resize', handleResize)
+});
 
 const menuItems = [
   { name: 'Presensi', path: '/presensi', icon: PhScan },
@@ -49,8 +64,11 @@ const profileOptions = [
 ];
 
 const toggleSidebar = () => {
-  isCollapsed.value = !isCollapsed.value;
+  if (window.innerWidth >= collapseBreakpoint) {
+    isCollapsed.value = !isCollapsed.value;
+  }
 };
+
 
 const isActive = (path) => {
   return route.path.startsWith(path);
