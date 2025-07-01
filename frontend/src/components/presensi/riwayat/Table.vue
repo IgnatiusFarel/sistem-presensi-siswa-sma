@@ -4,6 +4,8 @@
       <n-button
         type="primary"
         class="transition-transform transform active:scale-95"
+        :disabled="selectedRows.length !== 1"
+        @click="handleEditSelected"
       >
         <template #icon>
           <n-icon :component="PhInfo" :size="18" />
@@ -12,6 +14,8 @@
       </n-button>
       <n-button
         class="!bg-[#F03E3E] hover:!bg-[#D12B2B] !w-[120px] !text-white transition-transform transform active:scale-95"
+        :disabled="selectedRows.length === 0"
+        @click="handleDeleteSelected"
       >
         <template #icon>
           <n-icon :component="PhTrash" :size="18" />
@@ -37,7 +41,7 @@
     :columns="columns"
     :loading="loading"
     :pagination="pagination"
-    :row-key="(row) => row.riwayat_presensi_id"
+    :row-key="(row) => row.presensi_id"
     @refresh="fetchData"
     @update:sorter="handleSorterChange"
     v-model:checked-row-keys="selectedRows"
@@ -47,6 +51,7 @@
 <script>
 import { defineComponent, reactive, ref, onMounted } from "vue";
 import { NTag, NInput, NIcon, NButton } from "naive-ui";
+import { useRoute, useRouter } from "vue-router";
 import { PhMagnifyingGlass, PhTrash, PhInfo } from "@phosphor-icons/vue";
 import Api from "@/services/Api";
 
@@ -67,16 +72,19 @@ export default defineComponent({
       default: () => [],
     },
   },
-  setup() {
+  setup(props, {emit}) {
     const loading = ref(false);
     const dataTable = ref([]);
     const tableRef = ref(null);
+    const selectedRows = ref([...props.selectedRows]);
     const currentSortState = reactive({});
+    const route = useRoute();
+    const router = useRouter();
 
     const columns = reactive([
       {
         type: "selection",
-        width: 30,
+        width: 50,
       },
       {
         title: "No",
@@ -127,20 +135,21 @@ export default defineComponent({
     ]);
 
     const pagination = reactive({
-      page: 1,
-      pageSize: 10,
+      page: Number(route.query.page) || 1,
+      pageSize: Number(route.query.pageSize) || 10,
       showSizePicker: true,
-      pageSizes: [10, 25, 50, 100],
-      pageSizes: [10, 25, 50, 100],
+      pageSizes: [10, 25, 50, 100],      
       prefix({ itemCount }) {
         return `Total Jumlah Riwayat Presensi Siswa: ${itemCount}`;
       },
       onChange: (page) => {
         pagination.page = page;
+        router.push({ query: { ...route.query, page } });
       },
       onUpdatePageSize: (pageSize) => {
         pagination.pageSize = pageSize;
         pagination.page = 1;
+        router.push({ query: { ...route.query, page: 1, pageSize } });
       },
     });
 
@@ -160,11 +169,29 @@ export default defineComponent({
       }
     };
 
+        const handleDetailSelected = () => {
+      if (selectedRows.value.length === 1) {
+        const selectedRow = props.data.find(
+          (row) => row.presensi_id === selectedRows.value[0]
+        );
+        emit("detail-data", selectedRow);
+      }
+    };
+
+     const handleDeleteSelected = () => {
+      if (selectedRows.value.length > 0) {
+        emit("delete-data", selectedRows.value);
+      }
+    };
+
+
     onMounted(() => {
       setTimeout(() => {
         loading.value = false;
       }, 100);
     });
+
+    
 
     onMounted(() => {
       fetchData();
@@ -178,8 +205,11 @@ export default defineComponent({
       loading,
       tableRef,
       dataTable,
+      selectedRows,   
       pagination,
       handleSorterChange,
+      handleDeleteSelected,
+      handleDetailSelected,
     };
   },
 });
