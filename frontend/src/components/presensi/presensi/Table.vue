@@ -83,7 +83,7 @@ import {
   onBeforeUnmount,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { NTag, NSpin, useMessage, NImage } from "naive-ui";
+import { NTag, useMessage, NImage } from "naive-ui";
 import { PhMagnifyingGlass, PhPlay } from "@phosphor-icons/vue";
 import Api from "@/services/Api";
 import dayjs from "dayjs";
@@ -98,6 +98,10 @@ export default defineComponent({
     loading: {
       type: Boolean,
       default: false,
+    },
+    selectedRows: {
+      type: Array, 
+      default: () => [],
     },
   },
   setup() {
@@ -121,7 +125,7 @@ export default defineComponent({
 
     const statusConfig = {
       izin: { type: "warning" },
-      alpha: { type: "info" },      
+      alpha: { type: "info" },
       hadir: { type: "success" },
       sakit: { type: "error" },
     };
@@ -148,7 +152,7 @@ export default defineComponent({
       width: 150,
       filterOptions: [
         { label: "Izin", value: "izin" },
-        { label: "Hadir", value: "hadir" },        
+        { label: "Hadir", value: "hadir" },
         { label: "Sakit", value: "sakit" },
         { label: "Alpha", value: "alpha" },
       ],
@@ -172,13 +176,17 @@ export default defineComponent({
       },
     });
 
+    const renderWithFallback = (value) => {
+      return value?.toString().trim() ? value : "—";
+    };
+
     const columns = reactive([
       {
         title: "No",
         key: "no",
         width: 70,
         sorter: (a, b) => a.no - b.no,
-         render(_, index) {
+        render(_, index) {
           return (pagination.page - 1) * pagination.pageSize + index + 1;
         },
       },
@@ -186,62 +194,66 @@ export default defineComponent({
         title: "Nama Lengkap",
         key: "nama",
         width: 200,
-        sorter: (a, b) => a.nama.localeCompare(b.nama),
+        sorter: (a, b) => a.nama.localeCompare(b.nama),        
       },
-      { title: "Kelas", key: "kelas", width: 108 },
-      { title: "No. Absen", key: "nomor_absen", width: 85 },
-      {
-        title: "Jam Masuk",
-        key: "jam_masuk",
-        width: 100,
-      },
+      { title: "Kelas", key: "kelas", width: 110 },
+      { title: "No. Absen", key: "nomor_absen", width: 90 },
+      { title: "Jam Masuk", key: "jam_masuk", width: 100, render(row) {
+        return renderWithFallback(row.jam_buka)
+      }, },
       statusColumn,
-      { title: "Lokasi", key: "lokasi", width: 100 },
+      { title: "Lokasi", key: "lokasi", width: 120, render(row) {
+          return renderWithFallback(row.lokasi);
+        }, },
       {
         title: "Jenis Kegiatan",
         key: "jenis_kegiatan",
         width: 120,
+        render(row) {
+          return renderWithFallback(row.jenis_kegiatan);
+        },
       },
       {
         title: "Surat Izin / Sakit",
         key: "upload_bukti",
-        width: 120,
-       render(row) {
-  const filePath = row.upload_bukti;
-  const fullPath = `${baseUrl}/storage/${filePath}`;
+        width: 130,
+        render(row) {
+          const filePath = row.upload_bukti;
+          const fullPath = `${baseUrl}/storage/${filePath}`;
 
-  if (!filePath) return "—";
+          if (!filePath) return "—";
 
-  const isPdf = filePath.endsWith(".pdf");
+          const isPdf = filePath.endsWith(".pdf");
 
-  if (isPdf) {
-    return h(
-      "a",
-      {
-        href: fullPath,
-        target: "_blank",
-        style: {
-          color: "#2F80ED",
-          textDecoration: "underline"
-        }
+          if (isPdf) {
+            return h(
+              "a",
+              {
+                href: fullPath,
+                target: "_blank",
+                style: {
+                  color: "#2F80ED",
+                  textDecoration: "underline",
+                },
+              },
+              "Lihat File PDF📄"
+            );
+          }
+
+          return h(NImage, {
+            src: fullPath,
+            width: 80,
+            height: "auto",
+            style: {
+              borderRadius: "6px",
+              objectFit: "cover",
+            },
+          });
+        },
       },
-      "Lihat PDF"
-    );
-  }
-
-  return h(NImage, {
-    src: fullPath,
-    width: 80,
-    height: "auto",
-    style: {
-      borderRadius: "6px",
-      objectFit: "cover"
-    }
-  });
-}
-
-      },
-      { title: "Keterangan", key: "keterangan", width: 150 },
+      { title: "Keterangan", key: "keterangan", width: 300, render(row) {
+          return renderWithFallback(row.keterangan);
+        }, },
     ]);
 
     const pagination = reactive({
@@ -306,14 +318,14 @@ export default defineComponent({
     const fetchData = async () => {
       loading.value = true;
       try {
-        const response = await Api.get('/presensi')
-        dataTable.value = response.data.data.daftar_siswa              
+        const response = await Api.get("/presensi");
+        dataTable.value = response.data.data.daftar_siswa;
       } catch (error) {
-        console.error(error)
-      } finally { 
-        loading.value = false; 
+        console.error(error);
+      } finally {
+        loading.value = false;
       }
-    }
+    };
 
     const handlePresensi = async () => {
       try {
