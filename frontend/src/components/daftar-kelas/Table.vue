@@ -1,6 +1,6 @@
 <template>
   <h1 class="text-2xl text-[#232323] font-bold mb-4">Daftar Kelas</h1>
-  <div class="flex justify-between items-center mb-4">
+ <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
     <div class="flex gap-2">
       <n-button
         type="primary"
