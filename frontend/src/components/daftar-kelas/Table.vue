@@ -99,9 +99,9 @@ export default defineComponent({
       { type: "selection", width: 50 },
       {
         title: "No",
-        key: "no",
+         key: "created_at",
         width: 65,
-        sorter: (a, b) => a.no - b.no,
+         sorter: (a, b) => new Date(b.created_at) - new Date(a.created_at),
         render(_, index) {
           return (pagination.page - 1) * pagination.pageSize + index + 1;
         },
