@@ -86,14 +86,14 @@ export default defineComponent({
       { type: "selection", width: 50 },
       {
         title: "No",
-        key: "no",
+        key: "created_at",
         width: 70,
-        sorter: (a, b) => a.no - b.no,
+         sorter: (a, b) => new Date(b.created_at) - new Date(a.created_at),
         render(_, index) {
           return (pagination.page - 1) * pagination.pageSize + index + 1;
         },
       },
-      { title: "Nama Lengkap", key: "siswa.nama", width: 250 },
+      { title: "Nama Lengkap", key: "siswa.nama", width: 300 },
       {
         title: "Kelas",
         key: "siswa.nama_kelas",
@@ -103,15 +103,15 @@ export default defineComponent({
       {
         title: "Jenis Perubahan",
         key: "jenis_perubahan",
-        width: 120,
+        width: 130,
       },
       {
         title: "Upload Bukti",
         key: "upload_bukti",
-        width: 100,
+        width: 110,
         render(row) {
           const src = `${baseUrl}/storage/${row.upload_bukti}`;
-          return h(NImage, { src, width: 80 });
+          return h(NImage, { src, width: 100 });
         }
       },
       { title: "Keterangan", key: "keterangan", width: 250 },
