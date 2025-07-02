@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Presensi;
+use Carbon\Carbon;
 
 class RiwayatPresensiController extends Controller
 {
@@ -17,8 +18,8 @@ class RiwayatPresensiController extends Controller
                     return [
                         'presensi_id' => $presensi->presensi_id,
                         'tanggal' => $presensi->tanggal->format('Y-m-d'),
-                        'jam_buka' => $presensi->jam_buka,
-                        'jam_tutup' => $presensi->jam_tutup,
+                        'jam_buka' => Carbon::parse($presensi->jam_buka)->format('H:i'),
+                        'jam_tutup' => Carbon::parse($presensi->jam_tutup)->format('H:i'),
                         'hadir' => $presensi->presensiSiswa()->where('status', 'hadir')->count(),
                         'izin' => $presensi->presensiSiswa()->where('status', 'izin')->count(),
                         'sakit' => $presensi->presensiSiswa()->where('status', 'sakit')->count(),
