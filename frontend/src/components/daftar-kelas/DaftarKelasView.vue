@@ -12,7 +12,8 @@
     @edit-data="showEditForm"
     @delete-data="confirmDelete"
   />
-     <n-modal
+    
+  <n-modal
     v-model:show="showModal"
     preset="dialog"
     title="Konfirmasi Hapus"
@@ -60,13 +61,11 @@ const handleDelete = async () => {
    showModal.value = false;
   loading.value = true;
   try {
-    if (Array.isArray(deleteTarget.value)) {
-      // hapus banyak
+    if (Array.isArray(deleteTarget.value)) {    
       await Api.delete('/daftar-kelas', {
         data: { ids: deleteTarget.value },
       });
-    } else {
-      // hapus satu
+    } else {      
       await Api.delete(`/daftar-kelas${deleteTarget.value}`);
     }
     message.success('Data kelas berhasil dihapus!');
