@@ -126,7 +126,7 @@
         <n-form-item label="Akses Kelas" path="akses_kelas">
           <n-select
             v-model:value="formData.akses_kelas"
-              :options="kelasOptions"
+            :options="kelasOptions"
             filterable
             multiple
             placeholder="Pilih Akses Kelas..."
