@@ -12,23 +12,37 @@ class PresensiController extends Controller
 {
     public function getPresensiAktif()
     {
-        $today = now()->toDateString();
-        $now = now('Asia/Jakarta')->format('H:i:s');
+        try {
+            $today = now()->toDateString();
+            $now = now('Asia/Jakarta')->format('H:i');
 
-        $presensi = Presensi::where('tanggal', $today)
-            ->where('jam_buka', '<=', $now)
-            ->where('jam_tutup', '>=', $now)
-            ->first();
+            $presensi = Presensi::where('tanggal', $today)
+                ->where('jam_buka', '<=', $now)
+                ->where('jam_tutup', '>=', $now)
+                ->first();
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $presensi ? array_merge(
-                $presensi->toArray(),
-                ['status_dinamis' => $this->hitungStatusPresensi($presensi)]
-            ) : null,
-        ], 200);
+            return response()->json([
+                'status' => 'success',
+                'data' => $presensi ? array_merge(
+                    [
+                        'presensi_id' => $presensi->presensi_id,
+                        'tanggal' => $presensi->tanggal,
+                        'jam_buka' => Carbon::parse($presensi->jam_buka)->format('H:i'),
+                        'jam_tutup' => Carbon::parse($presensi->jam_tutup)->format('H:i'),
+                    ],
+                    ['status_dinamis' => $this->hitungStatusPresensi($presensi)]
+                ) : null,
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error('Error getting presensi aktif: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data presensi aktif gagal diambil!'
+            ], 500);
+        }
     }
-    
+
     public function getRekapPresensi()
     {
         try {
@@ -96,7 +110,6 @@ class PresensiController extends Controller
                 ], 200);
             }
 
-
             $daftarSiswa = $p->presensiSiswa->map(fn($ps) => [
                 'nama' => $ps->siswa->nama,
                 'nomor_absen' => $ps->siswa->nomor_absen,
@@ -112,8 +125,8 @@ class PresensiController extends Controller
             $data = [
                 'presensi_id' => $p->presensi_id,
                 'tanggal' => $p->tanggal,
-                'jam_buka' => $p->jam_buka,
-                'jam_tutup' => $p->jam_tutup,
+                'jam_buka' => Carbon::parse($p->jam_buka)->format('H:i'),
+                'jam_tutup' => Carbon::parse($p->jam_tutup)->format('H:i'),
                 'daftar_siswa' => $daftarSiswa,
             ];
 
@@ -172,7 +185,7 @@ class PresensiController extends Controller
 
     private function hitungStatusPresensi($presensi)
     {
-        $now = Carbon::now('Asia/Jakarta')->format('H:i:s');
+        $now = Carbon::now('Asia/Jakarta')->format('H:i');
 
         if ($now < $presensi->jam_buka) {
             return 'belum dimulai';
@@ -184,5 +197,4 @@ class PresensiController extends Controller
 
         return 'selesai';
     }
-    
 }
