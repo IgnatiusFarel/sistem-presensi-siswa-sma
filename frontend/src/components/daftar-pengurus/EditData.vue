@@ -444,12 +444,12 @@ watch(
         bidang_keahlian: newVal.bidang_keahlian || "",
         pengurus: newVal.pengurus || "",
         daftar_kelas_id: newVal.daftar_kelas_id || null,
-        akses_kelas: newVal.akses_kelas || [],
+        akses_kelas: (newVal.akses_kelas || []).map((k) => k.daftar_kelas_id),
         status_kepegawaian: newVal.status_kepegawaian || null,
         tanggal_bergabung: newVal.tanggal_bergabung
           ? new Date(newVal.tanggal_bergabung).getTime()
           : null,
-        password: "", 
+        password: "",
       };
     }
   },
