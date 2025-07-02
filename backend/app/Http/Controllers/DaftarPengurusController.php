@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\DaftarPengurusImport;
 use App\Models\DaftarPengurus;
+use App\Models\DaftarKelas;
 use App\Models\User;
 
 class DaftarPengurusController extends Controller
@@ -16,7 +17,21 @@ class DaftarPengurusController extends Controller
     public function index()
     {
         try {
-            $pengurus = DaftarPengurus::with('user')->orderBy('updated_at', 'desc')->orderBy('created_at', 'desc')->get();
+            $kelasList = DaftarKelas::select('daftar_kelas_id', 'nama_kelas')->get()->keyBy('daftar_kelas_id');
+            $pengurus = DaftarPengurus::with('user')->orderBy('updated_at', 'desc')->orderBy('created_at', 'desc')->get()->map(function ($item) use ($kelasList) {
+                return [
+                    ...$item->toArray(),
+                    'akses_kelas' => collect($item->akses_kelas)
+    ->filter(fn ($kelasId) => is_string($kelasId)) // pastikan string
+    ->map(function ($kelasId) use ($kelasList) {
+        return [
+            'daftar_kelas_id' => $kelasId,
+            'nama_kelas' => $kelasList[$kelasId]->nama_kelas ?? 'Tidak ditemukan'
+        ];
+    })->values()
+
+                ];
+            });
 
             return response()->json([
                 'status' => 'success',
