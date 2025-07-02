@@ -1,9 +1,11 @@
 <template>
   <h1 class="text-2xl text-[#232323] font-bold mb-4">Daftar Pengurus</h1>
-  <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+  <div
+    class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4"
+  >
     <div class="flex gap-2">
       <n-button
-         type="primary"
+        type="primary"
         class="transition-transform transform active:scale-95"
         @click="$emit('add-data')"
       >
@@ -23,7 +25,7 @@
         Edit
       </n-button>
       <n-button
-         class="!bg-[#F03E3E] hover:!bg-[#D12B2B] !w-[120px] !text-white transition-transform transform active:scale-95"
+        class="!bg-[#F03E3E] hover:!bg-[#D12B2B] !w-[120px] !text-white transition-transform transform active:scale-95"
         :disabled="selectedRows.length === 0"
         @click="handleDeleteSelected"
       >
@@ -35,7 +37,7 @@
     </div>
 
     <n-input
-    v-model:value="searchKeyword"
+      v-model:value="searchKeyword"
       placeholder="Cari Data Daftar Pengurus..."
       class="!w-[258px]"
       clearable
@@ -60,7 +62,15 @@
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted, watch, computed } from "vue";
+import {
+  defineComponent,
+  reactive,
+  ref,
+  onMounted,
+  watch,
+  computed,
+  h,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { NTag, NInput, NIcon, NButton } from "naive-ui";
 import {
@@ -81,15 +91,15 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
-      selectedRows: {
-    type: Array,
-    default: () => [],
-  },
+    selectedRows: {
+      type: Array,
+      default: () => [],
+    },
   },
   setup(props, { emit }) {
     const loading = ref(false);
     const tableRef = ref(null);
-    const searchKeyword = ref('')
+    const searchKeyword = ref("");
     const selectedRows = ref([...props.selectedRows]);
     const currentSortState = reactive({});
     const route = useRoute();
@@ -99,9 +109,9 @@ export default defineComponent({
       { type: "selection", width: 50 },
       {
         title: "No",
-        key: "no",
+        key: "created_at",
         width: 70,
-        sorter: (a, b) => a.no - b.no,
+        sorter: (a, b) => new Date(b.created_at) - new Date(a.created_at),
         render(_, index) {
           return (pagination.page - 1) * pagination.pageSize + index + 1;
         },
@@ -109,10 +119,10 @@ export default defineComponent({
       {
         title: "Nama Lengkap",
         key: "nama",
-        width: 250,
+        width: 350,
         sorter: (a, b) => a.nama.localeCompare(b.nama),
       },
-      { title: "Jenis Kelamin", key: "jenis_kelamin", width: 80 },
+      { title: "Jenis Kelamin", key: "jenis_kelamin", width: 110 },
       { title: "NIP", key: "nip", width: 180 },
       {
         title: "Agama",
@@ -129,11 +139,46 @@ export default defineComponent({
         filter: (value, row) => row.agama === value,
       },
       { title: "Jabatan", key: "jabatan", width: 220 },
-      { title: "Akses Kelas", key: "akses_kelas", width: 180 },
+      {
+        title: "Akses Kelas",
+        key: "akses_kelas",
+        width: 300,
+        render(row) {
+          if (
+            !row.akses_kelas ||
+            !Array.isArray(row.akses_kelas) ||
+            row.akses_kelas.length === 0
+          ) {
+            return "Tidak Mengampu Kelas";
+          }
+
+          return h(
+            "div",
+            {
+              style: {
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "6px",
+              },
+            },
+            row.akses_kelas.map((kelas, index) =>
+              h(
+                NTag,
+                {
+                  type: "info",
+                  size: "small",
+                  key: index,
+                },
+                { default: () => kelas.nama_kelas }
+              )
+            )
+          );
+        },
+      },
       {
         title: "Tempat, Tanggal Lahir",
         key: "tempat_tanggal_lahir",
-        width: 140,
+        width: 180,
       },
       { title: "Alamat Rumah", key: "alamat", width: 300 },
       { title: "Pengurus", key: "pengurus", width: 160 },
@@ -144,7 +189,7 @@ export default defineComponent({
       {
         title: "Tanggal Bergabung",
         key: "tanggal_bergabung",
-        width: 130,
+        width: 150,
         render(row) {
           return new Date(row.tanggal_bergabung).toLocaleDateString("id-ID", {
             day: "numeric",
@@ -160,9 +205,9 @@ export default defineComponent({
       pageSize: Number(route.query.pageSize) || 10,
       showSizePicker: true,
       pageSizes: [10, 25, 50, 100],
-        prefix({ itemCount }) {
-        return `Total Jumlah Pengurus: ${itemCount}`
-      },      
+      prefix({ itemCount }) {
+        return `Total Jumlah Pengurus: ${itemCount}`;
+      },
       onChange: (page) => {
         pagination.page = page;
         router.push({ query: { ...route.query, page } });
@@ -175,12 +220,13 @@ export default defineComponent({
     });
 
     const filteredData = computed(() => {
-      if (!searchKeyword.value) return props.data 
+      if (!searchKeyword.value) return props.data;
 
-      const keyword = searchKeyword.value.toLowerCase(); 
-      return props.data.filter(item => 
-        item.nama.toLowerCase().includes(keyword) || 
-        item.nip.toString().includes(keyword)      
+      const keyword = searchKeyword.value.toLowerCase();
+      return props.data.filter(
+        (item) =>
+          item.nama.toLowerCase().includes(keyword) ||
+          item.nip.toString().includes(keyword)
       );
     });
 
@@ -188,10 +234,11 @@ export default defineComponent({
       Object.assign(currentSortState, sorter);
     };
 
-     const updateSelectedRows = (val) => {
-    selectedRows.value = val;
-    emit('update:selectedRows', val);
-  };
+    const updateSelectedRows = (val) => {
+      selectedRows.value = val;
+      emit("update:selectedRows", val);
+    };
+
     const handleEditSelected = () => {
       if (selectedRows.value.length === 1) {
         const selectedRow = props.data.find(
@@ -200,15 +247,19 @@ export default defineComponent({
         emit("edit-data", selectedRow);
       }
     };
+
     const handleDeleteSelected = () => {
       if (selectedRows.value.length > 0) {
         emit("delete-data", selectedRows.value);
       }
     };
 
-     watch(() => props.selectedRows, (val) => {
-    selectedRows.value = [...val];
-  });
+    watch(
+      () => props.selectedRows,
+      (val) => {
+        selectedRows.value = [...val];
+      }
+    );
 
     onMounted(() => {
       setTimeout(() => {
@@ -225,7 +276,7 @@ export default defineComponent({
       loading,
       tableRef,
       pagination,
-      filteredData,  
+      filteredData,
       selectedRows,
       searchKeyword,
       updateSelectedRows,
