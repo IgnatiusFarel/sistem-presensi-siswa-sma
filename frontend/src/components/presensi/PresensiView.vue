@@ -65,9 +65,9 @@ const fetchData = async () => {
   try {
     const response = await Api.get("/presensi/aktif");
     presensiAktif.value = response.data.data;
-    console.log(response.data); // isi dari { jam_buka, jam_tutup, ... }
+    console.log(response.data); 
   } catch (error) {
-    presensiAktif.value = null; // kalau error (misalnya 404), kosongkan
+    presensiAktif.value = null; 
   } finally {
     loading.value = false;
   }
