@@ -242,7 +242,7 @@ export default defineComponent({
 
           return h(NImage, {
             src: fullPath,
-            width: 80,
+            width: 100,
             height: "auto",
             style: {
               borderRadius: "6px",
