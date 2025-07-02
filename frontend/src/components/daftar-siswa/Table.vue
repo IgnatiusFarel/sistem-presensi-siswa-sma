@@ -101,9 +101,9 @@ export default defineComponent({
       { type: "selection", width: 50 },
       {
         title: "No",
-        key: "no",
+        key: "created_at",
         width: 70,
-        sorter: (a, b) => a.no - b.no,
+          sorter: (a, b) => new Date(b.created_at) - new Date(a.created_at),
         render(_, index) {
           return (pagination.page - 1) * pagination.pageSize + index + 1;
         },
@@ -111,12 +111,12 @@ export default defineComponent({
       {
         title: "Nama Lengkap",
         key: "nama",
-        width: 200,
+        width: 300,
         sorter: (a, b) => a.nama.localeCompare(b.nama),
       },
-      { title: "NIS", key: "nis", width: 100 },
-      { title: "NISN", key: "nisn", width: 130 },
-      { title: "Jenis Kelamin", key: "jenis_kelamin", width: 120 },
+     { title: "NIS", key: "nis", width: 150 },
+      { title: "NISN", key: "nisn", width: 150 },
+      { title: "Jenis Kelamin", key: "jenis_kelamin", width: 110 },
       {
         title: "Tempat, Tanggal Lahir",
         key: "tempat_tanggal_lahir",
@@ -140,11 +140,11 @@ export default defineComponent({
       { title: "No. Handphone", key: "nomor_handphone", width: 150 },
       { title: "Email", key: "email", width: 200 },
       { title: "Kelas", key: "nama_kelas", width: 130 },
-      { title: "No. Absen", key: "nomor_absen", width: 70 },
+      { title: "No. Absen", key: "nomor_absen", width: 90 },
       {
         title: "Tanggal Bergabung",
         key: "tanggal_bergabung",
-        width: 130,
+        width: 150,
         render(row) {
           return new Date(row.tanggal_bergabung).toLocaleDateString("id-ID", {
             day: "numeric",
