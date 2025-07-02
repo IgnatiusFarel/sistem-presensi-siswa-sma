@@ -62,13 +62,11 @@ const handleDelete = async () => {
   showModal.value = false;
   loading.value = true;
   try {
-    if (Array.isArray(deleteTarget.value)) {
-      // hapus banyak
+    if (Array.isArray(deleteTarget.value)) {      
       await Api.delete("/daftar-pengurus", {
         data: { ids: deleteTarget.value },
       });
-    } else {
-      // hapus satu
+    } else {      
       await Api.delete(`/daftar-pengurus${deleteTarget.value}`);
     }
     message.success("Data pengurus berhasil dihapus!");
