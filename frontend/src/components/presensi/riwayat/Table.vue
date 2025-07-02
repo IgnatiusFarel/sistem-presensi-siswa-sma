@@ -5,7 +5,7 @@
         type="primary"
         class="transition-transform transform active:scale-95"
         :disabled="selectedRows.length !== 1"
-        @click="handleEditSelected"
+        @click="handleDetailSelected"
       >
         <template #icon>
           <n-icon :component="PhInfo" :size="18" />
@@ -37,7 +37,7 @@
 
   <n-data-table
     ref="tableRef"
-    :data="dataTable"
+    :data="data"
     :columns="columns"
     :loading="loading"
     :pagination="pagination"
@@ -53,7 +53,6 @@ import { defineComponent, reactive, ref, onMounted } from "vue";
 import { NTag, NInput, NIcon, NButton } from "naive-ui";
 import { useRoute, useRouter } from "vue-router";
 import { PhMagnifyingGlass, PhTrash, PhInfo } from "@phosphor-icons/vue";
-import Api from "@/services/Api";
 
 export default defineComponent({
   name: "TableRiwayatPresensi",
@@ -72,7 +71,7 @@ export default defineComponent({
       default: () => [],
     },
   },
-  setup(props, {emit}) {
+  setup(props, { emit }) {
     const loading = ref(false);
     const dataTable = ref([]);
     const tableRef = ref(null);
@@ -89,24 +88,26 @@ export default defineComponent({
       {
         title: "No",
         key: "no",
-        width: 60,
-        render: (row, index) => index + 1,
+        width: 40,
+        render(_, index) {
+          return (pagination.page - 1) * pagination.pageSize + index + 1;
+        },
       },
       {
         title: "Tanggal Presensi",
         key: "tanggal",
-        width: 150,
+        width: 120,
         sorter: (a, b) => new Date(a.tanggal) - new Date(b.tanggal),
       },
       {
         title: "Jam Buka",
         key: "jam_buka",
-        width: 100,
+        width: 70,
       },
       {
         title: "Jam Tutup",
         key: "jam_tutup",
-        width: 100,
+        width: 70,
       },
       {
         title: "Jumlah Hadir",
@@ -138,7 +139,7 @@ export default defineComponent({
       page: Number(route.query.page) || 1,
       pageSize: Number(route.query.pageSize) || 10,
       showSizePicker: true,
-      pageSizes: [10, 25, 50, 100],      
+      pageSizes: [10, 25, 50, 100],
       prefix({ itemCount }) {
         return `Total Jumlah Riwayat Presensi Siswa: ${itemCount}`;
       },
@@ -157,19 +158,19 @@ export default defineComponent({
       Object.assign(currentSortState, sorter);
     };
 
-    const fetchData = async () => {
-      loading.value = true;
-      try {
-        const response = await Api.get("/riwayat-presensi");
-        dataTable.value = response.data.data;
-      } catch (error) {
-        console.error(error);
-      } finally {
-        loading.value = false;
-      }
-    };
+    // const fetchData = async () => {
+    //   loading.value = true;
+    //   try {
+    //     const response = await Api.get("/riwayat-presensi");
+    //     dataTable.value = response.data.data;
+    //   } catch (error) {
+    //     console.error(error);
+    //   } finally {
+    //     loading.value = false;
+    //   }
+    // };  
 
-        const handleDetailSelected = () => {
+    const handleDetailSelected = () => {
       if (selectedRows.value.length === 1) {
         const selectedRow = props.data.find(
           (row) => row.presensi_id === selectedRows.value[0]
@@ -178,12 +179,11 @@ export default defineComponent({
       }
     };
 
-     const handleDeleteSelected = () => {
+    const handleDeleteSelected = () => {
       if (selectedRows.value.length > 0) {
         emit("delete-data", selectedRows.value);
       }
     };
-
 
     onMounted(() => {
       setTimeout(() => {
@@ -191,11 +191,9 @@ export default defineComponent({
       }, 100);
     });
 
-    
-
-    onMounted(() => {
-      fetchData();
-    });
+    // onMounted(() => {
+    //   fetchData();
+    // });
 
     return {
       PhInfo,
@@ -205,7 +203,7 @@ export default defineComponent({
       loading,
       tableRef,
       dataTable,
-      selectedRows,   
+      selectedRows,
       pagination,
       handleSorterChange,
       handleDeleteSelected,
