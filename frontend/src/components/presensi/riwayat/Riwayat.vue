@@ -64,13 +64,11 @@ const handleDelete = async () => {
   loading.value = true;
 
   try {
-    if (Array.isArray(deleteTarget.value)) {
-      // hapus banyak
+    if (Array.isArray(deleteTarget.value)) {      
       await Api.delete("/riwayat-presensi", {
         data: { ids: deleteTarget.value },
       });
-    } else {
-      // hapus satu
+    } else {      
       await Api.delete(`/riwayat-presensi/${deleteTarget.value}`);
     }
     message.success("Data riwayat presensi berhasil dihapus!");
