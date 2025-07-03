@@ -169,7 +169,7 @@ class PresensiSiswaController extends Controller
             if ($request->hasFile('upload_bukti') && $status !== PresensiSiswa::STATUS_HADIR) {
                 $file = $request->file('upload_bukti');
                 $filename = time() . '_' . $file->getClientOriginalName();
-                $path = $file->storeAs('bukti_izin_sakit', $filename, 'public');
+                $path = $file->storeAs('bukti-izin-sakit', $filename, 'public');
                 $data['upload_bukti'] = $path;
             }
 
