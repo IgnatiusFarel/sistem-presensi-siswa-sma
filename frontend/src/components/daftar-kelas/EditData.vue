@@ -74,9 +74,7 @@
         >
           Simpan
         </n-button>
-      </n-form>
-
-     
+      </n-form>  
     </div>
   </div>
 </template>
@@ -85,7 +83,6 @@
 import { defineComponent, ref, onMounted, watch } from "vue";
 import { PhCaretDoubleLeft } from "@phosphor-icons/vue";
 import Api from "@/services/Api";
-import dayjs from 'dayjs';
 import { useMessage } from "naive-ui"
 
 const loading = ref(false);
@@ -184,7 +181,7 @@ const handleSave = async () => {
     const payload = {
       ...formData.value,
     };
-   await Api.patch(`/daftar-kelas/${props.editData.daftar_kelas_id}`, payload);
+    await Api.patch(`/daftar-kelas/${props.editData.daftar_kelas_id}`, payload);
     message.success("Data kelas berhasil diperbarui!");
     emit("refresh");
     emit("back-to-table");
