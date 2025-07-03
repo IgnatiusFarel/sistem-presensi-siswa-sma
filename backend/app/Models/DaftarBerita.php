@@ -37,6 +37,11 @@ class DaftarBerita extends Model
         return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
+    public function getPreviewAttribute()
+    {
+        return Str::limit(strip_tags($this->konten), 150);
+    }
+    
     public function komentar()
     {
         return $this->hasMany(KomentarBerita::class, 'daftar_berita_id', 'daftar_berita_id');
