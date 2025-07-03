@@ -8,6 +8,7 @@ import {
   PhSignOut,
   PhUserGear,
   PhFolders, 
+  PhNewspaper,
   PhCaretUpDown,
   PhSidebarSimple,
   PhChalkboardSimple,
@@ -41,6 +42,7 @@ const menuItems = [
   { name: 'Daftar Siswa', path: '/daftar-siswa', icon: PhUser },
   { name: 'Daftar Pengurus', path: '/daftar-pengurus', icon: PhUserGear },
   { name: 'Daftar Kelas', path: '/daftar-kelas', icon: PhChalkboardSimple },
+  { name: 'Daftar Berita', path: '/daftar-berita', icon: PhNewspaper },
   { name: 'Daftar Laporan', path: '/daftar-laporan', icon: PhFolders },
 ];
 
@@ -68,7 +70,6 @@ const toggleSidebar = () => {
     isCollapsed.value = !isCollapsed.value;
   }
 };
-
 
 const isActive = (path) => {
   return route.path.startsWith(path);
