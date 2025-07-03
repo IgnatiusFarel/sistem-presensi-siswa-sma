@@ -13,8 +13,8 @@ Class CreateDaftarBeritaTable extends Migration
             $table->string('slug')->unique();
             $table->string('judul');
             $table->string('thumbnail')->nullable();
-            $table->enum('kategori', ['pengumuman', 'kegiatan', 'prestasi', 'informasi', 'agenda', 'lainnya'])->default('informasi');
-            $table->text('konten');
+            $table->enum('kategori', ['Pengumuman', 'Kegiatan', 'Prestasi', 'Informasi', 'Agenda', 'Lainnya'])->default('Informasi');
+            $table->longText('konten');
             $table->uuid('user_id');
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');            
             $table->string('dibuat_oleh');
