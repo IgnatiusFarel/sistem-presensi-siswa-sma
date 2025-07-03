@@ -130,7 +130,7 @@ class DaftarBeritaController extends Controller
                     Storage::disk('public')->delete($berita->thumbnail);
                 }
                 $berita->thumbnail = $request->file('thumbnail')
-                                            ->store('thumbnails', 'public');
+                                            ->store('thumbnail', 'public');
             }
 
             // slug hanya jika judul berubah
