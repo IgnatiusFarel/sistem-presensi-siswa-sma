@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AIController;
 use App\Http\Controllers\DaftarBeritaController;
 use App\Http\Controllers\DaftarKelasController;
 use App\Http\Controllers\DaftarLaporanController;
@@ -16,6 +17,7 @@ Route::post('/masuk', [AuthController::class, 'masuk']);
 Route::get('/daftar-siswa-aktif', [DaftarLaporanController::class, 'getDaftarSiswa']);
 Route::post('/daftar-laporan', [DaftarLaporanController::class, 'store']);
 Route::get('/reverse-geocode', [GeolocationController::class, 'reverseGeocode']);
+Route::post('/ai/generate', [AIController::class, 'generate']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/keluar', [AuthController::class, 'logout']);
@@ -81,11 +83,13 @@ Route::middleware('auth:sanctum')->group(function () {
         // 📁 Daftar Berita
         Route::prefix('daftar-berita')->controller(DaftarBeritaController::class)->group(function() {
             Route::get('/', 'index');
+            Route::post('/', 'store');
             Route::get('{id}', 'show');
             Route::patch('{id}', 'update');
             Route::delete('{$id}', 'destroy');
             Route::delete('/', 'destroyMultiple');
         });
+        
     });
 
     Route::middleware('role:siswa')->group(function () {
@@ -107,10 +111,10 @@ Route::middleware('auth:sanctum')->group(function () {
         });
 
         // 📁 Komentar Berita
-        Route::prefix('komentar')->controller(KomentarBeritaController::class)->group(function() {
-            Route::get('/', 'index');
-            Route::post('/', 'store');
-        });
+        // Route::prefix('komentar')->controller(KomentarBeritaController::class)->group(function() {
+        //     Route::get('/', 'index');
+        //     Route::post('/', 'store');
+        // });
 
     });
     
