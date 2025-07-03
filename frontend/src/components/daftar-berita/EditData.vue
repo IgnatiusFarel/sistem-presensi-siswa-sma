@@ -14,7 +14,7 @@
 
     <div class="bg-white rounded-lg p-6 border border-[#C1C2C5]">
       <h1 class="text-3xl font-bold text-[#1E1E1E] mb-8 text-center">
-        Tambah Data Berita
+        Edit Data Berita
       </h1>
 
       <n-form :model="formData" :rules="rules" ref="formRef">
@@ -45,8 +45,11 @@
             directory-dnd
             :max="1"
             :on-before-upload="handleBeforeUpload"
+            :on-change="handleUploadChange"
+             :file-list="fileList"    
             list-type="image"
             accept="image/*"
+            :show-remove-button="true"
           >
             <n-upload-dragger>
               <div style="margin-bottom: 12px">
@@ -72,7 +75,9 @@
           </n-upload>
         </n-form-item>
 
-        <RichTextEditor v-model="formData.konten" class="mb-6" />
+      <n-form-item label="Konten Berita" path="konten">
+  <RichTextEditor v-model="formData.konten" class="mb-6" />
+</n-form-item>
 
         <n-button
           type="primary"
@@ -83,7 +88,7 @@
           :disabled="loading"
           class="transition-transform transform active:scale-95"
         >
-          Tambah
+          Simpan
         </n-button>
       </n-form>
     </div>
@@ -91,7 +96,7 @@
 </template>
 
 <script setup>
-import { defineComponent, ref, onMounted } from "vue";
+import { defineComponent, ref, onMounted,  watch } from "vue";
 import { PhCaretDoubleLeft, PhFileArrowUp } from "@phosphor-icons/vue";
 import { useMessage } from "naive-ui";
 import Api from "@/services/Api";
@@ -102,7 +107,22 @@ const loading = ref(false);
 const formRef = ref(null);
 const message = useMessage();
 const auth = useAuthStore();
+const fileList = ref([])
 const emit = defineEmits(["back-to-table", "refresh"]);
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
+const props = defineProps({
+  editData: Object
+})
+
+const kategoriOptions = [
+  { value: "Pengumuman", label: "Pengumuman" },
+  { value: "Kegiatan", label: "Kegiatan" },
+  { value: "Prestasi", label: "Prestasi" },
+  { value: "Informasi", label: "Informasi" },
+  { value: "Agenda", label: "Agenda" },
+  { value: "Lainnya", label: "Lainnya" },
+];
 
 const rules = {
   judul: [
@@ -129,20 +149,11 @@ const rules = {
   konten: [
     {
       required: true,
-      message: "Wali kelas wajib dipilih",
+      message: "Konten wajib dipilih",
       trigger: ["blur", "input"],
     },
   ],
 };
-
-const kategoriOptions = [
-  { value: "Pengumuman", label: "Pengumuman" },
-  { value: "Kegiatan", label: "Kegiatan" },
-  { value: "Prestasi", label: "Prestasi" },
-  { value: "Informasi", label: "Informasi" },
-  { value: "Agenda", label: "Agenda" },
-  { value: "Lainnya", label: "Lainnya" },
-];
 
 const formData = ref({
   judul: "",
@@ -169,21 +180,92 @@ const handleSubmit = async (e) => {
 const handleSave = async () => {
   loading.value = true;
   try {
-    const payload = {
-      ...formData.value,
-      user_id: auth.user?.user_id,    
-      dibuat_oleh: auth.user?.name, 
-    };
-    await Api.post("/daftar-berita", payload);
-    message.success("Data berita berhasil ditambahkan!");
+    const form = new FormData();
+    
+    // FIX: Pastikan semua field tidak undefined/null
+    form.append("judul", formData.value.judul || "");
+    form.append("slug", formData.value.slug || "");
+    form.append("kategori", formData.value.kategori || "");
+    form.append("konten", formData.value.konten || "");
+    form.append("user_id", auth.user?.user_id || "");
+    form.append("dibuat_oleh", auth.user?.name || "");
+    
+    // FIX: Tambahkan _method untuk Laravel
+    form.append("_method", "PATCH");
+
+    if (formData.value.thumbnail) {
+      form.append("thumbnail", formData.value.thumbnail);
+    }
+
+    // FIX: Gunakan POST dengan _method PATCH (Laravel standard)
+    await Api.post(
+      `/daftar-berita/${props.editData.daftar_berita_id}`,
+      form,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      }
+    );
+
+    message.success("Data berita berhasil diperbarui!");
     emit("refresh");
     emit("back-to-table");
   } catch (error) {
-    message.error("Data berita gagal ditambahkan!");
+    console.error("Error:", error);
+    message.error("Data berita gagal diperbarui!");
   } finally {
     loading.value = false;
   }
 };
+
+function handleUploadChange({ fileList: newList }) {
+  fileList.value = newList    
+  if (newList.length > 0 && newList[0].file) {
+    formData.value.thumbnail = newList[0].file
+  } else {
+    formData.value.thumbnail = null
+  }
+}
+function handleBeforeUpload({ file }) {
+  const isAllowedType = ["image/jpeg", "image/jpg", "image/png"].includes(file.type);
+  const isLimitSize = file.file.size / 1024 / 1024 < 10;
+
+  if (!isAllowedType) {
+    message.error("Tipe file tidak didukung!");
+    return false;
+  }
+
+  if (!isLimitSize) {
+    message.error("Ukuran file harus kurang dari 10MB!");
+    return false;
+  }
+
+  return true;
+}
+
+watch(() => props.editData, (newVal) => {
+  if (newVal) {
+    formData.value = {
+      judul: newVal.judul,
+      slug: newVal.slug, 
+      kategori: newVal.kategori, 
+      thumbnail: null,
+      konten: newVal.konten,
+    }
+
+    if (newVal.thumbnail) {
+      fileList.value = [{
+        name: newVal.thumbnail.split('/').pop(),
+        url: `${baseUrl}/storage/${newVal.thumbnail}`,
+         status: 'finished' 
+      }]
+    } else {
+      fileList.value = []
+    }
+  }
+}, { immediate: true });
+
 </script>
 
 <style scoped></style>
