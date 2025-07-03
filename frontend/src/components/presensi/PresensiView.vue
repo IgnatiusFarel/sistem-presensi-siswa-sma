@@ -12,8 +12,9 @@
           <span class="text-[#232323] font-semibold">-</span>
         </template>
         <template v-else>
-          <div class="text-base text-red-600">Belum Ada Kegiatan Presensi |</div>
-        </template>        
+          <div class="text-base text-red-600">Belum Ada Kegiatan Presensi</div>
+          <span class="text-gray-400">|</span>
+        </template>
         <p class="text-base text-[#232323] font-semibold">{{ currentDate }}</p>
       </div>
     </n-tab-pane>
@@ -65,9 +66,9 @@ const fetchData = async () => {
   try {
     const response = await Api.get("/presensi/aktif");
     presensiAktif.value = response.data.data;
-    console.log(response.data); 
+    console.log(response.data);
   } catch (error) {
-    presensiAktif.value = null; 
+    presensiAktif.value = null;
   } finally {
     loading.value = false;
   }

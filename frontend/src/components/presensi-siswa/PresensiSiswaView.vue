@@ -5,7 +5,6 @@
         <h1 class="text-2xl text-[#232323] font-bold">
           Kegiatan Presensi Hari Ini
         </h1>
-        <p class="text-base text-[#232323] font-semibold">{{ currentDate }}</p>
 
         <div v-if="presensiAktif" class="flex items-center gap-2 mt-2">
           <p class="text-base text-[#232323] font-semibold">Dibuka Pukul</p>
@@ -21,8 +20,10 @@
           </div>
         </div>
 
-        <div v-else class="text-base text-red-600 mt-2">
-          Belum Ada Kegiatan Presensi.
+        <div v-else class="flex items-center gap-2 text-base mt-2">
+          <span class="text-red-600">Belum Ada Kegiatan Presensi</span>
+          <span class="text-gray-400">|</span>
+          <span class="text-[#232323] font-semibold">{{ currentDate }}</span>
         </div>
       </n-tab-pane>
       <n-tab-pane name="riwayat" tab="Riwayat Kegiatan Presensi Kamu">
@@ -31,9 +32,7 @@
         </h1>
       </n-tab-pane>
       <n-tab-pane name="berita" tab="Berita Sekolah">
-        <h1 class="text-2xl text-[#232323] font-bold">
-          Berita Sekolah
-        </h1>
+        <h1 class="text-2xl text-[#232323] font-bold">Berita Terbaru</h1>
       </n-tab-pane>
     </n-tabs>
   </div>
@@ -86,7 +85,7 @@ const currentComponent = computed(() => {
   return {
     presensi: Presensi,
     riwayat: Riwayat,
-    berita: Berita
+    berita: Berita,
   }[activeTab.value];
 });
 
@@ -105,6 +104,6 @@ const fetchData = async () => {
 onMounted(() => {
   updateDateTime();
   interval = setInterval(updateDateTime, 1000);
-  fetchData(); 
+  fetchData();
 });
 </script>
