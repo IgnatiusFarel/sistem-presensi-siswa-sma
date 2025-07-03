@@ -78,6 +78,7 @@ const handleDelete = async () => {
     loading.value = false;
   }
 };
+
 const fetchData = async () => {
   loading.value = true;
   try {
