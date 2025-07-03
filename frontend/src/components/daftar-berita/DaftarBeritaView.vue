@@ -4,15 +4,15 @@
     :loading="loading"
     :data="dataTable"
     :editData="editData"
-    :selectedRows="selectedRows"   
-    @update:selectedRows="val => selectedRows = val"
+    :selectedRows="selectedRows"
+    @update:selectedRows="(val) => (selectedRows = val)"
     @add-data="showView('TambahData')"
     @back-to-table="showView('Table')"
     @refresh="fetchData"
     @edit-data="showEditForm"
     @delete-data="confirmDelete"
   />
-    
+
   <n-modal
     v-model:show="showModal"
     preset="dialog"
@@ -21,17 +21,17 @@
     positive-text="Ya, Hapus"
     negative-text="Batal"
     @positive-click="handleDelete"
-    @negative-click="() => showModal = false"
+    @negative-click="() => (showModal = false)"
   />
 </template>
 
 <script setup>
 import { ref, shallowRef, onMounted } from "vue";
-import { useMessage } from 'naive-ui';
+import { useMessage } from "naive-ui";
 import Table from "./Table.vue";
 import TambahData from "./TambahData.vue";
 import EditData from "./EditData.vue";
-import Api from "@/services/Api"
+import Api from "@/services/Api";
 
 const views = { Table, TambahData, EditData };
 const currentView = shallowRef(Table);
@@ -40,7 +40,7 @@ const loading = ref(false);
 const dataTable = ref([]);
 const selectedRows = ref([]);
 const showModal = ref(false);
-const deleteTarget = ref(null); 
+const deleteTarget = ref(null);
 const message = useMessage();
 
 const showView = (viewName) => {
@@ -58,26 +58,27 @@ const confirmDelete = (idOrIds) => {
 };
 
 const handleDelete = async () => {
-   showModal.value = false;
+  showModal.value = false;
   loading.value = true;
   try {
-    if (Array.isArray(deleteTarget.value)) {    
-      await Api.delete('/daftar-berita', {
+    if (Array.isArray(deleteTarget.value)) {
+      await Api.delete("/daftar-berita", {
         data: { ids: deleteTarget.value },
       });
-    } else {      
+    } else {
       await Api.delete(`/daftar-berita${deleteTarget.value}`);
     }
-    message.success('Data berita berhasil dihapus!');
+    message.success("Data berita berhasil dihapus!");
     await fetchData();
     selectedRows.value = [];
   } catch (error) {
-    message.error('Data berita gagal dihapus!');
+    message.error("Data berita gagal dihapus!");
     console.error(error);
   } finally {
     loading.value = false;
   }
 };
+
 const fetchData = async () => {
   loading.value = true;
   try {
