@@ -264,10 +264,8 @@ function toggle(index) {
   const student = filteredStudents.value[index];
   const id = student.daftar_siswa_id;
 
-  // Expand/collapse logic
   expanded.value = expanded.value === index ? null : index;
-
-  // Inisialisasi formData jika belum ada
+  
   if (!formData[id]) {
     formData[id] = {
       jenis_perubahan: null,
