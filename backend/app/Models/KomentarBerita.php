@@ -29,7 +29,7 @@ class KomentarBerita extends Model
         });
     }
 
-    public function berita()
+    public function daftarBerita()
     {
         return $this->belongsTo(DaftarBerita::class, 'daftar_berita_id', 'daftar_berita_id');
     }
