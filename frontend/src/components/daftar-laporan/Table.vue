@@ -79,7 +79,6 @@ export default defineComponent({
     const selectedRows = ref([...props.selectedRows]);
     const route = useRoute();
     const router = useRouter();
-
     const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
     const columns = reactive([
