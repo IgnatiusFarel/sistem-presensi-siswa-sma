@@ -30,6 +30,11 @@
           Riwayat Kegiatan Presensi
         </h1>
       </n-tab-pane>
+      <n-tab-pane name="berita" tab="Berita Sekolah">
+        <h1 class="text-2xl text-[#232323] font-bold">
+          Berita Sekolah
+        </h1>
+      </n-tab-pane>
     </n-tabs>
   </div>
 
@@ -39,8 +44,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { NTabs, NTabPane } from "naive-ui";
-import Presensi from "@/components/presensi-siswa/presensi/PresensiSiswa.vue";
-import Riwayat from "@/components/presensi-siswa/riwayat/RiwayatPresensiSiswa.vue";
+import Presensi from "./presensi/PresensiSiswa.vue";
+import Riwayat from "./riwayat/RiwayatPresensiSiswa.vue";
+import Berita from "./berita/Berita.vue";
 import Api from "@/services/Api.js";
 
 const activeTab = ref("presensi");
@@ -80,6 +86,7 @@ const currentComponent = computed(() => {
   return {
     presensi: Presensi,
     riwayat: Riwayat,
+    berita: Berita
   }[activeTab.value];
 });
 
