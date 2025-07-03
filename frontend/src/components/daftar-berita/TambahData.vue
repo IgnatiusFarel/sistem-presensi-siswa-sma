@@ -45,6 +45,7 @@
             directory-dnd
             :max="1"
             :on-before-upload="handleBeforeUpload"
+            :on-change="handleUploadChange"
             list-type="image"
             accept="image/*"
           >
@@ -129,7 +130,7 @@ const rules = {
   konten: [
     {
       required: true,
-      message: "Wali kelas wajib dipilih",
+      message: "Konten wajib diwajib",
       trigger: ["blur", "input"],
     },
   ],
@@ -152,6 +153,31 @@ const formData = ref({
   thumbnail: null,
 });
 
+function handleUploadChange({ fileList }) {
+  if (fileList.length > 0) {    
+    formData.value.thumbnail = fileList[0].file;
+  } else {
+    formData.value.thumbnail = null;
+  }
+}
+
+function handleBeforeUpload({ file }) {
+  const isAllowedType = ["image/jpeg","image/jpg","image/png"].includes(file.type); 
+  const isLimitSize = file.file.size / 1024 / 1024 < 10; 
+
+  if (!isAllowedType) {
+    message.error("Tipe file tidak didukung!");
+    return false; 
+  }
+
+  if (!isLimitSize) {
+    message.error("Ukuran file harus kurang dari 10MB!");
+    return false; 
+  }
+
+  return true; 
+}
+
 const handleSubmit = async (e) => {
   e.preventDefault();
   try {
@@ -169,12 +195,22 @@ const handleSubmit = async (e) => {
 const handleSave = async () => {
   loading.value = true;
   try {
-    const payload = {
-      ...formData.value,
-      user_id: auth.user?.user_id,    
-      dibuat_oleh: auth.user?.name, 
-    };
-    await Api.post("/daftar-berita", payload);
+   const payload = new FormData();
+    payload.append("judul", formData.value.judul);
+    payload.append("slug", formData.value.slug);
+    payload.append("kategori", formData.value.kategori);
+    payload.append("konten", formData.value.konten);
+    payload.append("user_id", auth.user?.user_id);
+    payload.append("dibuat_oleh", auth.user?.name);
+    if (formData.value.thumbnail) {
+      payload.append("thumbnail", formData.value.thumbnail);
+    }
+
+    await Api.post("/daftar-berita", payload, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     message.success("Data berita berhasil ditambahkan!");
     emit("refresh");
     emit("back-to-table");
