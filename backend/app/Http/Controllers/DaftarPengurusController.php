@@ -22,13 +22,13 @@ class DaftarPengurusController extends Controller
                 return [
                     ...$item->toArray(),
                     'akses_kelas' => collect($item->akses_kelas)
-    ->filter(fn ($kelasId) => is_string($kelasId)) // pastikan string
-    ->map(function ($kelasId) use ($kelasList) {
-        return [
-            'daftar_kelas_id' => $kelasId,
-            'nama_kelas' => $kelasList[$kelasId]->nama_kelas ?? 'Tidak ditemukan'
-        ];
-    })->values()
+                        ->filter(fn($kelasId) => is_string($kelasId))
+                        ->map(function ($kelasId) use ($kelasList) {
+                            return [
+                                'daftar_kelas_id' => $kelasId,
+                                'nama_kelas' => $kelasList[$kelasId]->nama_kelas ?? 'Tidak ditemukan'
+                            ];
+                        })->values()
 
                 ];
             });
