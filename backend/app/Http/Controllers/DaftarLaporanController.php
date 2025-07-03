@@ -45,7 +45,7 @@ class DaftarLaporanController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
-
+        DB::beginTransaction();
         try {
             $laporan = DB::transaction(function () use ($request) {
                 $path = $request->file('upload_bukti')->store('bukti-perubahan', 'public');
@@ -57,6 +57,8 @@ class DaftarLaporanController extends Controller
                     'keterangan' => $request->keterangan,
                 ]);
             });
+
+            DB::commit();
 
             return response()->json([
                 'status' => 'success',
