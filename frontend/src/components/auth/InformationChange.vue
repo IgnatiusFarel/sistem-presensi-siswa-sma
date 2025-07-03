@@ -133,9 +133,7 @@
                       >
                         <n-input
                           type="textarea"
-                          v-model:value="
-                            formData[student.daftar_siswa_id].keterangan
-                          "
+                          v-model:value="formData[student.daftar_siswa_id].keterangan"
                           placeholder="Masukkan alasan perubahan data akun Anda..."
                           show-count
                           maxlength="300"
@@ -202,13 +200,12 @@ const message = useMessage();
 const students = ref([]);
 const formRef = reactive({});
 const expanded = ref(null);
+const formData = reactive({});
 
 const jenisPerubahanOptions = [
   { value: "Email", label: "Email" },
   { value: "Password", label: "Password" },
 ];
-
-const formData = reactive({});
 
 const rules = {
   jenis_perubahan: [
@@ -287,6 +284,7 @@ function handleBeforeUpload({ file }) {
   const isAllowedType = ["image/jpeg", "image/jpg", "image/png"].includes(
     file.type
   );
+  
   const isLimitSize = file.file.size / 1024 / 1024 < 2;
   if (!isAllowedType) {
     message.error("Tipe file tidak didukung!");
