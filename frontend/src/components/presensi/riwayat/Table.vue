@@ -158,17 +158,6 @@ export default defineComponent({
       Object.assign(currentSortState, sorter);
     };
 
-    // const fetchData = async () => {
-    //   loading.value = true;
-    //   try {
-    //     const response = await Api.get("/riwayat-presensi");
-    //     dataTable.value = response.data.data;
-    //   } catch (error) {
-    //     console.error(error);
-    //   } finally {
-    //     loading.value = false;
-    //   }
-    // };  
 
     const handleDetailSelected = () => {
       if (selectedRows.value.length === 1) {
@@ -190,11 +179,7 @@ export default defineComponent({
         loading.value = false;
       }, 100);
     });
-
-    // onMounted(() => {
-    //   fetchData();
-    // });
-
+    
     return {
       PhInfo,
       PhTrash,
