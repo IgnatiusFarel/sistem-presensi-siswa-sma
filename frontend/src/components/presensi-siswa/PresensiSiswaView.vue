@@ -45,7 +45,7 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { NTabs, NTabPane } from "naive-ui";
 import Presensi from "./presensi/PresensiSiswa.vue";
 import Riwayat from "./riwayat/RiwayatPresensiSiswa.vue";
-import Berita from "./berita/Berita.vue";
+import Berita from "./berita/BeritaView.vue";
 import Api from "@/services/Api.js";
 
 const activeTab = ref("presensi");
@@ -93,9 +93,9 @@ const fetchData = async () => {
   loading.value = true;
   try {
     const response = await Api.get("/presensi-siswa/hari-ini");
-    presensiAktif.value = response.data.data; // isi dari { jam_buka, jam_tutup, ... }
+    presensiAktif.value = response.data.data;
   } catch (error) {
-    presensiAktif.value = null; // kalau error (misalnya 404), kosongkan
+    presensiAktif.value = null;
   } finally {
     loading.value = false;
   }
