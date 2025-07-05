@@ -2,11 +2,12 @@
   <component
     :is="currentView"
     :loading="loading"
-    :data="dataTable"
+    :data="dataTable"    
     :detailData="detailData"
     :selectedRows="selectedRows"
     @back-to-table="showView('Table')"
     @refresh="fetchData"
+    @detail-data="showDetailData"
     @delete-data="confirmDelete"
   />
 
@@ -27,9 +28,11 @@ import { ref, shallowRef, onMounted } from "vue";
 import Table from "./Table.vue";
 import { useMessage } from "naive-ui";
 import Api from "@/services/Api.js";
+import DetailData from "./DetailData.vue";
 
-const views = { Table };
+const views = { Table, DetailData };
 const currentView = shallowRef(Table);
+const detailData = ref(null);
 const loading = ref(false);
 const dataTable = ref([]);
 const selectedRows = ref([]);
@@ -40,6 +43,22 @@ const message = useMessage();
 
 const showView = (viewName) => {
   currentView.value = views[viewName];
+};
+
+const showDetailData = async (data) => {
+  try {
+    loading.value = true;
+  
+    const response = await Api.get(`/riwayat-presensi/${data.presensi_id}`);
+        
+      detailData.value = response.data.data.daftar_siswa;
+      showView('DetailData');    
+  } catch (error) {
+    console.error('Error fetching detail:', error);
+    message.error('Data Detail Riwayat Gagal Diambil!');
+  } finally {
+    loading.value = false;
+  }
 };
 
 const confirmDelete = (idOrIds) => {
