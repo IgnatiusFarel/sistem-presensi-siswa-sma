@@ -128,7 +128,21 @@ export default defineComponent({
           return h(NImage, { src, width: 100 });
         },
       },
-      { title: "Kategori", key: "kategori", width: 100 },
+      {
+        title: "Kategori",
+        key: "kategori",
+        width: 100,
+        render(row) {
+          return h(
+            NTag,
+            {
+              type: "info",
+              size: "small",
+            },
+            { default: () => row.kategori }
+          );
+        },
+      },
       {
         title: "Diperbarui Pada",
         key: "updated_at",
