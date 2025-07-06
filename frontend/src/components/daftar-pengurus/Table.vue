@@ -63,13 +63,13 @@
 
 <script>
 import {
-  defineComponent,
-  reactive,
+  h,
   ref,
-  onMounted,
   watch,
   computed,
-  h,
+  reactive,
+  onMounted,
+  defineComponent,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { NTag, NInput, NIcon, NButton } from "naive-ui";
@@ -148,8 +148,15 @@ export default defineComponent({
             !row.akses_kelas ||
             !Array.isArray(row.akses_kelas) ||
             row.akses_kelas.length === 0
-          ) {
-            return "Tidak Mengampu Kelas";
+          ) {            
+            return h(
+              NTag,
+              {
+                type: "error",
+                size: "small",
+              },
+              { default: () => "Tidak Mengampu Kelas" }
+            );
           }
 
           return h(
