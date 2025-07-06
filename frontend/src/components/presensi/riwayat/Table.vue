@@ -24,20 +24,17 @@
       </n-button>
     </div>
 
-    <n-input
-      placeholder="Cari Data Riwayat Presensi..."
+    <n-date-picker
+      v-model:value="range"
+      type="daterange"
       class="!w-[258px]"
       clearable
-    >
-      <template #prefix>
-        <n-icon :component="PhMagnifyingGlass" class="text-gray-400" />
-      </template>
-    </n-input>
+    />
   </div>
 
   <n-data-table
     ref="tableRef"
-    :data="data"
+    :data="filteredData"
     :columns="columns"
     :loading="loading"
     :pagination="pagination"
@@ -49,8 +46,15 @@
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted } from "vue";
-import { NTag, NInput, NIcon, NButton } from "naive-ui";
+import {
+  defineComponent,
+  reactive,
+  ref,
+  onMounted,
+  computed,
+  watch,
+} from "vue";
+import { NTag, NInput, NIcon, NButton, NDatePicker } from "naive-ui";
 import { useRoute, useRouter } from "vue-router";
 import { PhMagnifyingGlass, PhTrash, PhInfo } from "@phosphor-icons/vue";
 
@@ -79,6 +83,7 @@ export default defineComponent({
     const currentSortState = reactive({});
     const route = useRoute();
     const router = useRouter();
+    const range = ref(null);
 
     const columns = reactive([
       {
@@ -158,6 +163,15 @@ export default defineComponent({
       Object.assign(currentSortState, sorter);
     };
 
+    const filteredData = computed(() => {
+      if (!range.value || range.value.length !== 2) return props.data;
+
+      const [start, end] = range.value; 
+      return props.data.filter((row) => {
+        const time = new Date(row.tanggal).getTime(); 
+        return time >= start && time <= end;
+      });
+    });
 
     const handleDetailSelected = () => {
       if (selectedRows.value.length === 1) {
@@ -174,12 +188,17 @@ export default defineComponent({
       }
     };
 
+    watch(range, () => {
+      selectedRows.value = [];
+      pagination.page = 1;
+    });
+
     onMounted(() => {
       setTimeout(() => {
         loading.value = false;
       }, 100);
     });
-    
+
     return {
       PhInfo,
       PhTrash,
@@ -187,8 +206,10 @@ export default defineComponent({
       columns,
       loading,
       tableRef,
+      range,
       dataTable,
       pagination,
+      filteredData,
       selectedRows,
       handleSorterChange,
       handleDeleteSelected,
