@@ -109,13 +109,15 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/', 'store');            
             Route::get('/hari-ini', [PresensiController::class, 'getPresensiAktif']);
         });
-            
+        
+        // 📁 Berita
+        Route::get('/berita', [DaftarBeritaController::class, 'index']);
+
         // 📁 Komentar Berita
         // Route::prefix('komentar')->controller(KomentarBeritaController::class)->group(function() {
         //     Route::get('/', 'index');
         //     Route::post('/', 'store');
         // });
-        Route::get('/berita', [DaftarBeritaController::class, 'index']);
         
     });
     

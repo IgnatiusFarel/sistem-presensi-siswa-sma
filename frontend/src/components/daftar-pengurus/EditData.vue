@@ -48,7 +48,8 @@
               :options="agamaOptions"
               placeholder="Pilih Jabatan..."
             />
-          </n-form-item>
+          </n-form-item>  
+
           <n-form-item label="NIP " path="nip">
             <n-input
               :allow-input="onlyAllowNumber"
@@ -56,6 +57,7 @@
               placeholder="Masukkan NIP..."
             />
           </n-form-item>
+
           <n-form-item label="Jabatan" path="jabatan">
             <n-select
               v-model:value="formData.jabatan"
@@ -63,6 +65,7 @@
               placeholder="Pilih Jabatan..."
             />
           </n-form-item>
+          
           <n-form-item label="Bidang Keahlian" path="bidang_keahlian">
             <n-input
               v-model:value="formData.bidang_keahlian"

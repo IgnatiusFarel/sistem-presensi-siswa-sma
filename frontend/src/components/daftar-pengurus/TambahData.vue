@@ -208,9 +208,9 @@
 <script setup>
 import { defineComponent, ref, watch, onMounted } from 'vue';
 import { PhCaretDoubleLeft, PhFileArrowUp } from '@phosphor-icons/vue';
+import { useMessage } from "naive-ui"
 import Api from "@/services/Api"; 
 import dayjs from 'dayjs';
-import { useMessage } from "naive-ui"
 
 const loading = ref(false)
 const formRef = ref(null)
@@ -427,12 +427,12 @@ const handleSave = async () => {
 
 const handleUpload = async ({ file }) => {
   const formData = new FormData()
-  formData.append('file', file.file ?? file) // pastikan ini benar
+  formData.append('file', file.file ?? file) 
 
   try {
     await Api.post('/daftar-pengurus/import', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data' // tambahkan ini
+        'Content-Type': 'multipart/form-data' 
       }
     })
     message.success('Import berhasil!')
