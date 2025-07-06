@@ -13,7 +13,7 @@ class RiwayatPresensiController extends Controller
     {
         try {
             $rekap = Presensi::orderBy('created_at', 'desc')
-                ->get()              
+                ->get()
                 ->map(function ($presensi) {
                     return [
                         'presensi_id' => $presensi->presensi_id,
@@ -41,58 +41,54 @@ class RiwayatPresensiController extends Controller
         }
     }
 
-   public function show($id)
-{
-    try {
-        // ambil sesi presensi + relasi siswa & kelas
-        $presensi = Presensi::with(['presensiSiswa.siswa.kelas'])
-            ->find($id);
+    public function show($id)
+    {
+        try {
+            $presensi = Presensi::with(['presensiSiswa.siswa.kelas'])
+                ->find($id);
 
-        if (!$presensi) {
+            if (!$presensi) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'ID riwayat presensi tidak ditemukan!',
+                ], 404);
+            }
+
+            $daftarSiswa = $presensi->presensiSiswa->map(fn($ps) => [
+                'nama' => $ps->siswa->nama,
+                'nomor_absen' => $ps->siswa->nomor_absen,
+                'kelas' => $ps->siswa->kelas->nama_kelas,
+                'jam_masuk' => $ps->waktu_presensi,
+                'status' => $ps->status,
+                'lokasi' => $ps->lokasi,
+                'jenis_kegiatan' => $ps->jenis_kegiatan ?? null,
+                'upload_bukti' => $ps->upload_bukti ?? null,
+                'keterangan' => $ps->keterangan ?? null,
+            ]);
+
+            $data = [
+                'presensi_id' => $presensi->presensi_id,
+                'tanggal' => $presensi->tanggal->format('Y-m-d'),
+                'jam_buka' => Carbon::parse($presensi->jam_buka)->format('H:i'),
+                'jam_tutup' => Carbon::parse($presensi->jam_tutup)->format('H:i'),
+                'daftar_siswa' => $daftarSiswa,
+            ];
+
             return response()->json([
-                'status'  => 'error',
-                'message' => 'ID riwayat presensi tidak ditemukan!',
-            ], 404);
+                'status' => 'success',
+                'message' => 'Data riwayat presensi berhasil ditampilkan!',
+                'data' => $data,
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Error fetching detail riwayat presensi: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data riwayat presensi gagal diambil!',
+            ], 500);
         }
-
-        // mapping daftar siswa persis seperti index() di PresensiSiswaController
-        $daftarSiswa = $presensi->presensiSiswa->map(fn ($ps) => [
-            'nama'            => $ps->siswa->nama,
-            'nomor_absen'     => $ps->siswa->nomor_absen,
-            'kelas'           => $ps->siswa->kelas->nama_kelas,
-            'jam_masuk'       => $ps->waktu_presensi,
-            'status'          => $ps->status,
-            'lokasi'          => $ps->lokasi,
-            'jenis_kegiatan'  => $ps->jenis_kegiatan ?? null,
-            'upload_bukti'    => $ps->upload_bukti ?? null,
-            'keterangan'      => $ps->keterangan ?? null,
-        ]);
-
-        // bangun struktur data yang sama seperti “presensi hari ini”
-        $data = [
-            'presensi_id' => $presensi->presensi_id,
-            'tanggal'     => $presensi->tanggal->format('Y-m-d'),
-            'jam_buka'    => Carbon::parse($presensi->jam_buka)->format('H:i'),
-            'jam_tutup'   => Carbon::parse($presensi->jam_tutup)->format('H:i'),
-            'daftar_siswa'=> $daftarSiswa,
-        ];
-
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Data riwayat presensi berhasil ditampilkan!',
-            'data'    => $data,
-        ], 200);
-
-    } catch (\Exception $e) {
-        \Log::error('Error fetching detail riwayat presensi: '.$e->getMessage());
-
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'Data riwayat presensi gagal diambil!',
-        ], 500);
     }
-}
-
 
     public function destroy($id)
     {

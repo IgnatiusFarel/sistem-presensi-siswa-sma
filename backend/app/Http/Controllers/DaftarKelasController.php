@@ -256,8 +256,8 @@ class DaftarKelasController extends Controller
         }
     }
 
-     public function import(Request $request)
-     {
+    public function import(Request $request)
+    {
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv'
         ]);
@@ -302,5 +302,4 @@ class DaftarKelasController extends Controller
             ], 500);
         }
     }
-
 }

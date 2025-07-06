@@ -25,14 +25,14 @@ class AIController extends Controller
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
         ])->post($url, [
-            'contents' => [
-                [
-                    'parts' => [
-                        ['text' => $prompt]
+                    'contents' => [
+                        [
+                            'parts' => [
+                                ['text' => $prompt]
+                            ]
+                        ]
                     ]
-                ]
-            ]
-        ]);
+                ]);
 
         if ($response->successful()) {
             $data = $response->json();

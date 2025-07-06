@@ -40,11 +40,11 @@ class AuthController extends Controller
             ], 401);
         }
 
-        if (! in_array($user->role, [User::ROLE_SUPERADMIN, User::ROLE_SISWA])) {
+        if (!in_array($user->role, [User::ROLE_SUPERADMIN, User::ROLE_SISWA])) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Anda tidak memiliki akses akun untuk login!'
-            ], 403); 
+            ], 403);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
