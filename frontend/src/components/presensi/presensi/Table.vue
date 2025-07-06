@@ -100,7 +100,7 @@ export default defineComponent({
       default: false,
     },
     selectedRows: {
-      type: Array, 
+      type: Array,
       default: () => [],
     },
   },
@@ -194,17 +194,27 @@ export default defineComponent({
         title: "Nama Lengkap",
         key: "nama",
         width: 200,
-        sorter: (a, b) => a.nama.localeCompare(b.nama),        
+        sorter: (a, b) => a.nama.localeCompare(b.nama),
       },
       { title: "Kelas", key: "kelas", width: 110 },
       { title: "No. Absen", key: "nomor_absen", width: 90 },
-      { title: "Jam Masuk", key: "jam_masuk", width: 100, render(row) {
-        return renderWithFallback(row.jam_buka)
-      }, },
+      {
+        title: "Jam Masuk",
+        key: "jam_masuk",
+        width: 100,
+        render(row) {
+          return renderWithFallback(row.jam_buka);
+        },
+      },
       statusColumn,
-      { title: "Lokasi", key: "lokasi", width: 120, render(row) {
+      {
+        title: "Lokasi",
+        key: "lokasi",
+        width: 120,
+        render(row) {
           return renderWithFallback(row.lokasi);
-        }, },
+        },
+      },
       {
         title: "Jenis Kegiatan",
         key: "jenis_kegiatan",
@@ -251,9 +261,14 @@ export default defineComponent({
           });
         },
       },
-      { title: "Keterangan", key: "keterangan", width: 300, render(row) {
+      {
+        title: "Keterangan",
+        key: "keterangan",
+        width: 300,
+        render(row) {
           return renderWithFallback(row.keterangan);
-        }, },
+        },
+      },
     ]);
 
     const pagination = reactive({
