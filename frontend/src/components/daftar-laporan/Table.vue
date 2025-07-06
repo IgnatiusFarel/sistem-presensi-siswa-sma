@@ -1,30 +1,16 @@
 <template>
   <h1 class="text-2xl text-[#232323] font-bold mb-4">Daftar Laporan</h1>
   <div class="flex justify-between items-center mb-4">
-    <div class="flex gap-2">
-      <n-button
-        type="primary"
-        class="transition-transform transform active:scale-95"
-        :disabled="selectedRows.length !== 1"
-        @click="handleEditSelected"
-      >
-        <template #icon>
-          <n-icon :component="PhCheck" :size="18" />
-        </template>
-        Approve
-      </n-button>
-
-      <n-button
-        class="!bg-[#F03E3E] hover:!bg-[#D12B2B] !w-[120px] !text-white transition-transform transform active:scale-95"
-        :disabled="selectedRows.length === 0"
-        @click="handleDeleteSelected"
-      >
-        <template #icon>
-          <n-icon :component="PhTrash" :size="18" />
-        </template>
-        Hapus
-      </n-button>
-    </div>
+    <n-button
+      class="!bg-[#F03E3E] hover:!bg-[#D12B2B] !w-[120px] !text-white transition-transform transform active:scale-95"
+      :disabled="selectedRows.length === 0"
+      @click="handleDeleteSelected"
+    >
+      <template #icon>
+        <n-icon :component="PhTrash" :size="18" />
+      </template>
+      Hapus
+    </n-button>
 
     <n-input
       v-model:value="searchKeyword"
@@ -44,17 +30,17 @@
     :columns="columns"
     :loading="loading"
     :pagination="pagination"
-      @refresh="fetchData"
+    @refresh="fetchData"
     v-model:checked-row-keys="selectedRows"
     :row-key="(row) => row.daftar_laporan_id"
   />
 </template>
 
 <script>
-import { onMounted, reactive, defineComponent, ref, h} from "vue";
+import { onMounted, reactive, defineComponent, ref, h } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { PhCheck, PhTrash, PhMagnifyingGlass } from "@phosphor-icons/vue";
-import { NImage } from 'naive-ui';
+import { NImage } from "naive-ui";
 
 export default defineComponent({
   name: "TableLaporan",
@@ -72,7 +58,7 @@ export default defineComponent({
       default: () => [],
     },
   },
-  setup(props, {emit}) {
+  setup(props, { emit }) {
     const loading = ref(false);
     const tableRef = ref(null);
     const searchKeyword = ref("");
@@ -87,7 +73,7 @@ export default defineComponent({
         title: "No",
         key: "created_at",
         width: 70,
-         sorter: (a, b) => new Date(b.created_at) - new Date(a.created_at),
+        sorter: (a, b) => new Date(b.created_at) - new Date(a.created_at),
         render(_, index) {
           return (pagination.page - 1) * pagination.pageSize + index + 1;
         },
@@ -111,7 +97,7 @@ export default defineComponent({
         render(row) {
           const src = `${baseUrl}/storage/${row.upload_bukti}`;
           return h(NImage, { src, width: 100 });
-        }
+        },
       },
       { title: "Keterangan", key: "keterangan", width: 250 },
     ]);
@@ -135,7 +121,6 @@ export default defineComponent({
       },
     });
 
-    
     const handleDeleteSelected = () => {
       if (selectedRows.value.length > 0) {
         emit("delete-data", selectedRows.value);
