@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use App\Models\DaftarSiswa;
-use App\Models\Presensi;
 use Carbon\Carbon;
+use App\Models\Presensi;
+use App\Models\DaftarSiswa;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PresensiController extends Controller
 {
@@ -33,8 +34,8 @@ class PresensiController extends Controller
                     ['status_dinamis' => $this->hitungStatusPresensi($presensi)]
                 ) : null,
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error getting presensi aktif: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            Log::error('Error getting presensi aktif: ' . $th->getMessage());
 
             return response()->json([
                 'status' => 'error',
@@ -85,8 +86,8 @@ class PresensiController extends Controller
                     'rekap' => $rekap
                 ]
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error getting rekap presensi: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            Log::error('Error getting rekap presensi: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Rekap presensi hari ini gagal diambil!',
@@ -135,8 +136,8 @@ class PresensiController extends Controller
                 'message' => 'Data presensi hari ini berhasil diambil!',
                 'data' => $data,
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching presensi data: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            Log::error('Error fetching presensi data: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data presensi hari ini gagal diambil!',
@@ -171,14 +172,14 @@ class PresensiController extends Controller
                 'message' => 'Presensi berhasil dibuat!',
                 'data' => $presensi,
             ], 201);
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Error creating presensi: ' . $e->getMessage());
+            Log::error('Error creating presensi: ' . $th->getMessage());
 
             return response()->json([
                 'status' => 'error',
                 'message' => 'Presensi gagal dibuat!',
-                'error' => $e->getMessage(),
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
