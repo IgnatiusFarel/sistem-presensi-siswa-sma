@@ -32,8 +32,8 @@ class RiwayatPresensiController extends Controller
                 'message' => 'Riwayat presensi berhasil diambil!',
                 'data' => $rekap,
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching riwayat presensi: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            \Log::error('Error fetching riwayat presensi: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Riwayat presensi gagal diambil!'
@@ -80,8 +80,8 @@ class RiwayatPresensiController extends Controller
                 'data' => $data,
             ], 200);
 
-        } catch (\Exception $e) {
-            \Log::error('Error fetching detail riwayat presensi: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            \Log::error('Error fetching detail riwayat presensi: ' . $th->getMessage());
 
             return response()->json([
                 'status' => 'error',
@@ -111,13 +111,13 @@ class RiwayatPresensiController extends Controller
                 'message' => 'Riwayat presensi berhasil dihapus!'
             ], 204);
 
-        } catch (\Exception $e) {
-            \Log::error('Error deleting riwayat presensi: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            \Log::error('Error deleting riwayat presensi: ' . $th->getMessage());
 
             return response()->json([
                 'status' => 'error',
                 'message' => 'Riwayat presensi gagal dihapus!',
-                'error' => $e->getMessage(),
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -143,12 +143,12 @@ class RiwayatPresensiController extends Controller
                 'message' => 'Beberapa riwayat presensi berhasil dihapus!'
             ], 204);
 
-        } catch (\Exception $e) {
-            \Log::error('Error deleting multiple riwayat presensi: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            \Log::error('Error deleting multiple riwayat presensi: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Riwayat presensi gagal dihapus!',
-                'error' => $e->getMessage(),
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
