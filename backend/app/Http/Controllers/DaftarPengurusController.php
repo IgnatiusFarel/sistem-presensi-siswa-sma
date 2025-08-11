@@ -29,7 +29,6 @@ class DaftarPengurusController extends Controller
                                 'nama_kelas' => $kelasList[$kelasId]->nama_kelas ?? 'Tidak ditemukan'
                             ];
                         })->values()
-
                 ];
             });
 
@@ -38,8 +37,8 @@ class DaftarPengurusController extends Controller
                 'message' => 'Data pengurus berhasil diambil!',
                 'data' => $pengurus,
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching data pengurus: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            \Log::error('Error fetching data pengurus: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data pengurus gagal diambil!'
@@ -126,12 +125,12 @@ class DaftarPengurusController extends Controller
                 'message' => 'Data pengurus berhasil ditambahkan!',
                 'data' => $pengurus
             ], 201);
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data pengurus gagal ditambahkan!',
-                'error' => $e->getMessage()
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -256,13 +255,13 @@ class DaftarPengurusController extends Controller
                 'data' => $pengurus->fresh()
             ], 201);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Gagal update pengurus: ' . $e->getMessage());
+            \Log::error('Gagal update pengurus: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data pengurus gagal diperbarui!',
-                'error' => $e->getMessage()
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -291,12 +290,12 @@ class DaftarPengurusController extends Controller
                 'status' => 'success',
                 'message' => 'Data pengurus berhasil dihapus!'
             ], 204);
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data pengurus gagal dihapus!',
-                'error' => $e->getMessage()
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -327,12 +326,12 @@ class DaftarPengurusController extends Controller
                 'status' => 'success',
                 'message' => 'Data pengurus berhasil dihapus!'
             ], 204);
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data pengurus gagal dihapus!',
-                'error' => $e->getMessage()
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -372,14 +371,14 @@ class DaftarPengurusController extends Controller
                 'success_count' => $successCount
             ], 200);
 
-        } catch (\Exception $e) {
-            \Log::error('Gagal import Excel: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
+        } catch (\Throwable $th) {
+            \Log::error('Gagal import Excel: ' . $th->getMessage());
+            \Log::error('Stack trace: ' . $th->getTraceAsString());
 
             return response()->json([
                 'status' => 'error',
                 'message' => 'Import daftar pengurus gagal!',
-                'error' => $e->getMessage()
+                'error' => $th->getMessage()
             ], 500);
         }
     }
