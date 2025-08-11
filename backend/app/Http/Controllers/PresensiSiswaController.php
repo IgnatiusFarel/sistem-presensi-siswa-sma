@@ -40,8 +40,8 @@ class PresensiSiswaController extends Controller
                 'message' => 'Data riwayat presensi berhasil diambil!',
                 'data' => $riwayat,
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching presensi data: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            \Log::error('Error fetching presensi data: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data riwayat presensi gagal diambil!',
@@ -76,8 +76,8 @@ class PresensiSiswaController extends Controller
                     'rekap' => $rekap
                 ],
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error getting rekap presensi siswa: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            \Log::error('Error getting rekap presensi siswa: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Rekap presensi harian gagal diambil!',
@@ -99,8 +99,8 @@ class PresensiSiswaController extends Controller
                 'message' => 'Status presensi siswa berhasil diambil!',
                 'data' => $sudahPresensi
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error getting status presensi siswa: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            \Log::error('Error getting status presensi siswa: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Status presensi siswa gagal diambil!',
@@ -193,14 +193,14 @@ class PresensiSiswaController extends Controller
                     'keterangan' => $ps->keterangan,
                 ],
             ], 201);
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Error creating presensi siswa: ' . $e->getMessage());
+            \Log::error('Error creating presensi siswa: ' . $th->getMessage());
 
             return response()->json([
                 'status' => 'error',
                 'message' => 'Presensi gagal disimpan!',
-                'error' => $e->getMessage(),
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
