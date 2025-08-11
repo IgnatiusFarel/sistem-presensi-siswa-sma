@@ -18,7 +18,7 @@ trait HasLocationResolver
             if ($response->successful()) {
                 return $response->json('display_name') ?? null;
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             \Log::warning("Gagal ambil lokasi dari koordinat: " . $e->getMessage());
         }
 
