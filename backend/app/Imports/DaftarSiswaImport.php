@@ -45,8 +45,8 @@ class DaftarSiswaImport implements ToCollection, WithHeadingRow
                     }
                     
                     \Log::info("Tanggal berhasil dikonversi: " . $row['tanggal_bergabung']);
-                } catch (\Exception $e) {
-                    \Log::error("Format tanggal salah pada baris " . ($index + 1) . ": " . $e->getMessage());
+                } catch (\Throwable $th) {
+                    \Log::error("Format tanggal salah pada baris " . ($index + 1) . ": " . $th->getMessage());
                     $this->errors[] = "Baris " . ($index + 1) . ": Format tanggal salah";
                     $this->errorCount++;
                     continue;
@@ -146,9 +146,9 @@ class DaftarSiswaImport implements ToCollection, WithHeadingRow
                     \Log::info('Berhasil import siswa: ' . $data['nama'] . ' dengan ID: ' . $siswa->daftar_siswa_id);
                     $this->successCount++;
                 });
-            } catch (\Exception $e) {
-                \Log::error("Gagal import baris " . ($index + 1) . ": {$data['nama']} | Error: {$e->getMessage()}");
-                $this->errors[] = "Baris " . ($index + 1) . " ({$data['nama']}): " . $e->getMessage();
+            } catch (\Throwable $th) {
+                \Log::error("Gagal import baris " . ($index + 1) . ": {$data['nama']} | Error: {$th->getMessage()}");
+                $this->errors[] = "Baris " . ($index + 1) . " ({$data['nama']}): " . $th->getMessage();
                 $this->errorCount++;
             }
         }
