@@ -34,23 +34,24 @@ Route::middleware('auth:sanctum')->group(function () {
         // 📁 Daftar Siswa
         Route::prefix('daftar-siswa')->controller(DaftarSiswaController::class)->group(function () {
             Route::get('/', 'index');
-            Route::get('{id}', 'show');
+            Route::get('/export', 'export');      
             Route::post('/', 'store');
             Route::post('/import','import');
             Route::patch('{id}', 'update');
             Route::delete('{id}', 'destroy');
-            Route::delete('/', 'destroyMultiple');            
+            Route::delete('/', 'destroyMultiple');      
+            Route::get('{id}', 'show');
         });
 
         // 📁 Daftar Pengurus
         Route::prefix('daftar-pengurus')->controller(DaftarPengurusController::class)->group(function () {
             Route::get('/', 'index');
-            Route::get('{id}', 'show');
             Route::post('/', 'store');
             Route::post('/import','import');
             Route::patch('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::delete('/', 'destroyMultiple');
+            Route::get('{id}', 'show');
         });
 
         // 📁 Daftar Kelas
