@@ -41,7 +41,7 @@ class DaftarPengurusImport implements ToCollection, WithHeadingRow
                         $row['tanggal_bergabung'] = Carbon::createFromFormat('d/m/Y', $value)->format('Y-m-d');
                     }
                     \Log::info("Tanggal bergabung berhasil dikonversi: " . $row['tanggal_bergabung']);
-                } catch (\Exception $e) {
+                } catch (\Throwable $th) {
                     \Log::error("Format tanggal salah di baris " . ($index + 1) . ": " . $e->getMessage());
                     $this->errors[] = "Baris " . ($index + 1) . ": Format tanggal salah";
                     $this->errorCount++;
@@ -130,7 +130,7 @@ class DaftarPengurusImport implements ToCollection, WithHeadingRow
                     \Log::info("Pengurus berhasil diimport: {$data['nama']}");
                     $this->successCount++;
                 });
-            } catch (\Exception $e) {
+            } catch (\Throwable $th) {
                 \Log::error("Gagal import baris " . ($index + 1) . ": {$data['nama']} | " . $e->getMessage());
                 $this->errors[] = "Baris " . ($index + 1) . " ({$data['nama']}): " . $e->getMessage();
                 $this->errorCount++;
