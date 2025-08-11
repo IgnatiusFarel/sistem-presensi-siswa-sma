@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use App\Models\DaftarBerita;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class DaftarBeritaController extends Controller
 {
@@ -23,12 +24,12 @@ class DaftarBeritaController extends Controller
                 'message' => 'Data berita berhasil diambil!',
                 'data' => $berita,
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching berita: ' . $e->getMessage());
-
+        } catch (\Throwable $th) {
+            Log::error('Error fetching data berita: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal mengambil data berita!',
+                'message' => 'Data berita gagal diambil!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -54,17 +55,16 @@ class DaftarBeritaController extends Controller
 
         try {
             $berita = DB::transaction(function () use ($request) {
-                // simpan ke storage/app/public/thumbnail
                 $path = $request->hasFile('thumbnail')
                     ? $request->file('thumbnail')->store('thumbnail', 'public')
-                    : null;                        // path = 'thumbnail/namafile.ext'
+                    : null;
 
                 return DaftarBerita::create([
                     'slug' => Str::slug($request->judul) . '-' . Str::random(6),
                     'judul' => $request->judul,
                     'konten' => $request->konten,
                     'kategori' => $request->kategori,
-                    'thumbnail' => $path,      // ⬅️ tanpa awalan "storage/"
+                    'thumbnail' => $path,
                     'user_id' => $request->user_id,
                     'dibuat_oleh' => $request->dibuat_oleh,
                 ]);
@@ -75,31 +75,41 @@ class DaftarBeritaController extends Controller
                 'message' => 'Data berita berhasil ditambahkan!',
                 'data' => $berita,
             ], 201);
-        } catch (\Exception $e) {
-            \Log::error('Error storing berita: ' . $e->getMessage());
-
+        } catch (\Throwable $th) {
+            Log::error('Error creating data berita: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menyimpan berita!',
+                'message' => 'Data berita gagal ditambahkan!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
 
     public function show($id)
     {
-        $berita = DaftarBerita::with(['user', 'komentar.user'])->find($id);
+        try {
+            $berita = DaftarBerita::with(['user', 'komentar.user'])->find($id);
 
-        if (!$berita) {
+            if (!$berita) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Data berita tidak ditemukan!',
+                ], 404);
+            }
+
             return response()->json([
-                'status' => 'error',
-                'message' => 'Data berita tidak ditemukan!',
-            ], 404);
+                'status' => 'success',
+                'message' => 'Data berita berhasil ditampilkan!',
+                'data' => $berita,
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::error('Error fetching detail data berita: ' . $th->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Data berita gagal ditampilkan!',
+                'error' => $th->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $berita,
-        ], 200);
     }
 
     public function update(Request $request, $id)
@@ -118,13 +128,11 @@ class DaftarBeritaController extends Controller
 
         try {
             $updated = DB::transaction(function () use ($request, $berita, $data) {
-                // hapus jika flag remove dikirim
                 if (!empty($data['remove_thumbnail']) && $berita->thumbnail) {
                     Storage::disk('public')->delete($berita->thumbnail);
                     $berita->thumbnail = null;
                 }
 
-                // file baru
                 if ($request->hasFile('thumbnail')) {
                     if ($berita->thumbnail) {
                         Storage::disk('public')->delete($berita->thumbnail);
@@ -133,12 +141,10 @@ class DaftarBeritaController extends Controller
                         ->store('thumbnail', 'public');
                 }
 
-                // slug hanya jika judul berubah
                 if ($request->judul !== $berita->judul) {
                     $berita->slug = Str::slug($request->judul) . '-' . Str::random(6);
                 }
 
-                // isi field lain
                 $berita->fill([
                     'judul' => $data['judul'],
                     'konten' => $data['konten'],
@@ -156,19 +162,20 @@ class DaftarBeritaController extends Controller
                 'message' => 'Data berita berhasil diperbarui!',
                 'data' => $updated,
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error updating berita: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            Log::error('Error updating data berita: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memperbarui berita!',
+                'message' => 'Data berita gagal diperbarui!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
 
-
     public function destroy($id)
     {
         $berita = DaftarBerita::find($id);
+
         if (!$berita) {
             return response()->json([
                 'status' => 'error',
@@ -178,7 +185,6 @@ class DaftarBeritaController extends Controller
 
         try {
             DB::transaction(function () use ($berita) {
-                // hapus file thumbnail
                 if ($berita->thumbnail && Storage::disk('public')->exists($berita->thumbnail)) {
                     Storage::disk('public')->delete($berita->thumbnail);
                 }
@@ -188,11 +194,13 @@ class DaftarBeritaController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data berita berhasil dihapus!',
-            ], 204);
-        } catch (\Exception $e) {
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::error('Error deleting data berita: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menghapus berita!',
+                'message' => 'Data berita gagal dihapus!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -203,7 +211,7 @@ class DaftarBeritaController extends Controller
         if (!is_array($ids) || empty($ids)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'ID tidak valid!',
+                'message' => 'ID data berita tidak valid!',
             ], 400);
         }
 
@@ -222,11 +230,13 @@ class DaftarBeritaController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data berita berhasil dihapus!',
-            ], 204);
-        } catch (\Exception $e) {
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::error('Error deleting multiple data berita: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal menghapus data!',
+                'message' => 'Data berita gagal dihapus!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
