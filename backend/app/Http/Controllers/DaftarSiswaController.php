@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\DaftarSiswaImport;
+use App\Models\User;
 use App\Models\DaftarSiswa;
 use App\Models\DaftarKelas;
-use App\Models\User;
+use App\Imports\DaftarSiswaImport;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class DaftarSiswaController extends Controller
 {
@@ -27,11 +32,12 @@ class DaftarSiswaController extends Controller
                 'message' => 'Data siswa berhasil diambil!',
                 'data' => $siswa,
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching data kelas: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            Log::error('Error fetching data kelas: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data siswa gagal diambil!'
+                'message' => 'Data siswa gagal diambil!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -95,32 +101,42 @@ class DaftarSiswaController extends Controller
                 'message' => 'Data siswa berhasil ditambahkan!',
                 'data' => $siswa
             ], 201);
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
+            Log::error('Error creating data berita: ' . $th->getMessage());
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data siswa gagal ditambahkan!',
-                'error' => $e->getMessage()
+                'error' => $th->getMessage()
             ], 500);
         }
     }
 
     public function show($id)
     {
-        $siswa = DaftarSiswa::with('user')->find($id);
+        try {
+            $siswa = DaftarSiswa::with('user')->find($id);
 
-        if (!$siswa) {
+            if (!$siswa) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Data siswa tidak ditemukan!'
+                ], 404);
+            }
+
             return response()->json([
-                'status' => 'error',
-                'message' => 'Data siswa tidak ditemukan!'
-            ], 404);
+                'status' => 'success',
+                'message' => 'Data siswa berhasil ditampilkan!',
+                'data' => $siswa
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::error('Error fetching detail data siswa: ' . $th->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Data siswa gagal ditampilkan!',
+                'error' => $th->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data siswa berhasil ditampilkan!',
-            'data' => $siswa
-        ], 200);
     }
 
     public function update(Request $request, $id)
@@ -195,13 +211,13 @@ class DaftarSiswaController extends Controller
                 'message' => 'Data siswa berhasil diperbarui!',
                 'data' => $siswa
             ], 201);
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Error updating data siswa: ' . $e->getMessage());
+            Log::error('Error updating data siswa: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data siswa gagal diperbarui!',
-                'error' => $e->getMessage()
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -230,12 +246,13 @@ class DaftarSiswaController extends Controller
                 'status' => 'success',
                 'message' => 'Data siswa berhasil dihapus!'
             ], 204);
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error('Error deleting data siswa: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data siswa gagal dihapus!',
-                'error' => $e->getMessage()
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -247,7 +264,7 @@ class DaftarSiswaController extends Controller
         if (!is_array($ids) || empty($ids)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data ID siswa tidak ada!'
+                'message' => 'ID data siswa tidak valid!'
             ], 400);
         }
 
@@ -266,13 +283,14 @@ class DaftarSiswaController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data siswa berhasil dihapus!'
-            ], 204);
-        } catch (\Exception $e) {
+            ], 200);
+        } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error('Error deleting multiple data berita: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data siswa gagal dihapus!',
-                'error' => $e->getMessage()
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -285,7 +303,7 @@ class DaftarSiswaController extends Controller
 
         try {
             $path = $request->file('file')->getRealPath();
-            \Log::info('Import dimulai dari file: ' . $path);
+            Log::info('Import dimulai dari file: ' . $path);
 
             $import = new DaftarSiswaImport;
             Excel::import($import, $request->file('file'));
@@ -295,7 +313,7 @@ class DaftarSiswaController extends Controller
             $errors = $import->getErrors();
 
             if ($errorCount > 0) {
-                \Log::warning("Import selesai dengan error. Berhasil: {$successCount}, Gagal: {$errorCount}");
+                Log::warning("Import selesai dengan error. Berhasil: {$successCount}, Gagal: {$errorCount}");
 
                 return response()->json([
                     'status' => 'warning',
@@ -312,15 +330,72 @@ class DaftarSiswaController extends Controller
                 'success_count' => $successCount
             ], 200);
 
-        } catch (\Exception $e) {
-            \Log::error('Gagal import Excel: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
+        } catch (\Throwable $th) {
+            Log::error('Gagal import Excel: ' . $th->getMessage());
+            Log::error('Stack trace: ' . $th->getTraceAsString());
 
             return response()->json([
                 'status' => 'error',
                 'message' => 'Import daftar siswa gagal!',
-                'error' => $e->getMessage()
+                'error' => $th->getMessage()
             ], 500);
+        }
+    }
+
+    public function export(Request $request): BinaryFileResponse
+    {
+        try {
+            $columns = [
+                'nama',
+                'jenis_kelamin',
+                'agama',
+                'nis',
+                'nisn',
+                'email',
+                'nomor_handphone',
+                'tempat_tanggal_lahir',
+                'alamat',
+                'daftar_kelas_id',
+                'nama_kelas',
+                'nomor_absen',
+                'tanggal_bergabung',
+                'password',
+            ];
+
+            $dummyData = [
+                ['Nama Siswa 1', 'Laki-laki', 'Islam', '1001', '202301001', 'namasiswa1@example.com', '081234567890', 'Jakarta, 01 Januari 2001', 'Jl. Merdeka No. 10, Jakarta', 'kelas-uuid-001', 'Kelas XA', '1', '2023/07/15', '"12345678"'],
+                ['Nama Siswa 2', 'Perempuan', 'Kristen', '1002', '202301002', 'namasiswa2@example.com', '081234567891', 'Bandung, 05 Februari 2011', 'Jl. Sudirman No. 20, Bandung', 'kelas-uuid-002', 'Kelas 8B', '2', '2023/07/16', '"12345678"']
+            ];
+
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->fromArray($columns, null, 'A1');
+            $sheet->fromArray($dummyData, null, 'A2');
+
+            $fileName = 'template_import_daftar_siswa.xlsx';
+            
+            $tempFile = tempnam(sys_get_temp_dir(), 'excel_export_');
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($tempFile);
+            
+            return response()->download($tempFile, $fileName, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
+
+        } catch (\Throwable $th) {
+            Log::error('Error download template import data siswa: ' . $th->getMessage());
+            
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setCellValue('A1', 'Gagal membuat template');
+
+            $tempFile = tempnam(sys_get_temp_dir(), 'excel_error_');
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($tempFile);
+
+            return response()->download($tempFile, 'error_template.xlsx', [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
         }
     }
 }
