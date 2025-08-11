@@ -70,7 +70,7 @@ class DaftarKelasImport implements ToCollection, WithHeadingRow
                     Log::info("Kelas berhasil diimport: {$data['kode_kelas']}");
                     $this->successCount++;
                 });
-            } catch (\Exception $e) {
+            } catch (\Throwable $th) {
                 Log::error("Gagal import baris " . ($index + 1) . ": " . $e->getMessage());
                 $this->errors[] = "Baris " . ($index + 1) . " ({$data['kode_kelas']}): " . $e->getMessage();
                 $this->errorCount++;
