@@ -125,6 +125,7 @@ export default defineComponent({
         width: 100,
         render(row) {
           const src = `${baseUrl}/storage/${row.thumbnail}`;
+           console.log('Thumbnail URL:', src);
           return h(NImage, { src, width: 100 });
         },
       },

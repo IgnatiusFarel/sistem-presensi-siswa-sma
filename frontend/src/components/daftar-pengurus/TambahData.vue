@@ -182,11 +182,11 @@
           list-type="text"
         >
           <n-upload-dragger class="!p-6 hover:!bg-gray-50">
-            <div class="py-8 text-center">
-              <n-icon
-                :component="PhFileArrowUp"
-                :size="48"
-                class="text-gray-400 mb-2"
+          <div class="py-6 flex flex-col items-center justify-center">
+              <img
+                src="@/assets/excel.svg"
+                alt="Excel Icon"
+                class="w-12 h-12"
               />
               <p class="text-gray-600">
                 Drag file ke sini atau
@@ -200,6 +200,26 @@
             </div>
           </n-upload-dragger>
         </n-upload>
+         <div class="border-2 border-[#f0f2f2] rounded-[8px] p-4">
+          <img src="@/assets/excel.svg" alt="Excel Icon" class="w-6 mb-2" />
+          <p class="font-extrabold">Template</p>
+          <p class="mb-3">
+            Download template untuk memudahkan melakukan import dokumen data pengurus.
+          </p>
+          <n-button
+            class="shadow-md hover:shadow-lg transition-shadow duration-200"
+            ghost
+          >
+            <div class="flex items-center gap-2">
+              <n-icon
+                :component="PhFileArrowDown"
+                :size="18"
+                class="text-gray-400"
+              />
+              <span class="font-bold">Download</span>
+            </div>
+          </n-button>
+        </div>
       </div>
     </div>
   </div>
@@ -207,7 +227,7 @@
 
 <script setup>
 import { defineComponent, ref, watch, onMounted } from 'vue';
-import { PhCaretDoubleLeft, PhFileArrowUp } from '@phosphor-icons/vue';
+import { PhCaretDoubleLeft, PhFileArrowDown  } from '@phosphor-icons/vue';
 import { useMessage } from "naive-ui"
 import Api from "@/services/Api"; 
 import dayjs from 'dayjs';
@@ -436,7 +456,7 @@ const handleUpload = async ({ file }) => {
       }
     })
     message.success('Import berhasil!')
-    emit('refresh') // refresh data
+    emit('refresh') 
   } catch (err) {
     console.error(err)
     if (err.response?.data?.errors?.file) {

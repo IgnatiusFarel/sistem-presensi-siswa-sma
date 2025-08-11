@@ -163,7 +163,7 @@
         <template v-else>
           <div class="flex flex-col items-center justify-center py-12">
             <div class="w-32 h-32 mb-4">
-              <img src="@/assets/notfound.svg" alt="Ilustrasi" />
+              <img src="@/assets/notfound.svg" alt="Not Found Icon" />
             </div>
             <p class="text-gray-500">Tidak Ada Nama Lengkap Tersebut!</p>
           </div>
