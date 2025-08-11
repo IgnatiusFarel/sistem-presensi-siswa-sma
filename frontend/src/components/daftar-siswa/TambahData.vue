@@ -162,22 +162,22 @@
       <div class="space-y-4">
         <h3 class="font-medium text-gray-700">Import dari Dokumen</h3>
         <n-upload
-         :custom-request="handleUpload"        
+          :custom-request="handleUpload"
           :max="1"
           directory-dnd
           accept=".csv,.xls,.xlsx"
           class="w-full"
-           :default-file-list="fileList"
+          :default-file-list="fileList"
           list-type="text"
         >
           <n-upload-dragger
             class="border-2 border-dashed border-[#9ca3af] rounded-md transition-all duration-300 p-6 hover:bg-gray-50"
           >
-            <div class="py-8 text-center">
-              <n-icon
-                :component="PhFileArrowUp"
-                :size="48"
-                class="text-gray-400 mb-2"
+            <div class="py-6 flex flex-col items-center justify-center">
+              <img
+                src="@/assets/excel.svg"
+                alt="Excel Icon"
+                class="w-12 h-12"
               />
               <p class="text-gray-600">
                 Drag file ke sini atau
@@ -191,6 +191,28 @@
             </div>
           </n-upload-dragger>
         </n-upload>
+        <div class="border-2 border-[#f0f2f2] rounded-[8px] p-4">
+          <img src="@/assets/excel.svg" alt="Excel Icon" class="w-6 mb-2" />
+          <p class="font-extrabold">Template</p>
+          <p class="mb-3">
+            Download template untuk memudahkan melakukan import dokumen data
+            siswa.
+          </p>
+          <n-button
+            class="shadow-md hover:shadow-lg transition-shadow duration-200"
+            ghost
+             @click="handleDownload"
+          >
+            <div class="flex items-center gap-2">
+              <n-icon
+                :component="PhFileArrowDown"
+                :size="18"
+                class="text-gray-400"
+              />
+              <span class="font-bold">Download</span>
+            </div>
+          </n-button>
+        </div>
       </div>
     </div>
   </div>
@@ -198,17 +220,18 @@
 
 <script setup>
 import { defineComponent, onMounted, ref, watch } from "vue";
-import { PhCaretDoubleLeft, PhFileArrowUp } from "@phosphor-icons/vue";
-import { useMessage } from "naive-ui"
+import { PhCaretDoubleLeft, PhFileArrowDown } from "@phosphor-icons/vue";
+import { useMessage } from "naive-ui";
 import Api from "@/services/Api";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
+import { saveAs } from "file-saver";
 
 const loading = ref(false);
 const formRef = ref(null);
 const message = useMessage();
 const kelasOptions = ref([]);
 const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
-const emit = defineEmits(['back-to-table', 'refresh']);
+const emit = defineEmits(["back-to-table", "refresh"]);
 
 const rules = {
   nama: [
@@ -369,7 +392,9 @@ const handleSave = async () => {
   try {
     const payload = {
       ...formData.value,
-      tanggal_bergabung: dayjs(formData.value.tanggal_bergabung).format('YYYY-MM-DD'),
+      tanggal_bergabung: dayjs(formData.value.tanggal_bergabung).format(
+        "YYYY-MM-DD"
+      ),
     };
     await Api.post("/daftar-siswa", payload);
     message.success("Data siswa berhasil ditambahkan!");
@@ -383,27 +408,61 @@ const handleSave = async () => {
 };
 
 const handleUpload = async ({ file }) => {
-  const formData = new FormData()
-  formData.append('file', file.file ?? file) // pastikan ini benar
+  const formData = new FormData();
+  formData.append("file", file.file ?? file);
 
   try {
-    await Api.post('/daftar-siswa/import', formData, {
+    await Api.post("/daftar-siswa/import", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data' // tambahkan ini
-      }
-    })
-    message.success('Import berhasil!')
-    emit('refresh') // refresh data
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    message.success("Import berhasil!");
+    emit("refresh");
   } catch (err) {
-    console.error(err)
+    console.error(err);
     if (err.response?.data?.errors?.file) {
-      message.error(err.response.data.errors.file[0])
+      message.error(err.response.data.errors.file[0]);
     } else {
-      message.error('Gagal import!')
+      message.error("Gagal import!");
     }
   }
-}
+};
 
+// Versi yang sudah diperbaiki
+const handleDownload = async () => {
+  loading.value = true;
+  
+  try {
+    const response = await Api.get("/daftar-siswa/export", {
+      responseType: "blob"
+    });
+
+    // Extract filename dari headers
+    let filename = "template_import_daftar_siswa.xlsx";
+    const disposition = response.headers["content-disposition"];
+    
+    if (disposition) {
+      const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match?.[1]) {
+        filename = decodeURIComponent(match[1].replace(/['"]/g, ""));
+      }
+    }
+
+    // Download file
+    const blob = new Blob([response.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+    
+    saveAs(blob, filename);
+    
+  } catch (error) {
+    console.error("Download error:", error);
+    message.error("Template Import Dokumen Tidak Dapat Diunduh!");
+  } finally {
+    loading.value = false;
+  }
+};
 const fetchDataKelas = async () => {
   loading.value = true;
   try {
@@ -423,10 +482,10 @@ watch(
     formData.value.nama_kelas = found ? found.nama_kelas : "";
   }
 );
+
 onMounted(() => {
   fetchDataKelas();
 });
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

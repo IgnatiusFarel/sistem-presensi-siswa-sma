@@ -100,6 +100,9 @@ export default defineComponent({
         title: 'Jam Masuk',
         key: 'jam_masuk',
         width: 100, 
+        render(row) {
+          return row.jam_masuk || "-";
+        },
       },
       statusColumn,
     ]);
