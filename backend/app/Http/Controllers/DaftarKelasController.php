@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\DaftarKelasImport;
-use App\Models\DaftarPengurus;
 use App\Models\DaftarKelas;
+use App\Models\DaftarPengurus;
+use App\Imports\DaftarKelasImport;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Validator;
 
 class DaftarKelasController extends Controller
 {
@@ -28,11 +29,12 @@ class DaftarKelasController extends Controller
                 'message' => 'Data kelas berhasil diambil!',
                 'data' => $kelas,
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching data kelas: ' . $e->getMessage());
+        } catch (\Throwable $th) {
+            Log::error('Error fetching data kelas: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data kelas gagal diambil!'
+                'message' => 'Data kelas gagal diambil!',
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -90,13 +92,13 @@ class DaftarKelasController extends Controller
                 'data' => $kelas->load('waliKelas'),
             ], 201);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Error creating kelas: ' . $e->getMessage());
+            Log::error('Error creating kelas: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data kelas gagal ditambahkan!',
-                'error' => $e->getMessage(),
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -180,13 +182,13 @@ class DaftarKelasController extends Controller
                 'data' => $kelas->fresh()->load('waliKelas'),
             ], 200);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Error updating kelas: ' . $e->getMessage());
+            Log::error('Error updating kelas: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data kelas gagal diperbarui!',
-                'error' => $e->getMessage(),
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -212,13 +214,13 @@ class DaftarKelasController extends Controller
                 'message' => 'Data kelas berhasil dihapus!'
             ], 204);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Error deleting kelas: ' . $e->getMessage());
+            Log::error('Error deleting kelas: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data kelas gagal dihapus!',
-                'error' => $e->getMessage(),
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -245,13 +247,13 @@ class DaftarKelasController extends Controller
                 'status' => 'success',
                 'message' => 'Data kelas berhasil dihapus!'
             ], 204);
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Error deleting kelas: ' . $e->getMessage());
+            Log::error('Error deleting kelas: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data kelas gagal dihapus!',
-                'error' => $e->getMessage(),
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -264,7 +266,7 @@ class DaftarKelasController extends Controller
 
         try {
             $path = $request->file('file')->getRealPath();
-            \Log::info('Import dimulai dari file: ' . $path);
+            Log::info('Import dimulai dari file: ' . $path);
 
             $import = new DaftarKelasImport;
             Excel::import($import, $request->file('file'));
@@ -274,7 +276,7 @@ class DaftarKelasController extends Controller
             $errors = $import->getErrors();
 
             if ($errorCount > 0) {
-                \Log::warning("Import selesai dengan error. Berhasil: {$successCount}, Gagal: {$errorCount}");
+                Log::warning("Import selesai dengan error. Berhasil: {$successCount}, Gagal: {$errorCount}");
 
                 return response()->json([
                     'status' => 'warning',
@@ -291,14 +293,14 @@ class DaftarKelasController extends Controller
                 'success_count' => $successCount
             ]);
 
-        } catch (\Exception $e) {
-            \Log::error('Gagal import Excel: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
+        } catch (\Throwable $th) {
+            Log::error('Gagal import Excel: ' . $th->getMessage());
+            Log::error('Stack trace: ' . $th->getTraceAsString());
 
             return response()->json([
                 'status' => 'error',
                 'message' => 'Import daftar pengurus gagal!',
-                'error' => $e->getMessage()
+                'error' => $th->getMessage()
             ], 500);
         }
     }
