@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\DaftarPengurusImport;
-use App\Models\DaftarPengurus;
-use App\Models\DaftarKelas;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Models\DaftarKelas;
+use App\Models\DaftarPengurus;
+use App\Imports\DaftarPengurusImport;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DaftarPengurusController extends Controller
 {
@@ -38,7 +42,7 @@ class DaftarPengurusController extends Controller
                 'data' => $pengurus,
             ], 200);
         } catch (\Throwable $th) {
-            \Log::error('Error fetching data pengurus: ' . $th->getMessage());
+            Log::error('Error fetching data pengurus: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data pengurus gagal diambil!'
@@ -127,6 +131,7 @@ class DaftarPengurusController extends Controller
             ], 201);
         } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error('Error creating data berita: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data pengurus gagal ditambahkan!',
@@ -137,19 +142,29 @@ class DaftarPengurusController extends Controller
 
     public function show($id)
     {
-        $pengurus = DaftarPengurus::with('user')->find($id);
+        try {
+            $pengurus = DaftarPengurus::with('user')->find($id);
 
-        if (!$pengurus) {
+            if (!$pengurus) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Data pengurus tidak ditemukan!'
+                ], 404);
+            }
+
             return response()->json([
-                'status' => 'error',
-                'message' => 'Data pengurus tidak ditemukan!'
-            ], 404);
+                'status' => 'success',
+                'message' => 'Data pengurus berhasil ditampilkan!',
+                'data' => $pengurus
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::error('Error fetching detail data pengurus: ' . $th->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Data pengurus gagal ditampilkan!',
+                'error' => $th->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $pengurus
-        ], 200);
     }
 
     public function update(Request $request, $id)
@@ -257,7 +272,7 @@ class DaftarPengurusController extends Controller
 
         } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Gagal update pengurus: ' . $th->getMessage());
+            Log::error('Error updating data berita: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data pengurus gagal diperbarui!',
@@ -289,9 +304,10 @@ class DaftarPengurusController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data pengurus berhasil dihapus!'
-            ], 204);
+            ], 200);
         } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error('Error deleting data pengurus: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data pengurus gagal dihapus!',
@@ -325,9 +341,10 @@ class DaftarPengurusController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data pengurus berhasil dihapus!'
-            ], 204);
+            ], 200);
         } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error('Error deleting multiple data berita: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data pengurus gagal dihapus!',
@@ -344,7 +361,7 @@ class DaftarPengurusController extends Controller
 
         try {
             $path = $request->file('file')->getRealPath();
-            \Log::info('Import dimulai dari file: ' . $path);
+            Log::info('Import dimulai dari file: ' . $path);
 
             $import = new DaftarPengurusImport;
             Excel::import($import, $request->file('file'));
@@ -354,7 +371,7 @@ class DaftarPengurusController extends Controller
             $errors = $import->getErrors();
 
             if ($errorCount > 0) {
-                \Log::warning("Import selesai dengan error. Berhasil: {$successCount}, Gagal: {$errorCount}");
+                Log::warning("Import selesai dengan error. Berhasil: {$successCount}, Gagal: {$errorCount}");
 
                 return response()->json([
                     'status' => 'warning',
@@ -370,11 +387,9 @@ class DaftarPengurusController extends Controller
                 'message' => "Import daftar pengurus berhasil! Total: {$successCount} data",
                 'success_count' => $successCount
             ], 200);
-
         } catch (\Throwable $th) {
-            \Log::error('Gagal import Excel: ' . $th->getMessage());
-            \Log::error('Stack trace: ' . $th->getTraceAsString());
-
+            Log::error('Gagal import Excel: ' . $th->getMessage());
+            Log::error('Stack trace: ' . $th->getTraceAsString());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Import daftar pengurus gagal!',
@@ -383,4 +398,82 @@ class DaftarPengurusController extends Controller
         }
     }
 
+ public function export(Request $request): BinaryFileResponse
+{
+    try {
+        // Ambil semua pilihan enum dari model
+        $jabatanList = DaftarPengurus::getAllJabatan();
+        $statusList = DaftarPengurus::getAllStatus();
+
+        // Header kolom sesuai import
+        $columns = [
+            'nama',
+            'jenis_kelamin', // Laki-laki / Perempuan
+            'agama', // Islam / Kristen / Katolik / Hindu / Buddha / Konghucu
+            'tempat_tanggal_lahir',
+            'alamat',
+            'nip',
+            'email',
+            'nomor_handphone',
+            'jabatan', // ambil dari DaftarPengurus::getAllJabatan()
+            'bidang_keahlian',
+            'pengurus',
+            'status_kepegawaian', // ambil dari DaftarPengurus::getAllStatus()
+            'akses_kelas',
+            'tanggal_bergabung', // format: dd/mm/YYYY atau Excel date
+            'password', // hanya wajib untuk jabatan Administrator
+        ];
+
+        // Contoh data dummy
+        $dummyData = [
+            [
+                'Budi Santoso',               // nama
+                'Laki-laki',                  // jenis_kelamin
+                'Islam',                      // agama
+                'Jakarta, 12/08/1980',         // tempat_tanggal_lahir
+                'Jl. Merdeka No. 1',           // alamat
+                '1234567890',                  // nip
+                'budi@example.com',            // email
+                '081234567890',                // nomor_handphone
+                $jabatanList[0] ?? 'Guru',     // jabatan
+                'Matematika',                  // bidang_keahlian
+                'Ya',                          // pengurus
+                $statusList[0] ?? 'Tetap',     // status_kepegawaian
+                'Kelas X IPA 1',               // akses_kelas
+                '01/01/2024',                  // tanggal_bergabung
+                'password123',                 // password (kosongkan jika bukan admin)
+            ],
+        ];
+
+        // Buat spreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray($columns, null, 'A1');
+        $sheet->fromArray($dummyData, null, 'A2');
+
+        // Simpan ke file sementara
+        $fileName = 'template_import_daftar_pengurus.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'excel_export_');
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempFile);
+
+        return response()->download($tempFile, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+        } catch (\Throwable $th) {
+            Log::error('Error download template import data pengurus: ' . $th->getMessage());
+
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setCellValue('A1', 'Gagal membuat template: ' . $th->getMessage());
+
+            $tempFile = tempnam(sys_get_temp_dir(), 'excel_error_');
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($tempFile);
+
+            return response()->download($tempFile, 'error_template.xlsx', [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(shouldDelete: true);
+        }
+    }
 }
