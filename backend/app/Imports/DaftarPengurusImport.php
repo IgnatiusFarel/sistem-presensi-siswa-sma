@@ -2,17 +2,16 @@
 
 namespace App\Imports;
 
-use App\Models\DaftarPengurus;
+use Carbon\Carbon;
 use App\Models\User;
-use App\Models\DaftarKelas;
+use App\Models\DaftarPengurus;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Carbon\Carbon;
 
 class DaftarPengurusImport implements ToCollection, WithHeadingRow
 {
@@ -22,13 +21,13 @@ class DaftarPengurusImport implements ToCollection, WithHeadingRow
 
     public function collection(Collection $rows)
     {
-        \Log::info('Mulai import pengurus dengan ' . $rows->count() . ' baris data');
+        Log::info('Mulai import pengurus dengan ' . $rows->count() . ' baris data');
 
         foreach ($rows as $index => $row) {
-            \Log::info("Processing row " . ($index + 1) . ": " . json_encode($row->toArray()));
+            Log::info("Processing row " . ($index + 1) . ": " . json_encode($row->toArray()));
 
             if ($row->filter()->isEmpty()) {
-                \Log::info("Skipping empty row " . ($index + 1));
+                Log::info("Skipping empty row " . ($index + 1));
                 continue;
             }
 
@@ -40,9 +39,9 @@ class DaftarPengurusImport implements ToCollection, WithHeadingRow
                     } else {
                         $row['tanggal_bergabung'] = Carbon::createFromFormat('d/m/Y', $value)->format('Y-m-d');
                     }
-                    \Log::info("Tanggal bergabung berhasil dikonversi: " . $row['tanggal_bergabung']);
+                    Log::info("Tanggal bergabung berhasil dikonversi: " . $row['tanggal_bergabung']);
                 } catch (\Throwable $th) {
-                    \Log::error("Format tanggal salah di baris " . ($index + 1) . ": " . $e->getMessage());
+                    Log::error("Format tanggal salah di baris " . ($index + 1) . ": " . $th->getMessage());
                     $this->errors[] = "Baris " . ($index + 1) . ": Format tanggal salah";
                     $this->errorCount++;
                     continue;
@@ -50,8 +49,7 @@ class DaftarPengurusImport implements ToCollection, WithHeadingRow
             }
 
             $data = $row->toArray();
-
-            // Konversi NIP dan nomor HP ke string
+            
             if (isset($data['nip'])) {
                 $data['nip'] = (string) $data['nip'];
             }
@@ -59,7 +57,7 @@ class DaftarPengurusImport implements ToCollection, WithHeadingRow
                 $data['nomor_handphone'] = (string) $data['nomor_handphone'];
             }
 
-            \Log::info("Data untuk validasi: " . json_encode($data));
+            Log::info("Data untuk validasi: " . json_encode($data));
 
             $validator = Validator::make($data, [
                 'nama' => 'required|string',
@@ -106,7 +104,7 @@ class DaftarPengurusImport implements ToCollection, WithHeadingRow
                             'role' => 'superadmin',
                         ]);
 
-                        \Log::info("User administrator berhasil dibuat untuk {$data['nama']}");
+                        Log::info("User administrator berhasil dibuat untuk {$data['nama']}");
                     }
 
                     DaftarPengurus::create([
@@ -127,19 +125,19 @@ class DaftarPengurusImport implements ToCollection, WithHeadingRow
                         'tanggal_bergabung' => $data['tanggal_bergabung'],
                     ]);
 
-                    \Log::info("Pengurus berhasil diimport: {$data['nama']}");
+                    Log::info("Pengurus berhasil diimport: {$data['nama']}");
                     $this->successCount++;
                 });
             } catch (\Throwable $th) {
-                \Log::error("Gagal import baris " . ($index + 1) . ": {$data['nama']} | " . $e->getMessage());
-                $this->errors[] = "Baris " . ($index + 1) . " ({$data['nama']}): " . $e->getMessage();
+                Log::error("Gagal import baris " . ($index + 1) . ": {$data['nama']} | " . $th->getMessage());
+                $this->errors[] = "Baris " . ($index + 1) . " ({$data['nama']}): " . $th->getMessage();
                 $this->errorCount++;
             }
         }
 
-        \Log::info("Import selesai. Berhasil: {$this->successCount}, Gagal: {$this->errorCount}");
+        Log::info("Import selesai. Berhasil: {$this->successCount}, Gagal: {$this->errorCount}");
         if (!empty($this->errors)) {
-            \Log::error("Detail kesalahan: " . json_encode($this->errors));
+            Log::error("Detail kesalahan: " . json_encode($this->errors));
         }
     }
 
