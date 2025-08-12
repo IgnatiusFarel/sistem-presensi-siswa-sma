@@ -196,7 +196,7 @@
           <p class="font-extrabold">Template</p>
           <p class="mb-3">
             Download template untuk memudahkan melakukan import dokumen data
-            siswa.
+            daftar siswa.
           </p>
           <n-button
             class="shadow-md hover:shadow-lg transition-shadow duration-200"
@@ -209,7 +209,7 @@
                 :size="18"
                 class="text-gray-400"
               />
-              <span class="font-bold">Download</span>
+              <span class="font-bold">{{ loading ? "Mendownload..." : "Download" }}</span>
             </div>
           </n-button>
         </div>
@@ -419,6 +419,7 @@ const handleUpload = async ({ file }) => {
     });
     message.success("Import berhasil!");
     emit("refresh");
+    emit("back-to-table");
   } catch (err) {
     console.error(err);
     if (err.response?.data?.errors?.file) {
@@ -429,7 +430,6 @@ const handleUpload = async ({ file }) => {
   }
 };
 
-// Versi yang sudah diperbaiki
 const handleDownload = async () => {
   loading.value = true;
   
@@ -438,7 +438,6 @@ const handleDownload = async () => {
       responseType: "blob"
     });
 
-    // Extract filename dari headers
     let filename = "template_import_daftar_siswa.xlsx";
     const disposition = response.headers["content-disposition"];
     
@@ -449,13 +448,11 @@ const handleDownload = async () => {
       }
     }
 
-    // Download file
     const blob = new Blob([response.data], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     });
     
-    saveAs(blob, filename);
-    
+    saveAs(blob, filename);    
   } catch (error) {
     console.error("Download error:", error);
     message.error("Template Import Dokumen Tidak Dapat Diunduh!");
@@ -463,6 +460,7 @@ const handleDownload = async () => {
     loading.value = false;
   }
 };
+
 const fetchDataKelas = async () => {
   loading.value = true;
   try {
