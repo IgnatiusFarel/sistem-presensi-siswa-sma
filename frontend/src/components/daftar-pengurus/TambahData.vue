@@ -204,7 +204,7 @@
           <img src="@/assets/excel.svg" alt="Excel Icon" class="w-6 mb-2" />
           <p class="font-extrabold">Template</p>
           <p class="mb-3">
-            Download template untuk memudahkan melakukan import dokumen data pengurus.
+            Download template untuk memudahkan melakukan import dokumen data daftar pengurus.
           </p>
           <n-button
             class="shadow-md hover:shadow-lg transition-shadow duration-200"
@@ -216,7 +216,7 @@
                 :size="18"
                 class="text-gray-400"
               />
-              <span class="font-bold">Download</span>
+              <span class="font-bold">{{ loading ? "Mendownload..." : "Download" }}</span>
             </div>
           </n-button>
         </div>
@@ -227,10 +227,11 @@
 
 <script setup>
 import { defineComponent, ref, watch, onMounted } from 'vue';
-import { PhCaretDoubleLeft, PhFileArrowDown  } from '@phosphor-icons/vue';
+import { PhCaretDoubleLeft, PhFileArrowDown } from '@phosphor-icons/vue';
 import { useMessage } from "naive-ui"
 import Api from "@/services/Api"; 
 import dayjs from 'dayjs';
+import { saveAs } from "file-saver";
 
 const loading = ref(false)
 const formRef = ref(null)
@@ -454,9 +455,10 @@ const handleUpload = async ({ file }) => {
       headers: {
         'Content-Type': 'multipart/form-data' 
       }
-    })
-    message.success('Import berhasil!')
-    emit('refresh') 
+    });
+    message.success('Import berhasil!');
+    emit('refresh');
+    emit("back-to-table");
   } catch (err) {
     console.error(err)
     if (err.response?.data?.errors?.file) {
@@ -466,6 +468,37 @@ const handleUpload = async ({ file }) => {
     }
   }
 }
+
+const handleDownload = async () => {
+  loading.value = true;
+  
+  try {
+    const response = await Api.get("/daftar-pengurus/export", {
+      responseType: "blob"
+    });
+
+    let filename = "template_import_daftar_pengurus.xlsx";
+    const disposition = response.headers["content-disposition"];
+    
+    if (disposition) {
+      const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match?.[1]) {
+        filename = decodeURIComponent(match[1].replace(/['"]/g, ""));
+      }
+    }
+
+    const blob = new Blob([response.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+    
+    saveAs(blob, filename);    
+  } catch (error) {
+    console.error("Download error:", error);
+    message.error("Template Import Dokumen Tidak Dapat Diunduh!");
+  } finally {
+    loading.value = false;
+  }
+};
 
 const fetchDataKelas = async () => {
   loading.value = true; 
@@ -478,6 +511,7 @@ const fetchDataKelas = async () => {
     loading.value = false;
   }
 }
+
 watch(
   () => formData.value.daftar_kelas_id,
   (newId) => {
@@ -485,6 +519,7 @@ watch(
     formData.value.nama_kelas = found ? found.nama_kelas : "";
   }
 );
+
 onMounted(() => {
   fetchDataKelas();
 });
