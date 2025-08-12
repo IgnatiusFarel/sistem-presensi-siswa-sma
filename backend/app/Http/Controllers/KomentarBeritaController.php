@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
 use App\Models\KomentarBerita;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class KomentarBeritaController extends Controller
 {
@@ -24,7 +25,7 @@ class KomentarBeritaController extends Controller
             ], 200);
 
         } catch (\Throwable $th) {
-            \Log::error('Error fetching komentar: ' . $th->getMessage());
+            Log::error('Error fetching data komentar: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Komentar gagal diambil!',
@@ -66,10 +67,11 @@ class KomentarBeritaController extends Controller
 
         } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Error storing komentar: ' . $th->getMessage());
+            Log::error('Error storing komentar: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Komentar gagal ditambahkan!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
