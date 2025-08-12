@@ -1,22 +1,29 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AIController;
-use App\Http\Controllers\DaftarBeritaController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PresensiController;
+use App\Http\Controllers\GeolocationController;
 use App\Http\Controllers\DaftarKelasController;
+use App\Http\Controllers\DaftarSiswaController;
+use App\Http\Controllers\DaftarBeritaController;
+use App\Http\Controllers\PresensiSiswaController;
 use App\Http\Controllers\DaftarLaporanController;
 use App\Http\Controllers\DaftarPengurusController;
-use App\Http\Controllers\DaftarSiswaController;
-use App\Http\Controllers\GeolocationController;
-use App\Http\Controllers\PresensiController;
-use App\Http\Controllers\PresensiSiswaController;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RiwayatPresensiController;
-use Illuminate\Support\Facades\Route;
 
+// 📁 Auth
 Route::post('/masuk', [AuthController::class, 'masuk']);
+
+// 📁 Function Laporan Perubahan Data Akun
 Route::get('/daftar-siswa-aktif', [DaftarLaporanController::class, 'getDaftarSiswa']);
 Route::post('/daftar-laporan', [DaftarLaporanController::class, 'store']);
+
+// 📁 Function Get Location
 Route::get('/reverse-geocode', [GeolocationController::class, 'reverseGeocode']);
+
+// 📁 Function Generate Content
 Route::post('/ai/generate', [AIController::class, 'generate']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -46,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // 📁 Daftar Pengurus
         Route::prefix('daftar-pengurus')->controller(DaftarPengurusController::class)->group(function () {
             Route::get('/', 'index');
+            Route::get('/export', 'export');     
             Route::post('/', 'store');
             Route::post('/import','import');
             Route::patch('{id}', 'update');
@@ -57,12 +65,13 @@ Route::middleware('auth:sanctum')->group(function () {
         // 📁 Daftar Kelas
         Route::prefix('daftar-kelas')->controller(DaftarKelasController::class)->group(function () {
             Route::get('/', 'index');
-            Route::get('{id}', 'show');
+            Route::get('/export', 'export');              
             Route::post('/', 'store');
             Route::post('/import','import');
             Route::patch('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::delete('/', 'destroyMultiple');
+            Route::get('{id}', 'show');
         });
 
         // 📁 Presensi
@@ -89,8 +98,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::patch('{id}', 'update');
             Route::delete('{$id}', 'destroy');
             Route::delete('/', 'destroyMultiple');
-        });
-        
+        });        
     });
 
     Route::middleware('role:siswa')->group(function () {
@@ -120,6 +128,5 @@ Route::middleware('auth:sanctum')->group(function () {
         //     Route::post('/', 'store');
         // });
         
-    });
-    
+    });    
 });
