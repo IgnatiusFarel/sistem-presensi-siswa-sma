@@ -145,11 +145,11 @@
           block
           attr-type="submit"
           @click="handleSubmit"
-          :loading="loading"
-          :disabled="loading"
+          :loading="loadingSubmit"
+          :disabled="loadingSubmit"
           class="transition-transform transform active:scale-95"
         >
-          {{ loading ? "Memproses..." : "Tambah" }}
+          {{ loadingSubmit ? "Menambahkan..." : "Tambah" }}
         </n-button>
       </n-form>
 
@@ -164,11 +164,10 @@
         <n-upload
           :custom-request="handleUpload"
           :max="1"
-          directory-dnd
           accept=".csv,.xls,.xlsx"
           class="w-full"
           :default-file-list="fileList"
-          list-type="text"
+          list-type="image"
         >
           <n-upload-dragger
             class="border-2 border-dashed border-[#9ca3af] rounded-md transition-all duration-300 p-6 hover:bg-gray-50"
@@ -191,6 +190,15 @@
             </div>
           </n-upload-dragger>
         </n-upload>
+        <n-progress
+          v-if="fileList.length && fileList[0].status === 'uploading'"
+          type="line"
+          :percentage="fileList[0].percentage"
+          indicator-placement="inside"
+          processing
+          status="success"
+          class="w-full"
+        />
         <div class="border-2 border-[#f0f2f2] rounded-[8px] p-4">
           <img src="@/assets/excel.svg" alt="Excel Icon" class="w-6 mb-2" />
           <p class="font-extrabold">Template</p>
@@ -199,9 +207,11 @@
             daftar siswa.
           </p>
           <n-button
-            class="shadow-md hover:shadow-lg transition-shadow duration-200"
             ghost
-             @click="handleDownload"
+            class="shadow-md hover:shadow-lg transition-shadow duration-200"
+            :loading="loadingDownload"
+            :disabled="loadingDownload"            
+            @click="handleDownload"
           >
             <div class="flex items-center gap-2">
               <n-icon
@@ -209,7 +219,7 @@
                 :size="18"
                 class="text-gray-400"
               />
-              <span class="font-bold">{{ loading ? "Mendownload..." : "Download" }}</span>
+              <span class="font-bold">{{ loadingDownload ? "Mendownload..." : "Download" }}</span>
             </div>
           </n-button>
         </div>
@@ -219,7 +229,7 @@
 </template>
 
 <script setup>
-import { defineComponent, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { PhCaretDoubleLeft, PhFileArrowDown } from "@phosphor-icons/vue";
 import { useMessage } from "naive-ui";
 import Api from "@/services/Api";
@@ -227,11 +237,14 @@ import dayjs from "dayjs";
 import { saveAs } from "file-saver";
 
 const loading = ref(false);
+const loadingSubmit = ref(false);
+const loadingDownload = ref(false);
 const formRef = ref(null);
-const message = useMessage();
+const fileList = ref([]);
 const kelasOptions = ref([]);
-const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
+const message = useMessage();
 const emit = defineEmits(["back-to-table", "refresh"]);
+const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
 
 const rules = {
   nama: [
@@ -388,7 +401,7 @@ const handleSubmit = async (e) => {
 };
 
 const handleSave = async () => {
-  loading.value = true;
+  loadingSubmit.value = true;
   try {
     const payload = {
       ...formData.value,
@@ -403,36 +416,50 @@ const handleSave = async () => {
   } catch (error) {
     message.error("Data siswa gagal ditambahkan!");
   } finally {
-    loading.value = false;
+    loadingSubmit.value = false;
   }
 };
 
 const handleUpload = async ({ file }) => {
+  fileList.value = [
+    {
+      id: file.id || Date.now(),
+      name: file.name,
+      status: "uploading",
+      percentage: 0,
+    },
+  ];
+
   const formData = new FormData();
   formData.append("file", file.file ?? file);
 
   try {
     await Api.post("/daftar-siswa/import", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
+      headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress: (e) => {
+        if (e.total) {
+          fileList.value[0].percentage = Math.round((e.loaded * 100) / e.total);
+        }
       },
     });
+
+    fileList.value[0].status = "finished";
+    fileList.value[0].percentage = 100;
     message.success("Import berhasil!");
-    emit("refresh");
-    emit("back-to-table");
+
+    setTimeout(() => {
+      emit("refresh");
+      emit("back-to-table");
+    }, 1000);
   } catch (err) {
     console.error(err);
-    if (err.response?.data?.errors?.file) {
-      message.error(err.response.data.errors.file[0]);
-    } else {
-      message.error("Gagal import!");
-    }
+    fileList.value[0].status = "error";
+    message.error("Gagal import!");
   }
 };
 
 const handleDownload = async () => {
-  loading.value = true;
-  
+  loadingDownload.value = true;
   try {
     const response = await Api.get("/daftar-siswa/export", {
       responseType: "blob"
@@ -457,7 +484,7 @@ const handleDownload = async () => {
     console.error("Download error:", error);
     message.error("Template Import Dokumen Tidak Dapat Diunduh!");
   } finally {
-    loading.value = false;
+    loadingDownload.value = false;
   }
 };
 
