@@ -6,16 +6,15 @@ use App\Models\User;
 use App\Models\DaftarSiswa;
 use App\Models\DaftarKelas;
 use App\Imports\DaftarSiswaImport;
-use Maatwebsite\Excel\Facades\Excel;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DaftarSiswaController extends Controller
 {
@@ -245,7 +244,7 @@ class DaftarSiswaController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data siswa berhasil dihapus!'
-            ], 204);
+            ], 200);
         } catch (\Throwable $th) {
             DB::rollBack();
             Log::error('Error deleting data siswa: ' . $th->getMessage());
@@ -326,17 +325,16 @@ class DaftarSiswaController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => "Import daftar siswa berhasil! Total: {$successCount} data",
+                'message' => "Import daftar siswa berhasil dilakukan! Total: {$successCount} data",
                 'success_count' => $successCount
             ], 200);
 
         } catch (\Throwable $th) {
             Log::error('Gagal import Excel: ' . $th->getMessage());
             Log::error('Stack trace: ' . $th->getTraceAsString());
-
             return response()->json([
                 'status' => 'error',
-                'message' => 'Import daftar siswa gagal!',
+                'message' => 'Import daftar siswa gagal dilakukan!',
                 'error' => $th->getMessage()
             ], 500);
         }
@@ -345,6 +343,9 @@ class DaftarSiswaController extends Controller
     public function export(Request $request): BinaryFileResponse
     {
         try {
+            $kelasOptions = DaftarKelas::all(['daftar_kelas_id', 'nama_kelas']);
+
+            // ✅ Header columns yang EXACT match dengan import
             $columns = [
                 'nama',
                 'jenis_kelamin',
@@ -355,39 +356,106 @@ class DaftarSiswaController extends Controller
                 'nomor_handphone',
                 'tempat_tanggal_lahir',
                 'alamat',
-                'daftar_kelas_id',
                 'nama_kelas',
                 'nomor_absen',
                 'tanggal_bergabung',
                 'password',
             ];
 
+            // ✅ Sample data yang benar
             $dummyData = [
-                ['Nama Siswa 1', 'Laki-laki', 'Islam', '1001', '202301001', 'namasiswa1@example.com', '081234567890', 'Jakarta, 01 Januari 2001', 'Jl. Merdeka No. 10, Jakarta', 'kelas-uuid-001', 'Kelas XA', '1', '2023/07/15', '"12345678"'],
-                ['Nama Siswa 2', 'Perempuan', 'Kristen', '1002', '202301002', 'namasiswa2@example.com', '081234567891', 'Bandung, 05 Februari 2011', 'Jl. Sudirman No. 20, Bandung', 'kelas-uuid-002', 'Kelas 8B', '2', '2023/07/16', '"12345678"']
+                [
+                    'Ahmad Fauzan',           // nama
+                    'Laki-laki',              // jenis_kelamin
+                    'Islam',                  // agama
+                    '1001',                   // nis - as string
+                    '202301001',              // nisn - as string  
+                    'ahmad@example.com',      // email
+                    '081234567890',           // nomor_handphone - as string
+                    'Jakarta, 01 Januari 2001', // tempat_tanggal_lahir
+                    'Jl. Merdeka No. 10, Jakarta', // alamat
+                    'XI Bahasa 5O',           // nama_kelas - EXACT match dengan DB
+                    1,                        // nomor_absen - as integer
+                    '15/07/2023',             // tanggal_bergabung - d/m/Y format
+                    'password123'             // password - as string
+                ],
+                [
+                    'Siti Nurhaliza',         // nama
+                    'Perempuan',              // jenis_kelamin
+                    'Islam',                  // agama
+                    '1002',                   // nis
+                    '202301002',              // nisn
+                    'siti@example.com',       // email
+                    '081234567891',           // nomor_handphone
+                    'Bandung, 05 Februari 2001', // tempat_tanggal_lahir
+                    'Jl. Sudirman No. 20, Bandung', // alamat
+                    'XI Bahasa 5O',           // nama_kelas 
+                    2,                        // nomor_absen
+                    '16/07/2023',             // tanggal_bergabung
+                    'password123'             // password
+                ]
             ];
 
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
+
+            // ✅ Set headers
             $sheet->fromArray($columns, null, 'A1');
+
+            // ✅ Set sample data
             $sheet->fromArray($dummyData, null, 'A2');
 
+            // ✅ Apply formatting
+            // Bold headers
+            $sheet->getStyle('A1:M1')->getFont()->setBold(true);
+
+            // Auto-size columns
+            foreach (range('A', 'M') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            // ✅ Create reference sheet untuk daftar kelas
+            $referenceSheet = $spreadsheet->createSheet();
+            $referenceSheet->setTitle('Daftar Kelas');
+            $referenceSheet->setCellValue('A1', 'DAFTAR KELAS YANG TERSEDIA:');
+            $referenceSheet->getStyle('A1')->getFont()->setBold(true);
+
+            $row = 3; // Start from row 3 to give some space
+            foreach ($kelasOptions as $kelas) {
+                $referenceSheet->setCellValue('A' . $row, $kelas->nama_kelas);
+                $row++;
+            }
+
+            // Auto-size reference sheet
+            $referenceSheet->getColumnDimension('A')->setAutoSize(true);
+
+            // ✅ Add instructions
+            $sheet->setCellValue('A' . (count($dummyData) + 3), 'PETUNJUK PENGISIAN:');
+            $sheet->setCellValue('A' . (count($dummyData) + 4), '1. Pastikan format tanggal: DD/MM/YYYY (contoh: 15/07/2023)');
+            $sheet->setCellValue('A' . (count($dummyData) + 5), '2. Nama kelas harus PERSIS sama dengan yang ada di sheet "Daftar Kelas"');
+            $sheet->setCellValue('A' . (count($dummyData) + 6), '3. Jenis kelamin: Laki-laki atau Perempuan (huruf besar di awal)');
+            $sheet->setCellValue('A' . (count($dummyData) + 7), '4. Agama: Islam, Kristen, Katolik, Hindu, Buddha, atau Konghucu');
+            $sheet->setCellValue('A' . (count($dummyData) + 8), '5. Password minimal 8 karakter');
+
+            // Bold instructions
+            $sheet->getStyle('A' . (count($dummyData) + 3))->getFont()->setBold(true);
+
             $fileName = 'template_import_daftar_siswa.xlsx';
-            
+
             $tempFile = tempnam(sys_get_temp_dir(), 'excel_export_');
             $writer = new Xlsx($spreadsheet);
             $writer->save($tempFile);
-            
+
             return response()->download($tempFile, $fileName, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             ])->deleteFileAfterSend(true);
 
         } catch (\Throwable $th) {
             Log::error('Error download template import data siswa: ' . $th->getMessage());
-            
+
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            $sheet->setCellValue('A1', 'Gagal membuat template');
+            $sheet->setCellValue('A1', 'Gagal membuat template: ' . $th->getMessage());
 
             $tempFile = tempnam(sys_get_temp_dir(), 'excel_error_');
             $writer = new Xlsx($spreadsheet);
