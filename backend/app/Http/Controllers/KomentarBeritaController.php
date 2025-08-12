@@ -23,7 +23,6 @@ class KomentarBeritaController extends Controller
                 'message' => 'Komentar berhasil diambil!',
                 'data' => $komentar,
             ], 200);
-
         } catch (\Throwable $th) {
             Log::error('Error fetching data komentar: ' . $th->getMessage());
             return response()->json([
@@ -64,10 +63,9 @@ class KomentarBeritaController extends Controller
                 'message' => 'Komentar berhasil ditambahkan!',
                 'data' => $komentar,
             ], 201);
-
         } catch (\Throwable $th) {
             DB::rollBack();
-            Log::error('Error storing komentar: ' . $th->getMessage());
+            Log::error('Error creatingkomentar: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Komentar gagal ditambahkan!',
