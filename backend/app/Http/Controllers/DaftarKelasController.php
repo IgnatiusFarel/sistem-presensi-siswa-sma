@@ -6,11 +6,14 @@ use App\Models\DaftarKelas;
 use App\Models\DaftarPengurus;
 use App\Imports\DaftarKelasImport;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DaftarKelasController extends Controller
 {
@@ -105,19 +108,29 @@ class DaftarKelasController extends Controller
 
     public function show($id)
     {
-        $kelas = DaftarKelas::with('waliKelas')->find($id);
+        try {
+            $kelas = DaftarKelas::with('waliKelas')->find($id);
 
-        if (!$kelas) {
+            if (!$kelas) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Data kelas tidak ditemukan!'
+                ], 404);
+            }
+
             return response()->json([
-                'status' => 'error',
-                'message' => 'Data kelas tidak ditemukan!'
-            ], 404);
+                'status' => 'success',
+                'message' => 'Data kelas berhasil ditampilkan!',
+                'data' => $kelas
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::error('Error fetching detail data kelas: ' . $th->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Data kelas gagal ditampilkan!',
+                'error' => $th->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $kelas
-        ], 200);
     }
 
     public function update(Request $request, $id)
@@ -212,11 +225,11 @@ class DaftarKelasController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data kelas berhasil dihapus!'
-            ], 204);
+            ], 200);
 
         } catch (\Throwable $th) {
             DB::rollBack();
-            Log::error('Error deleting kelas: ' . $th->getMessage());
+            Log::error('Error deleting data kelas: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data kelas gagal dihapus!',
@@ -246,10 +259,10 @@ class DaftarKelasController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data kelas berhasil dihapus!'
-            ], 204);
+            ], 200);
         } catch (\Throwable $th) {
             DB::rollBack();
-            Log::error('Error deleting kelas: ' . $th->getMessage());
+            Log::error('Error deleting data kelas: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data kelas gagal dihapus!',
@@ -289,19 +302,78 @@ class DaftarKelasController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => "Import daftar pengurus berhasil! Total: {$successCount} data",
+                'message' => "Import daftar pengurus berhasil dilakukan! Total: {$successCount} data",
                 'success_count' => $successCount
-            ]);
+            ], 200);
 
         } catch (\Throwable $th) {
             Log::error('Gagal import Excel: ' . $th->getMessage());
             Log::error('Stack trace: ' . $th->getTraceAsString());
-
             return response()->json([
                 'status' => 'error',
-                'message' => 'Import daftar pengurus gagal!',
+                'message' => 'Import daftar pengurus gagal dilakukan!',
                 'error' => $th->getMessage()
             ], 500);
+        }
+    }
+
+    public function export(Request $request): BinaryFileResponse
+    {
+        try {
+            // Ambil semua wali kelas (nama saja)
+            $waliKelasOptions = DaftarPengurus::pluck('nama')->toArray();
+
+            // Header kolom di Excel
+            $columns = [
+                'kode_kelas',
+                'nama_kelas',
+                'jurusan',
+                'tingkat',
+                'wali_kelas', // Ganti daftar_pengurus_id → wali_kelas (nama)
+                'tahun_ajaran',
+            ];
+
+            // Dummy data untuk contoh
+            $dummyData = [
+                [
+                    'X-IPA-1',           // kode_kelas
+                    'Kelas X IPA 1',     // nama_kelas
+                    'IPA',               // jurusan
+                    'X',                 // tingkat
+                    $waliKelasOptions[0] ?? 'Nama Wali Kelas', // wali_kelas
+                    '2024/2025',         // tahun_ajaran
+                ],
+            ];
+
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->fromArray($columns, null, 'A1');
+            $sheet->fromArray($dummyData, null, 'A2');
+
+            // Simpan ke file sementara
+            $fileName = 'template_import_daftar_kelas.xlsx';
+            $tempFile = tempnam(sys_get_temp_dir(), 'excel_export_');
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($tempFile);
+
+            return response()->download($tempFile, $fileName, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
+
+        } catch (\Throwable $th) {
+            Log::error('Error download template import data kelas: ' . $th->getMessage());
+
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setCellValue('A1', 'Gagal membuat template: ' . $th->getMessage());
+
+            $tempFile = tempnam(sys_get_temp_dir(), 'excel_error_');
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($tempFile);
+
+            return response()->download($tempFile, 'error_template.xlsx', [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
         }
     }
 }
