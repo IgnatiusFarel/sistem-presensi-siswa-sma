@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use App\Models\DaftarLaporan;
-use App\Models\DaftarSiswa;
 use App\Models\User;
+use App\Models\DaftarSiswa;
+use App\Models\DaftarLaporan;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class DaftarLaporanController extends Controller
 {
@@ -22,10 +23,33 @@ class DaftarLaporanController extends Controller
                 'data' => $siswa,
             ], 200);
         } catch (\Throwable $th) {
-            \Log::error('Error fetching data siswa: ' . $th->getMessage());
+            Log::error('Error fetching data siswa: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data daftar siswa gagal diambil!'
+                'message' => 'Data daftar siswa gagal diambil!',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
+     public function index()
+    {
+        try {
+            $laporan = DaftarLaporan::with('siswa:daftar_siswa_id,nama,nama_kelas,nomor_absen')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data laporan perubahan akun berhasil diambil!',
+                'data' => $laporan,
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::error('Error fetching laporan: ' . $th->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data laporan perubahan akun gagal diambil!',
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -62,38 +86,18 @@ class DaftarLaporanController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Laporan perubahan akun berhasil dikirim!',
+                'message' => 'Laporan perubahan data akun berhasil dikirim!',
                 'data' => $laporan,
             ], 201);
         } catch (\Throwable $th) {
-            \Log::error('Error submitting laporan perubahan akun: ' . $th->getMessage());
+            Log::error('Error submitting laporan perubahan data akun: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Laporan perubahan akun gagal dikirim!'
+                'message' => 'Laporan perubahan data akun gagal dikirim!',
+                'error' => $th->getMessage(),
             ], 500);
         }
-    }
-
-    public function index()
-    {
-        try {
-            $laporan = DaftarLaporan::with('siswa:daftar_siswa_id,nama,nama_kelas,nomor_absen')
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Data laporan perubahan akun berhasil diambil!',
-                'data' => $laporan,
-            ], 200);
-        } catch (\Throwable $th) {
-            \Log::error('Error fetching laporan: ' . $th->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Data laporan perubahan akun gagal diambil!'
-            ], 500);
-        }
-    }
+    }   
 
     public function delete($id)
     {
@@ -118,9 +122,10 @@ class DaftarLaporanController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data laporan berhasil dihapus!'
-            ], 204);
+            ], 200);
         } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error('Error deleting data laporan: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data laporan gagal dihapus!',
@@ -155,13 +160,14 @@ class DaftarLaporanController extends Controller
             DB::commit();
             return response()->json([
                 'status' => 'success',
-                'message' => 'Semua data laporan berhasil dihapus!'
-            ], 204);
+                'message' => 'Data laporan berhasil dihapus!'
+            ], 200);
         } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error('Error deleting data kelas: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Penghapusan data laporan gagal!',
+                'message' => 'Data laporan gagal dihapus!',
                 'error' => $th->getMessage()
             ], 500);
         }
