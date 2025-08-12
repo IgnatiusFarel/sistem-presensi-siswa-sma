@@ -36,10 +36,10 @@ class PresensiController extends Controller
             ], 200);
         } catch (\Throwable $th) {
             Log::error('Error getting presensi aktif: ' . $th->getMessage());
-
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data presensi aktif gagal diambil!'
+                'message' => 'Data presensi aktif gagal diambil!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -91,6 +91,7 @@ class PresensiController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Rekap presensi hari ini gagal diambil!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -174,8 +175,7 @@ class PresensiController extends Controller
             ], 201);
         } catch (\Throwable $th) {
             DB::rollBack();
-            Log::error('Error creating presensi: ' . $th->getMessage());
-
+            Log::error('Error creating data presensi: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Presensi gagal dibuat!',
