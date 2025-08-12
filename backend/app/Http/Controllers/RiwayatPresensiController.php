@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use App\Models\Presensi;
 use Carbon\Carbon;
+use App\Models\Presensi;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class RiwayatPresensiController extends Controller
 {
@@ -33,10 +34,11 @@ class RiwayatPresensiController extends Controller
                 'data' => $rekap,
             ], 200);
         } catch (\Throwable $th) {
-            \Log::error('Error fetching riwayat presensi: ' . $th->getMessage());
+            Log::error('Error fetching riwayat presensi: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Riwayat presensi gagal diambil!'
+                'message' => 'Riwayat presensi gagal diambil!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -50,7 +52,7 @@ class RiwayatPresensiController extends Controller
             if (!$presensi) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'ID riwayat presensi tidak ditemukan!',
+                    'message' => 'Data riwayat presensi tidak ditemukan!',
                 ], 404);
             }
 
@@ -79,13 +81,12 @@ class RiwayatPresensiController extends Controller
                 'message' => 'Data riwayat presensi berhasil ditampilkan!',
                 'data' => $data,
             ], 200);
-
         } catch (\Throwable $th) {
-            \Log::error('Error fetching detail riwayat presensi: ' . $th->getMessage());
-
+            Log::error('Error fetching detail data riwayat presensi: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data riwayat presensi gagal diambil!',
+                'message' => 'Data riwayat presensi gagal ditampilkan!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -97,7 +98,7 @@ class RiwayatPresensiController extends Controller
         if (!$riwayatpresensi) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Riwayat presensi tidak ditemukan!'
+                'message' => 'Data riwayat presensi tidak ditemukan!'
             ], 404);
         }
 
@@ -109,14 +110,12 @@ class RiwayatPresensiController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Riwayat presensi berhasil dihapus!'
-            ], 204);
-
+            ], 200);
         } catch (\Throwable $th) {
-            \Log::error('Error deleting riwayat presensi: ' . $th->getMessage());
-
+            Log::error('Error deleting data riwayat presensi: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Riwayat presensi gagal dihapus!',
+                'message' => 'Data riwayat presensi gagal dihapus!',
                 'error' => $th->getMessage(),
             ], 500);
         }
@@ -129,7 +128,7 @@ class RiwayatPresensiController extends Controller
         if (!is_array($ids) || empty($ids)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Riwayat presensi tidak valid!'
+                'message' => 'ID data riwayat presensi tidak valid!'
             ], 400);
         }
 
@@ -141,10 +140,10 @@ class RiwayatPresensiController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Beberapa riwayat presensi berhasil dihapus!'
-            ], 204);
+            ], 200);
 
         } catch (\Throwable $th) {
-            \Log::error('Error deleting multiple riwayat presensi: ' . $th->getMessage());
+            Log::error('Error deleting multiple data riwayat presensi: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Riwayat presensi gagal dihapus!',
