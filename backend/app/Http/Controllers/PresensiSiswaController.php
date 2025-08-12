@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use App\Traits\HasLocationResolver;
-use App\Models\PresensiSiswa;
-use App\Models\Presensi;
 use Carbon\Carbon;
+use App\Models\Presensi;
+use App\Models\PresensiSiswa;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Traits\HasLocationResolver;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class PresensiSiswaController extends Controller
 {
@@ -41,10 +42,11 @@ class PresensiSiswaController extends Controller
                 'data' => $riwayat,
             ], 200);
         } catch (\Throwable $th) {
-            \Log::error('Error fetching presensi data: ' . $th->getMessage());
+            Log::error('Error fetching data presensi: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data riwayat presensi gagal diambil!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -70,17 +72,18 @@ class PresensiSiswaController extends Controller
             ];
             return response()->json([
                 'status' => 'success',
-                'message' => 'Rekap presensi anda berhasil diambil!',
+                'message' => 'Data rekap presensi anda berhasil diambil!',
                 'data' => [
                     'total' => $totalKegiatan,
                     'rekap' => $rekap
                 ],
             ], 200);
         } catch (\Throwable $th) {
-            \Log::error('Error getting rekap presensi siswa: ' . $th->getMessage());
+            Log::error('Error fetching data rekap presensi siswa: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Rekap presensi harian gagal diambil!',
+                'message' => 'Data rekap presensi harian anda gagal diambil!',
+                'error' => $th->getMessage()
             ], 500);
         }
     }
@@ -96,14 +99,14 @@ class PresensiSiswaController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Status presensi siswa berhasil diambil!',
+                'message' => 'Data status presensi siswa berhasil diambil!',
                 'data' => $sudahPresensi
             ], 200);
         } catch (\Throwable $th) {
-            \Log::error('Error getting status presensi siswa: ' . $th->getMessage());
+            Log::error('Error fetching data status presensi siswa: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Status presensi siswa gagal diambil!',
+                'message' => 'Data status presensi siswa gagal diambil!',
             ], 500);
         }
     }
@@ -124,7 +127,7 @@ class PresensiSiswaController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Presensi Anda gagal di validasi!',
+                'message' => 'Data presensi Anda tidak valid!',
                 'errors' => $validator->errors(),
             ], 422);
         }
@@ -179,7 +182,7 @@ class PresensiSiswaController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Presensi berhasil disimpan!',
+                'message' => 'Data presensi berhasil disimpan!',
                 'data' => [
                     'presensi_siswa_id' => $ps->presensi_siswa_id,
                     'presensi_id' => $ps->presensi_id,
@@ -195,11 +198,10 @@ class PresensiSiswaController extends Controller
             ], 201);
         } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Error creating presensi siswa: ' . $th->getMessage());
-
+            Log::error('Error creating data presensi siswa: ' . $th->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Presensi gagal disimpan!',
+                'message' => 'Data presensi gagal disimpan!',
                 'error' => $th->getMessage(),
             ], 500);
         }
