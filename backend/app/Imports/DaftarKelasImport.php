@@ -6,8 +6,8 @@ use App\Models\DaftarKelas;
 use App\Models\DaftarPengurus;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -43,7 +43,7 @@ class DaftarKelasImport implements ToCollection, WithHeadingRow
                     DaftarKelas::TINGKAT_XI,
                     DaftarKelas::TINGKAT_XII,
                 ]),
-                'daftar_pengurus_id' => 'required|uuid|exists:daftar_pengurus,daftar_pengurus_id',
+               'wali_kelas' => 'required|string|exists:daftar_pengurus,nama',
                 'tahun_ajaran' => 'required|string',
             ]);
 
@@ -55,14 +55,14 @@ class DaftarKelasImport implements ToCollection, WithHeadingRow
 
             try {
                 DB::transaction(function () use ($data, $index) {
-                    $pengurus = DaftarPengurus::findOrFail($data['daftar_pengurus_id']);
+                    $pengurus = DaftarPengurus::where('nama', $data['wali_kelas'])->firstOrFail();
 
                     DaftarKelas::create([
                         'kode_kelas' => $data['kode_kelas'],
                         'nama_kelas' => $data['nama_kelas'],
                         'jurusan' => $data['jurusan'],
                         'tingkat' => $data['tingkat'],
-                        'daftar_pengurus_id' => $data['daftar_pengurus_id'],
+                        'daftar_pengurus_id' => $pengurus->daftar_pengurus_id,
                         'wali_kelas' => $pengurus->nama,
                         'tahun_ajaran' => $data['tahun_ajaran'],
                     ]);
@@ -71,8 +71,8 @@ class DaftarKelasImport implements ToCollection, WithHeadingRow
                     $this->successCount++;
                 });
             } catch (\Throwable $th) {
-                Log::error("Gagal import baris " . ($index + 1) . ": " . $e->getMessage());
-                $this->errors[] = "Baris " . ($index + 1) . " ({$data['kode_kelas']}): " . $e->getMessage();
+                Log::error("Gagal import baris " . ($index + 1) . ": " . $th->getMessage());
+                $this->errors[] = "Baris " . ($index + 1) . " ({$data['kode_kelas']}): " . $th->getMessage();
                 $this->errorCount++;
             }
         }
