@@ -1,9 +1,19 @@
 <template>
   <nav
-    class="bg-white border-b-1 border-[#C1C2C5] px-5 py-8 flex items-center justify-between h-[60px]"
+    :class="[
+      'px-5 py-8 flex items-center justify-between h-[60px] border-b transition-colors duration-300',
+      theme.isDark
+        ? 'bg-neutral-900 border-neutral-700 text-gray-200'
+        : 'bg-white border-gray-300 text-gray-800',
+    ]"
   >
     <div class="flex items-center">
-      <h1 class="text-4xl font-bold">SPSS</h1>
+      <h1
+        :class="theme.isDark ? 'text-white' : 'text-gray-900'"
+        class="text-2xl font-bold"
+      >
+        SPSS
+      </h1>
     </div>
 
     <n-dropdown
@@ -13,12 +23,31 @@
       @select="handleMenuOptionsSelect"
     >
       <div
-        class="flex items-center gap-3 cursor-pointer border-[#C1C2C5] rounded-full bg-blue-200 px-2 py-1 cursor-pointer hover:bg-[#2F80ED] transition-colors"
+        :class="[
+          'flex items-center gap-3 cursor-pointer rounded-full px-2 py-1 transition-colors border',
+          theme.isDark
+            ? 'bg-blue-900 border-blue-600 hover:bg-blue-800'
+            : 'bg-blue-100 border-blue-500 hover:bg-blue-200',
+        ]"
       >
-        <PhCaretUpDown :size="20" v-show="!isCollapsed" />
+        <PhCaretUpDown
+          :size="20"
+          v-show="!isCollapsed"
+          :class="theme.isDark ? 'text-gray-300' : 'text-gray-700'"
+        />
         <div class="flex flex-col items-end">
-          <span class="font-medium text-gray-800">{{  user?.name || user?.email  }}</span>
-          <span class="text-xs text-gray-500">{{  user?.role  || 'Siswa'}}</span>
+          <span
+            :class="theme.isDark ? 'text-gray-100' : 'text-gray-800'"
+            class="font-medium"
+          >
+            {{ user?.name || user?.email }}
+          </span>
+          <span
+            :class="theme.isDark ? 'text-gray-400' : 'text-gray-500'"
+            class="text-xs"
+          >
+            {{ user?.role || "Siswa" }}
+          </span>
         </div>
 
         <n-avatar
@@ -29,45 +58,54 @@
         />
       </div>
     </n-dropdown>
-     <n-modal
-          v-model:show="showProfileModal"
-          preset="card"
-          title="Profil"
-          :style="{ width: '400px', maxWidth: '90%' }"
-        >
-          <div class="flex flex-col items-center gap-3 p-4">
-            <n-image
-              width="100"
-              src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
-              class="rounded-full"
-            />
-            <div class="text-center">
-              <p class="text-lg font-semibold">{{ user?.name }}</p>
-              <p class="text-sm text-gray-500">{{ user?.email }}</p>
-              <p class="text-sm text-gray-400 capitalize">{{ user?.role }}</p>
-            </div>
-          </div>
-        </n-modal>
+
+    <n-modal
+      v-model:show="showProfileModal"
+      preset="card"
+      title="Profil"
+      :style="{ width: '400px', maxWidth: '90%' }"
+    >
+      <div class="flex flex-col items-center gap-3 p-4">
+        <n-image
+          width="100"
+          src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
+          class="rounded-full"
+        />
+        <div class="text-center">
+          <p class="text-lg font-semibold">{{ user?.name }}</p>
+          <p class="text-sm text-gray-500">{{ user?.email }}</p>
+          <p class="text-sm text-gray-400 capitalize">{{ user?.role }}</p>
+        </div>
+      </div>
+    </n-modal>
   </nav>
 </template>
 
 <script setup>
-import { ref, h, onMounted } from "vue";
-import { useRouter } from 'vue-router';
-import { NAvatar, NDropdown, useMessage} from 'naive-ui';
-import { PhSignOut, PhGear, PhUser, PhCaretUpDown, PhBell,} from '@phosphor-icons/vue';
+import { ref, h, resolveComponent } from "vue";
+import { useRouter } from "vue-router";
+import { NAvatar, NDropdown, NImage, useMessage } from "naive-ui";
+import {
+  PhSignOut,
+  PhGear,
+  PhUser,
+  PhCaretUpDown,
+  PhBell,
+} from "@phosphor-icons/vue";
 import { useAuthStore } from "@/stores/Auth";
-import { storeToRefs } from 'pinia';
+import { useThemeStore } from "@/stores/ThemeMode";
+import { storeToRefs } from "pinia";
 
 const router = useRouter();
 const message = useMessage();
 const auth = useAuthStore();
 const { user } = storeToRefs(auth);
 
+const theme = useThemeStore();
 const isEnglish = ref(false);
-const isDarkTheme = ref(false);
 const showProfileModal = ref(false);
 const isNotificationAllowed = ref(false);
+const isCollapsed = ref(false);
 
 const menuOptions = [
   {
@@ -88,12 +126,12 @@ const menuOptions = [
             h(
               resolveComponent("n-switch"),
               {
-                "onUpdate:value": (v) => (isDarkTheme.value = v),
-                value: isDarkTheme.value,
+                "onUpdate:value": (v) => (theme.isDark = v),
+                value: theme.isDark,
                 size: "small",
               },
               {
-                icon: () => (isDarkTheme.value ? "🌙" : "☀️"),
+                icon: () => (theme.isDark ? "🌙" : "☀️"),
               }
             ),
           ]),
@@ -119,29 +157,35 @@ const menuOptions = [
     ],
   },
   {
+    label: "Notifikasi",
     key: "notifikasi",
-    label: () =>
-      h(
-        "div",
-        {
-          class: "flex  items-center justify-between w-[150px] ",
-          onClick: (e) => e.stopPropagation(),
-        },
-        [
-          h("span", { class: "text-sm" }, "Notifikasi"),
-          h(resolveComponent("n-select"), {
-            value: isNotificationAllowed.value,
-            "onUpdate:value": (v) => (isNotificationAllowed.value = v),
-            options: [
-              { label: "Izinkan", value: true },
-              { label: "Tidak", value: false },
-            ],
-            size: "small",
-            bordered: false,
-          }),
-        ]
-      ),
     icon: () => h(PhBell, { size: 16 }),
+    children: [
+      {
+        label: () =>
+          h(
+            "div",
+            {
+              class: "flex items-center justify-between w-[150px]",
+              onClick: (e) => e.stopPropagation(),
+            },
+            [
+              h("span", { class: "text-sm" }, "Notifikasi"),
+              h(
+                resolveComponent("n-switch"),
+                {
+                  "onUpdate:value": (v) => (isNotificationAllowed.value = v),
+                  value: isNotificationAllowed.value,
+                  size: "small",
+                },
+                {
+                  icon: () => (isNotificationAllowed.value ? "🔔" : "🔕"),
+                }
+              ),
+            ]
+          ),
+      },
+    ],
   },
   {
     label: () => h("span", { class: "text-red-500" }, "Keluar"),
@@ -159,7 +203,6 @@ const handleMenuOptionsSelect = (key) => {
     message.success("Keluar Berhasil!");
   }
 };
-
 </script>
 
 <style scoped></style>
