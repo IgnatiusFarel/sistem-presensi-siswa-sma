@@ -1,9 +1,11 @@
 <template>
-  <div class="max-w-xl mx-auto p-6 min-h-screen">
+  <div class="max-w-xl mx-auto p-6 min-h-screen transition-colors duration-300"
+       :class="themeStore.isDark ? 'bg-neutral-900' : 'bg-white'">
     <n-button
       text
       type="primary"
-      class="!text-[#1E1E1E] !mb-4 !text-sm !underline"
+     class="!mb-4 !text-sm !underline transition-colors duration-300"
+      :class="themeStore.isDark ? '!text-blue-400' : '!text-gray-800'"
       @click="$emit('back-to-table')"
     >
       <template #icon>
@@ -12,8 +14,12 @@
       Kembali ke Halaman Daftar Pengurus
     </n-button>
 
-    <div class="bg-white rounded-lg p-6 border border-[#C1C2C5]">
-      <h1 class="text-3xl font-bold text-[#1E1E1E] mb-8 text-center">
+    <div class="rounded-lg p-6 border transition-all duration-300"
+         :class="themeStore.isDark 
+           ? 'bg-neutral-800 border-neutral-700' 
+           : 'bg-white border-gray-200'">
+      <h1 class="text-3xl font-bold mb-8 text-center transition-colors duration-300"
+          :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
         Tambah Data Pengurus
       </h1>
 
@@ -42,6 +48,7 @@
               </n-radio-group>
             </div>
           </n-form-item>
+
           <n-form-item label="Agama" path="agama">
             <n-select
               v-model:value="formData.agama"
@@ -49,6 +56,7 @@
               placeholder="Pilih Jabatan..."
             />
           </n-form-item>
+
           <n-form-item label="NIP " path="nip">
             <n-input
               :allow-input="onlyAllowNumber"
@@ -56,6 +64,7 @@
               placeholder="Masukkan NIP..."
             />
           </n-form-item>
+
           <n-form-item label="Jabatan" path="jabatan">
             <n-select
               v-model:value="formData.jabatan"
@@ -63,6 +72,7 @@
               placeholder="Pilih Jabatan..."
             />
           </n-form-item>
+
           <n-form-item label="Bidang Keahlian" path="bidang_keahlian">
             <n-input
               v-model:value="formData.bidang_keahlian"
@@ -136,6 +146,7 @@
               label-field="nama_kelas"
             />
           </n-form-item>
+
           <n-form-item label="Tanggal Bergabung" path="tanggal_bergabung">
             <n-date-picker
               v-model:value="formData.tanggal_bergabung"
@@ -144,6 +155,7 @@
               placeholder="Pilih Tanggal Bergabung..."
             />
           </n-form-item>
+
           <n-form-item label="Kata Sandi" path="password">
             <n-input
               type="password"
@@ -168,13 +180,19 @@
       </n-form>
 
       <div class="my-2 flex items-center">
-        <div class="flex-1 border-t border-gray-300"></div>
-        <span class="px-4 text-gray-500 text-sm">atau</span>
-        <div class="flex-1 border-t border-gray-300"></div>
+        <div class="flex-1 border-t transition-colors duration-300"
+             :class="themeStore.isDark ? 'border-neutral-600' : 'border-gray-300'"></div>
+        <span class="px-4 text-sm transition-colors duration-300"
+              :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">atau</span>
+        <div class="flex-1 border-t transition-colors duration-300"
+             :class="themeStore.isDark ? 'border-neutral-600' : 'border-gray-300'"></div>
       </div>
 
       <div class="space-y-4">
-        <h3 class="font-medium text-gray-700">Import dari Dokumen</h3>
+        <h3 class="font-medium transition-colors duration-300"
+            :class="themeStore.isDark ? 'text-gray-200' : 'text-gray-700'">
+          Import dari Dokumen
+        </h3>
         <n-upload
           :custom-request="handleUpload"
           :max="1"
@@ -183,20 +201,28 @@
           :default-file-list="fileList"
           list-type="image"
         >
-          <n-upload-dragger class="!p-6 hover:!bg-gray-50">
+          <n-upload-dragger
+            class="border-2 border-dashed rounded-md transition-all duration-300 p-6"
+            :class="themeStore.isDark 
+              ? 'border-neutral-600 hover:border-blue-500 hover:bg-neutral-700' 
+              : 'border-gray-400 hover:border-blue-500 hover:bg-gray-50'"
+          >
             <div class="py-6 flex flex-col items-center justify-center">
               <img
                 src="@/assets/excel.svg"
                 alt="Excel Icon"
                 class="w-12 h-12"
               />
-              <p class="text-gray-600">
+              <p class="transition-colors duration-300"
+                 :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
                 Drag file ke sini atau
-                <span class="text-[#1E1E1E] font-medium"
-                  >klik untuk upload</span
-                >
+                <span class="font-medium transition-colors duration-300"
+                      :class="themeStore.isDark ? 'text-blue-400' : 'text-gray-800'">
+                  klik untuk upload
+                </span>
               </p>
-              <p class="text-sm text-gray-500 mt-1">
+              <p class="text-sm mt-1 transition-colors duration-300"
+                 :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
                 Format yang didukung: .CSV, .XLS, .XLSX
               </p>
             </div>
@@ -211,10 +237,17 @@
           status="success"
           class="w-full"
         />
-        <div class="border-2 border-[#f0f2f2] rounded-[8px] p-4">
+        <div class="border-2 rounded-[8px] p-4 transition-all duration-300"
+             :class="themeStore.isDark 
+               ? 'border-neutral-600 bg-neutral-800' 
+               : 'border-gray-200 bg-gray-50'">
           <img src="@/assets/excel.svg" alt="Excel Icon" class="w-6 mb-2" />
-          <p class="font-extrabold">Template</p>
-          <p class="mb-3">
+          <p class="font-extrabold transition-colors duration-300"
+             :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+            Template
+          </p>
+          <p class="mb-3 transition-colors duration-300"
+             :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'">
             Download template untuk memudahkan melakukan import dokumen data
             daftar pengurus.
           </p>
@@ -222,16 +255,17 @@
             ghost
             class="shadow-md hover:shadow-lg transition-shadow duration-200"
             :loading="loadingDownload"
-            :disabled="loadingDownload"
+            :disabled="loadingDownload"            
             @click="handleDownload"
           >
             <div class="flex items-center gap-2">
               <n-icon
                 :component="PhFileArrowDown"
                 :size="18"
-                class="text-gray-400"
+                class="transition-colors duration-300"
+                :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'"
               />
-             <span class="font-bold">{{ loadingDownload ? "Mendownload..." : "Download" }}</span>
+              <span class="font-bold">{{ loadingDownload ? "Mendownload..." : "Download" }}</span>
             </div>
           </n-button>
         </div>
@@ -244,6 +278,7 @@
 import { ref, watch, onMounted } from "vue";
 import { PhCaretDoubleLeft, PhFileArrowDown } from "@phosphor-icons/vue";
 import { useMessage } from "naive-ui";
+import { useThemeStore } from "@/stores/ThemeMode";
 import Api from "@/services/Api";
 import dayjs from "dayjs";
 import { saveAs } from "file-saver";
@@ -255,6 +290,7 @@ const formRef = ref(null);
 const fileList = ref([]);
 const kelasOptions = ref([]);
 const message = useMessage();
+const themeStore = useThemeStore();
 const emit = defineEmits(["back-to-table", "refresh"]);
 const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
 
