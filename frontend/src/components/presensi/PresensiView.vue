@@ -1,7 +1,8 @@
 <template>
   <n-tabs type="line" animated v-model:value="activeTab" class="mb-4">
     <n-tab-pane name="presensi" tab="Presensi Hari Ini">
-      <h1 class="text-2xl text-[#232323] font-bold">Presensi Hari Ini</h1>
+      <h1 class="text-2xl font-bold transition-colors duration-300"
+      :class="themeStore.isDark ? 'bg-neutral-900' : 'bg-gray-50'">Presensi Hari Ini</h1>
       <div class="flex items-center gap-2">
         <template v-if="presensiAktif">
           <div
@@ -15,11 +16,12 @@
           <div class="text-base text-red-600">Belum Ada Kegiatan Presensi</div>
           <span class="text-gray-400">|</span>
         </template>
-        <p class="text-base text-[#232323] font-semibold">{{ currentDate }}</p>
+        <p class="text-base font-semibold transition-colors duration-300" :class="themeStore.isDark ? 'bg-neutral-900' : 'bg-gray-50'">{{ currentDate }}</p>
       </div>
     </n-tab-pane>
     <n-tab-pane name="riwayat" tab="Riwayat Presensi">
-      <h1 class="text-2xl text-[#232323] font-bold">Riwayat Presensi</h1>
+       <h1 class="text-2xl font-bold transition-colors duration-300"
+      :class="themeStore.isDark ? 'bg-neutral-900' : 'bg-gray-50'">Riwayat Presensi</h1>
     </n-tab-pane>
   </n-tabs>
 
@@ -32,12 +34,13 @@ import { NTabs, NTabPane } from "naive-ui";
 import Presensi from "@/components/presensi/presensi/Presensi.vue";
 import Riwayat from "@/components/presensi/riwayat/Riwayat.vue";
 import Api from "@/services/Api";
+import { useThemeStore } from "@/stores/ThemeMode";
 
+const loading = ref(false);
+const currentDate = ref("");
 const activeTab = ref("presensi");
 const presensiAktif = ref(null);
-
-const currentDate = ref("");
-const loading = ref(false);
+const themeStore = useThemeStore()
 
 const updateDateTime = () => {
   const now = new Date();
