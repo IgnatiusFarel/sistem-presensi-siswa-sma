@@ -1,5 +1,6 @@
 <template>
-  <h1 class="text-2xl text-[#232323] font-bold mb-4">Daftar Siswa</h1>
+  <h1 class="text-2xl font-bold mb-4 transition-colors duration-300"
+      :class="themeStore.isDark ? 'bg-neutral-900' : 'bg-gray-50'">Daftar Siswa</h1>  
   <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
     <div class="flex gap-2">
       <n-button
@@ -70,6 +71,7 @@ import {
   PhPencilSimple,
   PhMagnifyingGlass,
 } from "@phosphor-icons/vue";
+import { useThemeStore } from "@/stores/ThemeMode";
 
 export default defineComponent({
   name: "TableSiswa",
@@ -96,6 +98,7 @@ export default defineComponent({
     const currentSortState = reactive({});      
     const route = useRoute();
     const router = useRouter();
+    const themeStore = useThemeStore();
     
     const columns = reactive([
       { type: "selection", width: 50 },
@@ -189,7 +192,6 @@ export default defineComponent({
       Object.assign(currentSortState, sorter);
     };
 
-  
   const updateSelectedRows = (val) => {
     selectedRows.value = val;
     emit('update:selectedRows', val);
@@ -228,6 +230,7 @@ export default defineComponent({
       columns,
       loading,
       tableRef,
+      themeStore,
       pagination,
       filteredData,  
       selectedRows,   
