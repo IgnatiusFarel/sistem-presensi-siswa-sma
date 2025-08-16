@@ -1,12 +1,30 @@
 <template>
   <aside
-    class="flex flex-col h-screen px-5 py-8 overflow-y-auto bg-white border-r-1 border-[#C1C2C5] transition-all duration-300"
-    :class="isCollapsed ? 'w-[72px]' : 'w-[250px]'"
+    class="flex flex-col h-screen px-5 py-8 overflow-y-auto transition-all duration-300 border-r"
+    :class="[
+      isCollapsed ? 'w-[72px]' : 'w-[250px]',
+      theme.isDark
+        ? 'bg-neutral-900 border-neutral-700 text-gray-200'
+        : 'bg-white border-gray-300 text-gray-800',
+    ]"
   >
     <div class="flex items-center justify-between text-4xl font-bold">
-      <span v-show="!isCollapsed">SPSS</span>
-      <button @click="toggleSidebar" class="p-1 hover:bg-blue-100 rounded-lg">
-        <PhSidebarSimple :size="24" class="text-gray-500" />
+      <span
+        v-show="!isCollapsed"
+        :class="theme.isDark ? 'text-white' : 'text-gray-900'"
+      >
+        SPSS
+      </span>
+      <button
+        @click="toggleSidebar"
+        :class="
+          theme.isDark
+            ? 'hover:bg-neutral-800 text-gray-400'
+            : 'hover:bg-gray-100 text-gray-500'
+        "
+        class="p-1 rounded-lg transition-colors"
+      >
+        <PhSidebarSimple :size="24" />
       </button>
     </div>
 
@@ -22,10 +40,18 @@
           <template #trigger>
             <RouterLink
               :to="item.path"
-              class="flex items-center px-3 py-2 text-gray-600 transition-colors duration-300 transform rounded-lg hover:bg-blue-100 hover:text-blue-500"
-              :class="{
-                'bg-blue-200 text-[#2F80ED] font-medium': isActive(item.path),
-              }"
+              :class="[
+                'flex items-center px-3 py-2 transition-colors duration-300 transform rounded-lg',
+                theme.isDark ? 'text-gray-300' : 'text-gray-600',
+                theme.isDark
+                  ? 'hover:bg-neutral-800 hover:text-blue-400'
+                  : 'hover:bg-gray-100 hover:text-blue-500',
+                isActive(item.path)
+                  ? theme.isDark
+                    ? 'bg-blue-900 text-blue-400 font-medium'
+                    : 'bg-blue-100 text-blue-600 font-medium'
+                  : '',
+              ]"
             >
               <component :is="item.icon" :size="20" />
               <span class="mx-2 text-sm font-medium" v-show="!isCollapsed">
@@ -45,8 +71,13 @@
           @select="handleMenuOptionsSelect"
         >
           <div
-            class="flex items-center justify-between border-[#2F80ED] rounded-full bg-blue-200 px-2 py-1 cursor-pointer hover:bg-[#2F80ED] transition-colors"
-            :class="isCollapsed ? 'justify-center' : ''"
+            :class="[
+              'flex items-center border rounded-full px-2 py-1 cursor-pointer transition-colors',
+              isCollapsed ? 'justify-center' : 'justify-between',
+              theme.isDark
+                ? 'border-blue-600 bg-blue-900 hover:bg-blue-800'
+                : 'border-blue-500 bg-blue-100 hover:bg-blue-200',
+            ]"
           >
             <div class="flex items-center gap-x-2">
               <n-avatar
@@ -56,16 +87,26 @@
                 alt="avatar"
               />
               <div class="flex flex-col" v-show="!isCollapsed">
-                <p class="text-sm font-semibold text-[#1E1E1E]">
+                <p
+                  :class="theme.isDark ? 'text-gray-100' : 'text-gray-900'"
+                  class="text-sm font-semibold"
+                >
                   {{ user?.name || user?.email }}
                 </p>
-                <p class="text-xs text-gray-500">
-                  {{ user?.role || Administrator }}
+                <p
+                  :class="theme.isDark ? 'text-gray-400' : 'text-gray-600'"
+                  class="text-xs"
+                >
+                  {{ user?.role || "Administrator" }}
                 </p>
               </div>
             </div>
 
-            <PhCaretUpDown :size="20" v-show="!isCollapsed" />
+            <PhCaretUpDown
+              :size="20"
+              :class="theme.isDark ? 'text-gray-300' : 'text-gray-700'"
+              v-show="!isCollapsed"
+            />
           </div>
         </n-dropdown>
 
@@ -94,7 +135,7 @@
 </template>
 
 <script setup>
-import { ref, h, onMounted } from "vue";
+import { ref, h, onMounted, resolveComponent, computed } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
   PhUser,
@@ -109,9 +150,10 @@ import {
   PhSidebarSimple,
   PhChalkboardSimple,
 } from "@phosphor-icons/vue";
-import { NAvatar, NDropdown, useMessage} from 'naive-ui';
-import { useAuthStore } from "@/stores/Auth";
+import { NAvatar, NDropdown, NModal, NImage, useMessage } from "naive-ui";
 import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/Auth";
+import { useThemeStore } from "@/stores/ThemeMode";
 
 const route = useRoute();
 const router = useRouter();
@@ -119,11 +161,20 @@ const message = useMessage();
 const auth = useAuthStore();
 const { user } = storeToRefs(auth);
 
+const theme = useThemeStore();
 const isCollapsed = ref(false);
-const isDarkTheme = ref(false);
 const isEnglish = ref(false);
 const showProfileModal = ref(false);
 const isNotificationAllowed = ref(false);
+
+// Debug computed properties
+const hasDarkClass = computed(() => {
+  return document.documentElement.classList.contains("dark");
+});
+
+const bodyClasses = computed(() => {
+  return document.body.className;
+});
 
 const collapseBreakpoint = 768;
 function handleResize() {
@@ -137,6 +188,10 @@ function handleResize() {
 onMounted(() => {
   handleResize();
   window.addEventListener("resize", handleResize);
+
+  // Debug logs
+  console.log("Sidebar mounted - Theme isDark:", theme.isDark);
+  console.log("HTML classList:", document.documentElement.classList.toString());
 });
 
 const menuItems = [
@@ -167,12 +222,15 @@ const menuOptions = [
             h(
               resolveComponent("n-switch"),
               {
-                "onUpdate:value": (v) => (isDarkTheme.value = v),
-                value: isDarkTheme.value,
+                "onUpdate:value": (v) => {
+                  console.log("Theme switch clicked:", v);
+                  theme.isDark = v;
+                },
+                value: theme.isDark,
                 size: "small",
               },
               {
-                icon: () => (isDarkTheme.value ? "🌙" : "☀️"),
+                icon: () => (theme.isDark ? "🌙" : "☀️"),
               }
             ),
           ]),
@@ -198,29 +256,35 @@ const menuOptions = [
     ],
   },
   {
+    label: "Notifikasi",
     key: "notifikasi",
-    label: () =>
-      h(
-        "div",
-        {
-          class: "flex  items-center justify-between w-[150px] ",
-          onClick: (e) => e.stopPropagation(),
-        },
-        [
-          h("span", { class: "text-sm" }, "Notifikasi"),
-          h(resolveComponent("n-select"), {
-            value: isNotificationAllowed.value,
-            "onUpdate:value": (v) => (isNotificationAllowed.value = v),
-            options: [
-              { label: "Izinkan", value: true },
-              { label: "Tidak", value: false },
-            ],
-            size: "small",
-            bordered: false,
-          }),
-        ]
-      ),
     icon: () => h(PhBell, { size: 16 }),
+    children: [
+      {
+        label: () =>
+          h(
+            "div",
+            {
+              class: "flex items-center justify-between w-[150px]",
+              onClick: (e) => e.stopPropagation(),
+            },
+            [
+              h("span", { class: "text-sm" }, "Notifikasi"),
+              h(
+                resolveComponent("n-switch"),
+                {
+                  "onUpdate:value": (v) => (isNotificationAllowed.value = v),
+                  value: isNotificationAllowed.value,
+                  size: "small",
+                },
+                {
+                  icon: () => (isNotificationAllowed.value ? "🔔" : "🔕"),
+                }
+              ),
+            ]
+          ),
+      },
+    ],
   },
   {
     label: () => h("span", { class: "text-red-500" }, "Keluar"),
@@ -249,4 +313,3 @@ const handleMenuOptionsSelect = (key) => {
   }
 };
 </script>
-
