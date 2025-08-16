@@ -1,9 +1,13 @@
 <template>
-  <div class="max-w-xl mx-auto p-6 min-h-screen">
+  <div
+    class="max-w-xl mx-auto p-6 min-h-screen transition-colors duration-300"
+    :class="themeStore.isDark ? 'bg-neutral-900' : 'bg-white'"
+  >
     <n-button
       text
       type="primary"
-      class="!text-[#1E1E1E] !mb-4 !text-sm !underline"
+      class="!mb-4 !text-sm !underline transition-colors duration-300"
+      :class="themeStore.isDark ? '!text-blue-400' : '!text-gray-800'"
       @click="$emit('back-to-table')"
     >
       <template #icon>
@@ -12,8 +16,18 @@
       Kembali ke Halaman Daftar Berita
     </n-button>
 
-    <div class="bg-white rounded-lg p-6 border border-[#C1C2C5]">
-      <h1 class="text-3xl font-bold text-[#1E1E1E] mb-8 text-center">
+    <div
+      class="rounded-lg p-6 border transition-all duration-300"
+      :class="
+        themeStore.isDark
+          ? 'bg-neutral-800 border-neutral-700'
+          : 'bg-white border-gray-200'
+      "
+    >
+      <h1
+        class="text-3xl font-bold mb-8 text-center transition-colors duration-300"
+        :class="themeStore.isDark ? 'text-white' : 'text-gray-900'"
+      >
         Tambah Data Berita
       </h1>
 
@@ -49,43 +63,69 @@
             list-type="image"
             accept="image/*"
           >
-            <n-upload-dragger>
-              <div style="margin-bottom: 12px">
-                <n-icon
-                  :component="PhFileArrowUp"
-                  :size="48"
-                  class="text-gray-400"
+            <n-upload-dragger
+              class="border-2 border-dashed rounded-md transition-all duration-300 p-6"
+              :class="
+                themeStore.isDark
+                  ? 'border-neutral-600 hover:border-blue-500 hover:bg-neutral-700'
+                  : 'border-gray-400 hover:border-blue-500 hover:bg-gray-50'
+              "
+            >
+              <div class="py-6 flex flex-col items-center justify-center">
+                <img
+                  src="@/assets/image.png"
+                  alt="Upload Image Icon"
+                  class="w-12 h-12"
                 />
-              </div>
-              <p class="text-gray-600">
-                Drag file ke sini atau
-                <span class="text-[#1E1E1E] font-medium"
-                  >klik untuk upload</span
+
+                <p
+                  class="transition-colors duration-300"
+                  :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'"
                 >
-              </p>
-              <p class="text-sm text-gray-500 mt-1">
-                Maksimal ukuran file 10MB (.jpeg, .jpg, .png)
-              </p>
-              <p class="text-sm text-gray-500 mt-1">
-                Upload Dokumentasi / Gambar Sebagai Thumbnail
-              </p>
+                  Drag file ke sini atau
+                  <span
+                    class="font-medium transition-colors duration-300"
+                    :class="
+                      themeStore.isDark ? 'text-blue-400' : 'text-gray-800'
+                    "
+                  >
+                    klik untuk upload
+                  </span>
+                </p>
+                <p
+                  class="text-sm mt-1 transition-colors duration-300"
+                  :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'"
+                >
+                  Maksimal ukuran file 10MB (.jpeg, .jpg, .png)
+                </p>
+                <p
+                  class="text-sm mt-1 transition-colors duration-300"
+                  :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'"
+                >
+                  Upload Dokumentasi / Gambar Sebagai Thumbnail
+                </p>
+              </div>
             </n-upload-dragger>
           </n-upload>
         </n-form-item>
 
-        <RichTextEditor v-model="formData.konten" class="mb-6" />
+        <n-form-item label="Konten" path="konten">
+          <RichTextEditor v-model="formData.konten" contentType="html" />
+        </n-form-item>
 
-        <n-button
-          type="primary"
-          block
-          attr-type="submit"
-          @click="handleSubmit"
-          :loading="loading"
-          :disabled="loading"
-          class="transition-transform transform active:scale-95"
-        >
-          Tambah
-        </n-button>
+        <n-form-item>
+          <n-button
+            type="primary"
+            block
+            attr-type="submit"
+            @click="handleSubmit"
+            :loading="loadingSubmit"
+            :disabled="loadingSubmit"
+            class="transition-transform transform active:scale-95"
+          >
+            {{ loadingSubmit ? "Menambahkan..." : "Tambah" }}
+          </n-button>
+        </n-form-item>
       </n-form>
     </div>
   </div>
@@ -98,11 +138,14 @@ import { useMessage } from "naive-ui";
 import Api from "@/services/Api";
 import RichTextEditor from "@/components/ui/RichTextEditor.vue";
 import { useAuthStore } from "@/stores/auth";
+import { useThemeStore } from "@/stores/ThemeMode";
 
 const loading = ref(false);
+const loadingSubmit = ref(false);
 const formRef = ref(null);
 const message = useMessage();
 const auth = useAuthStore();
+const themeStore = useThemeStore();
 const emit = defineEmits(["back-to-table", "refresh"]);
 
 const rules = {
@@ -154,7 +197,7 @@ const formData = ref({
 });
 
 function handleUploadChange({ fileList }) {
-  if (fileList.length > 0) {    
+  if (fileList.length > 0) {
     formData.value.thumbnail = fileList[0].file;
   } else {
     formData.value.thumbnail = null;
@@ -162,20 +205,21 @@ function handleUploadChange({ fileList }) {
 }
 
 function handleBeforeUpload({ file }) {
-  const isAllowedType = ["image/jpeg","image/jpg","image/png"].includes(file.type); 
-  const isLimitSize = file.file.size / 1024 / 1024 < 10; 
+  const isAllowedType = ["image/jpeg", "image/jpg", "image/png"].includes(
+    file.type
+  );
+  const isLimitSize = file.file.size / 1024 / 1024 < 10;
 
   if (!isAllowedType) {
     message.error("Tipe file tidak didukung!");
-    return false; 
+    return false;
   }
 
   if (!isLimitSize) {
     message.error("Ukuran file harus kurang dari 10MB!");
-    return false; 
+    return false;
   }
-
-  return true; 
+  return true;
 }
 
 const handleSubmit = async (e) => {
@@ -193,9 +237,9 @@ const handleSubmit = async (e) => {
 };
 
 const handleSave = async () => {
-  loading.value = true;
+  loadingSubmit.value = true;
   try {
-   const payload = new FormData();
+    const payload = new FormData();
     payload.append("judul", formData.value.judul);
     payload.append("slug", formData.value.slug);
     payload.append("kategori", formData.value.kategori);
@@ -217,7 +261,7 @@ const handleSave = async () => {
   } catch (error) {
     message.error("Data berita gagal ditambahkan!");
   } finally {
-    loading.value = false;
+    loadingSubmit.value = false;
   }
 };
 </script>
