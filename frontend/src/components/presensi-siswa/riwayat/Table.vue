@@ -1,6 +1,9 @@
 <template>
   <main class="px-5">
-    <h1 class="text-2xl text-[#232323] font-bold mb-4">
+    <h1
+      class="text-2xl font-bold transition-colors duration-300 mb-3"
+      :class="themeStore.isDark ? 'bg-neutral-900' : 'bg-gray-50'"
+    >
       Data Riwayat Presensi Kamu
     </h1>
 
@@ -9,21 +12,22 @@
       :columns="columns"
       :data="dataTable"
       :loading="loading"
-      :pagination="pagination"      
+      :pagination="pagination"
       @update:sorter="handleSorterChange"
     />
   </main>
 </template>
 
 <script>
-import { defineComponent, reactive, ref, onMounted, h } from 'vue';
-import { NTag, NIcon, NSpin } from 'naive-ui';
+import { defineComponent, reactive, ref, onMounted, h } from "vue";
+import { NTag, NIcon, NSpin } from "naive-ui";
 import { useRoute, useRouter } from "vue-router";
-import { PhMagnifyingGlass, PhPlay } from '@phosphor-icons/vue';
+import { PhMagnifyingGlass, PhPlay } from "@phosphor-icons/vue";
 import Api from "@/services/Api.js";
+import { useThemeStore } from "@/stores/ThemeMode";
 
 export default defineComponent({
-   name: "TableRiwayatPresensi",
+  name: "TableRiwayatPresensi",
   props: {
     data: {
       type: Array,
@@ -41,24 +45,25 @@ export default defineComponent({
     const dataTable = ref([]);
     const route = useRoute();
     const router = useRouter();
+    const themeStore = useThemeStore()
 
     const statusConfig = {
-      Izin: { type: 'warning' },
-      Alpha: { type: 'info' },      
-      Hadir: { type: 'success' },
-      Sakit: { type: 'error' },
+      Izin: { type: "warning" },
+      Alpha: { type: "info" },
+      Hadir: { type: "success" },
+      Sakit: { type: "error" },
     };
 
     const statusColumn = reactive({
-      title: 'Status',
-      key: 'status',
+      title: "Status",
+      key: "status",
       width: 150,
       filterOptions: [
-        { label: 'Izin', value: 'Izin' },
-        { label: 'Hadir', value: 'Hadir' },
-        { label: 'Terlambat', value: 'Terlambat' },
-        { label: 'Sakit', value: 'Sakit' },
-        { label: 'Alpha', value: 'Alpha' },
+        { label: "Izin", value: "Izin" },
+        { label: "Hadir", value: "Hadir" },
+        { label: "Terlambat", value: "Terlambat" },
+        { label: "Sakit", value: "Sakit" },
+        { label: "Alpha", value: "Alpha" },
       ],
       filter: (value, row) => row.status === value,
       render(row) {
@@ -69,9 +74,9 @@ export default defineComponent({
           NTag,
           {
             style: {
-              'border-radius': '8px',
-              width: '120px',
-              height: '30px',
+              "border-radius": "8px",
+              width: "120px",
+              height: "30px",
             },
             ...(config.type ? { type: config.type } : {}),
           },
@@ -91,15 +96,15 @@ export default defineComponent({
         },
       },
       {
-        title: 'Tanggal',
-        key: 'tanggal',
+        title: "Tanggal",
+        key: "tanggal",
         width: 200,
         sorter: (a, b) => new Date(a.tanggal) - new Date(b.tanggal),
       },
       {
-        title: 'Jam Masuk',
-        key: 'jam_masuk',
-        width: 100, 
+        title: "Jam Masuk",
+        key: "jam_masuk",
+        width: 100,
         render(row) {
           return row.jam_masuk || "-";
         },
@@ -107,7 +112,7 @@ export default defineComponent({
       statusColumn,
     ]);
 
-   const pagination = reactive({
+    const pagination = reactive({
       page: Number(route.query.page) || 1,
       pageSize: Number(route.query.pageSize) || 10,
       showSizePicker: true,
@@ -133,19 +138,19 @@ export default defineComponent({
     const fetchData = async () => {
       loading.value = true;
       try {
-        const response = await Api.get('/presensi-siswa')
-        dataTable.value = response.data.data
+        const response = await Api.get("/presensi-siswa");
+        dataTable.value = response.data.data;
       } catch (error) {
-        console.error(error)
-      } finally { 
-        loading.value = false; 
+        console.error(error);
+      } finally {
+        loading.value = false;
       }
-    }
+    };
 
-     onMounted(() => {
+    onMounted(() => {
       fetchData();
     });
-  
+
     onMounted(() => {
       setTimeout(() => {
         loading.value = false;
@@ -159,7 +164,8 @@ export default defineComponent({
       loading,
       tableRef,
       dataTable,
-      pagination,      
+      pagination,
+      themeStore,
       handleSorterChange,
     };
   },
