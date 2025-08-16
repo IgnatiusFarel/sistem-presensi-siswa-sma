@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\KomentarBeritaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AIController;
 use App\Http\Controllers\AuthController;
@@ -123,10 +124,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/berita', [DaftarBeritaController::class, 'index']);
 
         // 📁 Komentar Berita
-        // Route::prefix('komentar')->controller(KomentarBeritaController::class)->group(function() {
-        //     Route::get('/', 'index');
-        //     Route::post('/', 'store');
-        // });
+        Route::prefix('komentar')->controller(KomentarBeritaController::class)->group(function() {
+        Route::get('/{id}', 'index');
+        Route::post('/', 'store');
+        Route::delete('/{id}', 'destroy');
+    });
         
     });    
 });
