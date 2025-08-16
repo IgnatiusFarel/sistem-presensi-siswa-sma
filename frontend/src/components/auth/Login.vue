@@ -1,12 +1,33 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+  <div
+    class="min-h-screen flex items-center justify-center px-4 transition-colors duration-300"
+    :class="themeStore.isDark ? 'bg-neutral-900' : 'bg-gray-50'"
+  >
     <div
-      class="w-full max-w-[400px] bg-white rounded-2xl shadow-lg overflow-hidden"
+      class="w-full max-w-[400px] rounded-2xl shadow-lg overflow-hidden transition-all duration-300"
+      :class="
+        themeStore.isDark ? 'bg-neutral-800 shadow-2xl' : 'bg-white shadow-lg'
+      "
     >
       <div class="py-2 px-6 text-center space-y-2">
-        <h1 class="text-4xl font-extrabold text-gray-800">SPSS</h1>
-        <p class="text-gray-500">Sistem Presensi Siswa SMA</p>
-        <h3 class="text-2xl font-semibold text-gray-700">Masuk</h3>
+        <h1
+          class="text-4xl font-extrabold transition-colors duration-300"
+          :class="themeStore.isDark ? 'text-white' : 'text-gray-800'"
+        >
+          SPSS
+        </h1>
+        <p
+          class="transition-colors duration-300"
+          :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'"
+        >
+          Sistem Presensi Siswa SMA
+        </p>
+        <h3
+          class="text-2xl font-semibold transition-colors duration-300"
+          :class="themeStore.isDark ? 'text-gray-200' : 'text-gray-700'"
+        >
+          Masuk
+        </h3>
       </div>
 
       <n-form
@@ -19,7 +40,12 @@
       >
         <n-form-item label="Email" path="email">
           <template #label>
-            <span class="block text-sm font-medium text-gray-700">Email</span>
+            <span
+              class="block text-sm font-medium transition-colors duration-300"
+              :class="themeStore.isDark ? 'text-gray-200' : 'text-gray-700'"
+            >
+              Email
+            </span>
           </template>
           <n-input
             v-model:value="formData.email"
@@ -31,7 +57,8 @@
               <n-icon
                 :component="PhEnvelopeSimple"
                 :size="20"
-                class="text-gray-400"
+                class="transition-colors duration-300"
+                :class="themeStore.isDark ? 'text-gray-500' : 'text-gray-400'"
               />
             </template>
           </n-input>
@@ -39,9 +66,12 @@
 
         <n-form-item label="Kata Sandi" path="password">
           <template #label>
-            <span class="block text-sm font-medium text-gray-700"
-              >Kata Sandi</span
+            <span
+              class="block text-sm font-medium transition-colors duration-300"
+              :class="themeStore.isDark ? 'text-gray-200' : 'text-gray-700'"
             >
+              Kata Sandi
+            </span>
           </template>
           <n-input
             v-model:value="formData.password"
@@ -65,21 +95,32 @@
           block
           :loading="loading"
           :disabled="loading"
-           class="transition-transform transform active:scale-95"
+          class="transition-transform transform active:scale-95"
         >
           <span v-if="loading">Memproses...</span>
           <span v-else>Masuk</span>
         </n-button>
       </n-form>
 
-      <div class="px-6 py-4 border-t border-gray-200 text-center">
+      <div
+        class="px-6 py-4 border-t text-center transition-all duration-300"
+        :class="themeStore.isDark ? 'border-neutral-600' : 'border-gray-200'"
+      >
         <a
           href="/perubahan-informasi"
-          class="text-sm text-[#232323] font-medium hover:underline"
+          class="text-sm font-medium hover:underline transition-colors duration-300"
+          :class="
+            themeStore.isDark
+              ? 'text-blue-400 hover:text-blue-300'
+              : 'text-gray-700 hover:text-gray-900'
+          "
         >
           Tidak Bisa Masuk?
         </a>
-        <p class="text-xs text-[#232323] underline">
+        <p
+          class="text-xs underline mt-1 transition-colors duration-300"
+          :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-600'"
+        >
           Hubungi Admin untuk melakukan perubahan informasi data akun
         </p>
       </div>
@@ -91,13 +132,15 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useMessage } from "naive-ui";
-import { useAuthStore } from "@/stores/Auth.js";
+import { useAuthStore } from "@/stores/Auth";
+import { useThemeStore } from "@/stores/ThemeMode";
 import { PhEye, PhEyeSlash, PhEnvelopeSimple } from "@phosphor-icons/vue";
 
 const router = useRouter();
 const message = useMessage();
 const formRef = ref(null);
 const loading = ref(false);
+const themeStore = useThemeStore();
 const authStore = useAuthStore();
 
 const formData = ref({
