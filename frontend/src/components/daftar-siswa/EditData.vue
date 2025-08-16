@@ -1,9 +1,11 @@
 <template>
-  <div class="max-w-xl mx-auto p-6 min-h-screen">
+  <div class="max-w-xl mx-auto p-6 min-h-screen transition-colors duration-300"
+       :class="themeStore.isDark ? 'bg-neutral-900' : 'bg-white'">
     <n-button
       text
       type="primary"
-      class="!text-[#1E1E1E] !mb-4 !text-sm !underline"
+      class="!mb-4 !text-sm !underline transition-colors duration-300"
+      :class="themeStore.isDark ? '!text-blue-400' : '!text-gray-800'"
       @click="$emit('back-to-table')"
     >
       <template #icon>
@@ -12,8 +14,12 @@
       Kembali ke Halaman Daftar Siswa
     </n-button>
 
-    <div class="bg-white rounded-lg p-6 border border-[#C1C2C5]">
-      <h1 class="text-3xl font-bold text-[#1E1E1E] mb-8 text-center">
+     <div class="rounded-lg p-6 border transition-all duration-300"
+         :class="themeStore.isDark 
+           ? 'bg-neutral-800 border-neutral-700' 
+           : 'bg-white border-gray-200'">
+      <h1 class="text-3xl font-bold mb-8 text-center transition-colors duration-300"
+          :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
         Edit Data Siswa
       </h1>
 
@@ -59,6 +65,7 @@
               placeholder="Masukkan NIS..."
             />
           </n-form-item>
+
           <n-form-item label="NISN" path="nisn">
             <n-input
               :allow-input="onlyAllowNumber"
@@ -66,6 +73,7 @@
               placeholder="Masukkan NISN..."
             />
           </n-form-item>
+
           <n-form-item label="Alamat Email" path="email">
             <n-input
               v-model:value="formData.email"
@@ -113,6 +121,7 @@
               value-field="daftar_kelas_id"
             />
           </n-form-item>
+
           <n-form-item label="Nomor Absen" path="nomor_absen">
             <n-input
               :allow-input="onlyAllowNumber"
@@ -144,12 +153,12 @@
           type="primary"
           block
           attr-type="submit"
-          class="transition-transform transform active:scale-95"
+          :loading="loadingSubmit"
+          :disabled="loadingSubmit"
           @click="handleSubmit"
-          :loading="loading"
-          :disabled="loading"
+          class="transition-transform transform active:scale-95"
         >
-          {{ loading ? "Memproses..." : "Simpan" }}
+          {{ loadingSubmit ? "Menyimpan..." : "Simpan" }}
         </n-button>
       </n-form>
     </div>
@@ -161,12 +170,15 @@ import { defineComponent, onMounted, ref, watch } from "vue";
 import { PhCaretDoubleLeft } from "@phosphor-icons/vue";
 import Api from "@/services/Api";
 import { useMessage } from "naive-ui";
+import { useThemeStore } from "@/stores/ThemeMode";
 import dayjs from "dayjs";
 
 const loading = ref(false);
+const loadingSubmit = ref(false);
 const formRef = ref(null);
 const kelasOptions = ref([]);
 const message = useMessage();
+const themeStore = useThemeStore();
 const onlyAllowNumber = (value) => !value || /^\d+$/.test(value);
 const emit = defineEmits(["back-to-table", "refresh"]);
 
@@ -316,7 +328,7 @@ const handleSubmit = async (e) => {
 };
 
 const handleSave = async () => {
-  loading.value = true;
+  loadingSubmit.value = true;
   try {
     const payload = {
       ...formData.value,
@@ -331,7 +343,7 @@ const handleSave = async () => {
   } catch (error) {
     message.error("Data siswa gagal diperbarui!");
   } finally {
-    loading.value = false;
+    loadingSubmit.value = false;
   }
 };
 
