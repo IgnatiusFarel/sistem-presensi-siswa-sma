@@ -6,7 +6,7 @@
       content-type="html"
       theme="snow"
       style="height: 400px"
-      placeholder="Tulis sesuatu di sini..."
+      placeholder="Tuliskan isi konten berita di sini..."
       @ready="onEditorReady"
     />
   </div>
@@ -165,5 +165,38 @@ const onEditorReady = (quill) => {
 .rich-text-editor :deep(.ql-container) {
   border: none;
   font-size: 14px;
+}
+
+.dark .rich-text-editor {
+  border: 1px solid #444;
+}
+
+.dark .rich-text-editor :deep(.ql-toolbar) {
+  background-color: #2a2a2a;
+  border-bottom: 1px solid #444;
+}
+
+.dark .rich-text-editor :deep(.ql-container) {
+  background-color: #1e1e1e;
+  color: #f1f1f1;
+}
+
+.dark .rich-text-editor :deep(.ql-editor) {
+  background-color: #1e1e1e;
+  color: #f1f1f1;
+}
+
+.dark .rich-text-editor :deep(.ql-editor.ql-blank::before) {
+  color: #aaa; /* placeholder */
+}
+
+.dark .rich-text-editor :deep(.ql-snow .ql-stroke) {
+  stroke: #fff !important;
+}
+.dark .rich-text-editor :deep(.ql-snow .ql-fill) {
+  fill: #fff !important;
+}
+.dark .rich-text-editor :deep(.ql-snow .ql-picker-label) {
+  color: #fff !important;
 }
 </style>
