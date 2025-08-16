@@ -1,9 +1,13 @@
 <template>
-  <div class="max-w-xl mx-auto p-6 min-h-screen">
+  <div
+    class="max-w-xl mx-auto p-6 min-h-screen transition-colors duration-300"
+    :class="themeStore.isDark ? 'bg-neutral-900' : 'bg-white'"
+  >
     <n-button
       text
       type="primary"
-      class="!text-[#1E1E1E] !mb-4 !text-sm !underline"
+      class="!mb-4 !text-sm !underline transition-colors duration-300"
+      :class="themeStore.isDark ? '!text-blue-400' : '!text-gray-800'"
       @click="$emit('back-to-table')"
     >
       <template #icon>
@@ -12,8 +16,18 @@
       Kembali ke Halaman Daftar Kelas
     </n-button>
 
-    <div class="bg-white rounded-lg p-6 border border-[#C1C2C5]">
-      <h1 class="text-3xl font-bold text-[#1E1E1E] mb-8 text-center">
+    <div
+      class="rounded-lg p-6 border transition-all duration-300"
+      :class="
+        themeStore.isDark
+          ? 'bg-neutral-800 border-neutral-700'
+          : 'bg-white border-gray-200'
+      "
+    >
+      <h1
+        class="text-3xl font-bold mb-8 text-center transition-colors duration-300"
+        :class="themeStore.isDark ? 'text-white' : 'text-gray-900'"
+      >
         Edit Data Kelas
       </h1>
 
@@ -25,6 +39,7 @@
               placeholder="Masukkan Kode Kelas..."
             />
           </n-form-item>
+
           <n-form-item label="Nama Kelas" path="nama_kelas">
             <n-input
               v-model:value="formData.nama_kelas"
@@ -39,6 +54,7 @@
               placeholder="Pilih Jurusan..."
             />
           </n-form-item>
+
           <n-form-item label="Tingkat" path="tingkat">
             <n-select
               v-model:value="formData.tingkat"
@@ -64,17 +80,17 @@
         </div>
 
         <n-button
-         type="primary"
+          type="primary"
           block
-          attr-type="submit"  
+          attr-type="submit"
+          :loading="loadingSubmit"
+          :disabled="loadingSubmit"
           @click="handleSubmit"
-          :loading="loading"
-          :disabled="loading"
           class="transition-transform transform active:scale-95"
         >
-          Simpan
+          {{ loadingSubmit ? "Menyimpan..." : "Simpan" }}
         </n-button>
-      </n-form>  
+      </n-form>
     </div>
   </div>
 </template>
@@ -83,17 +99,20 @@
 import { defineComponent, ref, onMounted, watch } from "vue";
 import { PhCaretDoubleLeft } from "@phosphor-icons/vue";
 import Api from "@/services/Api";
-import { useMessage } from "naive-ui"
+import { useMessage } from "naive-ui";
+import { useThemeStore } from "@/stores/ThemeMode";
 
 const loading = ref(false);
+const loadingSubmit = ref(false);
 const formRef = ref(null);
 const waliKelasOptions = ref([]);
 const message = useMessage();
-const emit = defineEmits(['back-to-table', 'refresh']);
+const themeStore = useThemeStore();
+const emit = defineEmits(["back-to-table", "refresh"]);
 
 const props = defineProps({
-  editData: Object 
-})
+  editData: Object,
+});
 
 const jurusanOptions = [
   { value: "IPA", label: "IPA" },
@@ -176,7 +195,7 @@ const handleSubmit = async (e) => {
 };
 
 const handleSave = async () => {
-  loading.value = true;
+  loadingSubmit.value = true;
   try {
     const payload = {
       ...formData.value,
@@ -189,7 +208,7 @@ const handleSave = async () => {
     message.error("Data kelas gagal diperbarui!");
     console.error("Error:", error);
   } finally {
-    loading.value = false;
+    loadingSubmit.value = false;
   }
 };
 
@@ -208,18 +227,22 @@ const fetchDataWaliKelas = async () => {
   }
 };
 
-watch(() => props.editData, (newVal) => {
-  if (newVal) {    
-    formData.value = {
-      kode_kelas: newVal.kode_kelas,
-      nama_kelas: newVal.nama_kelas,
-      jurusan: newVal.jurusan,
-      tingkat: newVal.tingkat,
-      daftar_pengurus_id: newVal.daftar_pengurus_id,
-      tahun_ajaran: newVal.tahun_ajaran,      
-    };
-  }
-}, { immediate: true });
+watch(
+  () => props.editData,
+  (newVal) => {
+    if (newVal) {
+      formData.value = {
+        kode_kelas: newVal.kode_kelas,
+        nama_kelas: newVal.nama_kelas,
+        jurusan: newVal.jurusan,
+        tingkat: newVal.tingkat,
+        daftar_pengurus_id: newVal.daftar_pengurus_id,
+        tahun_ajaran: newVal.tahun_ajaran,
+      };
+    }
+  },
+  { immediate: true }
+);
 
 onMounted(() => {
   fetchDataWaliKelas();
